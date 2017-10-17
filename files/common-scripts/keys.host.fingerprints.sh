@@ -38,7 +38,9 @@ DIMS_VERSION=2.12.0
 # normal dims_functions.sh and shflags includes are not yet available.
 # This means just minimal standard Bash functionality should be used.
 
+# See also:
 # $PBR/ansible-dims-playbooks/roles/bootstrap/tasks/info.yml
+# https://fullmetalhealth.com/spin-off-ansible-ssh-bastion-host-dynamic-infrastructure-aws-gathering-ssh-public-key-aws-system-log/
 
 function get_hostname()
 {
