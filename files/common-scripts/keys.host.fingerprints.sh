@@ -60,6 +60,11 @@ fi
 
 echo "SSH_HOST=$(get_hostname)"
 
+for KEY in /etc/ssh/ssh_host_{ecdsa,dsa}_key; do
+    echo "Removing undesired SSH keys: ${KEY}"
+    rm -f ${KEY} ${KEY}.pub
+done
+
 echo "----- BEGIN SSH HOST KEY FINGERPRINTS -----"
 for KEY in /etc/ssh/ssh_host_*_key.pub
 do
