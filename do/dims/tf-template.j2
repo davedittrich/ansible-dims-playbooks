@@ -1,0 +1,33 @@
+resource "digitalocean_droplet" "{{ item.name }}" {
+    image = "{{ item.image_id }}"
+    name = "{{ item.name }}.devops.do"
+    region = "{{ item.region }}"
+    size = "{{ item.size|default('512mb') }}"
+    private_networking = true
+    ssh_keys = [
+      "${var.ssh_fingerprint}"
+    ]
+  connection {
+      user = "root"
+      type = "ssh"
+      private_key = "${file(var.pvt_key)}"
+      timeout = "2m"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "export PATH=$PATH:/usr/bin",
+      # install nginx
+      "sudo apt-get update",
+    ]
+  }
+  provisioner "file" {
+    source      = "../../files/common-scripts/keys.host.fingerprints.sh"
+    destination = "/tmp/script.sh"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/script.sh",
+      "/tmp/script.sh",
+    ]
+  }
+}

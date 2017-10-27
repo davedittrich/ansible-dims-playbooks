@@ -1,0 +1,25 @@
+---
+
+# File: do/create-tf.yml
+
+- name: 'Generate .tf files for groups.do'
+  vars:
+    - playbooks_root: '{{ lookup("env", "PBR") }}'
+  vars_files:
+    - '{{ playbooks_root }}/vars/global.yml'
+  hosts: '{{ host|default("do") }}'
+  gather_facts: True
+
+  tasks:
+
+  - debug: var=vars
+
+  - name: "Template {{ hostvars[item].data.inventory_hostname }} .tf file"
+    template:
+      src: 'tf-template.j2'
+      dest: '{{ lookup("pipe", "pwd") }}/{{ item.name }}.tf'
+    with_items:
+      - '{{ droplets }}'
+    delegate_to: localhost
+
+# vim: ft=ansible :

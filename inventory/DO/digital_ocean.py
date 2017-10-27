@@ -365,16 +365,18 @@ or environment variables (DO_API_TOKEN)''')
             if 'private_networking' in droplet['features'] and not self.use_private_network:
                 for net in droplet['networks']['v4']:
                     if net['type']=='public':
-                        dest=net['ip_address']
+                        dest_ip=net['ip_address']
+                        dest=droplet['name']
                     else:
                         continue
             else:
-                dest = droplet['ip_address']
+                dest_ip = droplet['ip_address']
+                dest = droplet['name']
 
             self.inventory['all']['hosts'].append(dest)
 
             self.inventory[droplet['id']] = [dest]
-            self.inventory[droplet['name']] = [dest]
+            self.inventory[droplet['ip_address']] = [dest]
 
             # groups that are always present
             for group in [
