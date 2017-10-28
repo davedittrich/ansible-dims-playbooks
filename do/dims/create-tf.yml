@@ -8,7 +8,7 @@
   vars_files:
     - '{{ playbooks_root }}/vars/global.yml'
   hosts: '{{ host|default("do") }}'
-  gather_facts: True
+  gather_facts: False
 
   tasks:
 
