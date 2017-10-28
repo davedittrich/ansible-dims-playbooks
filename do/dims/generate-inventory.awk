@@ -104,5 +104,5 @@ END {
 			}
 		}
 	}
-    printf "\n\# vim\: ft=ansible \:\n"
+    printf "\n" "# vim" ": ft=ansible \:\n"
 }
