@@ -18,12 +18,18 @@ help:
 	@echo " addkeys - adds SSH host public keys to selected known_hosts files"
 	@echo " removekeys - removes SSH host public keys from selected known_hosts files"
 	@echo " dumpvars - produces Ansible debug output of vars for hosts in group 'do'"
+	@echo " images - lists available digitalocean images"
+	@echo " test - run pre-requisite tests for using terraform with digitalocean"
 	@echo ""
 	@echo " The default if you just type 'make' is the same as 'make pdf'"
 
 .PHONY: hosts
 hosts:
 	@ansible -i $(INVENTORY)/DO/digital_ocean.py --list-hosts all|sed 's/ *//g'|tail -n +2
+
+.PHONY: images
+images:
+	curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" | python -m json.tool | less
 
 .PHONY: templates
 templates:
@@ -65,6 +71,10 @@ dumpvars:
 .PHONY: ping
 ping:
 	ansible -i $(INVENTORY) -m ping do
+
+.PHONY: test
+test:
+	bats do.bats
 
 .PHONY: destroy
 destroy:
