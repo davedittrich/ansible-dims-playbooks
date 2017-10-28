@@ -34,7 +34,12 @@
 # extracts information necessary for subsequent Ansible playbooks by
 # generating the top level "hosts:" block for a YAML inventory file.
 
-BEGIN { SUBSEP="@"; FS=" "; domain="devops.do"; debug=0;}
+BEGIN {
+    SUBSEP="@";
+    FS=" ";
+    domain="devops.do";
+    debug=0;
+}
 
 # Toggles to determine whether public keys or fingerprints of
 # keys are being exported from droplets when terraform creates
@@ -69,7 +74,7 @@ END {
     printf "droplets:\n"
     printf "  hosts:\n", h
 	for (h in ip_addr) {
-		printf "    '%s.%s':\n", h, domain
+		printf "    '%s.%s':\n", h, domain;
 		printf "      ansible_host: '%s'\n", ip_addr[h];
 		printf "      ssh_host_public_keys:\n";
 		for (combined in ssh_pubkey) {
@@ -99,5 +104,5 @@ END {
 			}
 		}
 	}
-    printf "\n# vim: ft=ansible :\n"
+    printf "\n\# vim\: ft=ansible \:\n"
 }
