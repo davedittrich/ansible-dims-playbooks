@@ -1,3 +1,6 @@
+DIMS Build Out on Digital Ocean
+===============================
+
 This directory contains helper scripts for generating terraform plans to
 create droplets in Digital Ocean. These droplets can then be provisioned
 using ansible-dims-playbooks playbooks and inventory files.
