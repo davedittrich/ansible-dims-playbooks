@@ -8,6 +8,7 @@ help:
 	@echo "Usage: make [something]"
 	@echo ""
 	@echo "Where 'something' is one of these:"
+	@echo " init - initialize terraform state (this is automatic)"
 	@echo " hosts - show list of hosts in group 'do'"
 	@echo " plan - show the terraform plan for the current state"
 	@echo " templates - generate terraform .tf templates for hosts in group 'do'"
@@ -23,6 +24,12 @@ help:
 	@echo ""
 	@echo " The default if you just type 'make' is the same as 'make pdf'"
 
+.PHONY: init
+init: terraform.tfstate
+
+terraform.tfstate:
+	terraform init
+
 .PHONY: hosts
 hosts:
 	@ansible -i $(INVENTORY)/DO/digital_ocean.py --list-hosts all|sed 's/ *//g'|tail -n +2
@@ -36,7 +43,7 @@ templates:
 	-ansible-playbook -i $(INVENTORY) -vvvv create-tf.yml
 
 .PHONY: plan
-plan:
+plan: init
 	terraform plan
 
 .PHONY: graph
@@ -45,11 +52,11 @@ graph: graph.png
 	@[ "$(shell uname -s)" == "Linux" && ! -z "$(which evince)" ] && evince graph.png &
 	@[ "$(shell uname -s)" == "Linux" && ! -z "$(which xdg-open)" ] && xdg-open graph.png &
 
-graph.png:
+graph.png: init
 	terraform graph | dot -Tpng -o graph.png
 
 .PHONY: create
-create: templates
+create: init templates
 	terraform apply | tee terraform.log
 	$(MAKE) hosts | awk -f generate-inventory.awk < terraform.log > $(INVENTORY)/DO/nodes-droplets.yml
 	$(MAKE) addkeys
@@ -86,3 +93,4 @@ destroy:
 .PHONY: spotless
 spotless:
 	$(MAKE) hosts | parallel 2>/dev/null echo rm -f {}
+	rm -f terraform.tfstate terraform.tfstate.backup
