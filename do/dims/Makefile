@@ -55,10 +55,14 @@ graph: graph.png
 graph.png: init
 	terraform graph | dot -Tpng -o graph.png
 
+.PHONY: inventory
+inventory:
+	$(MAKE) hosts | awk -f generate-inventory.awk < terraform.log > $(INVENTORY)/DO/nodes-droplets.yml
+
 .PHONY: create
 create: init templates
 	terraform apply | tee terraform.log
-	$(MAKE) hosts | awk -f generate-inventory.awk < terraform.log > $(INVENTORY)/DO/nodes-droplets.yml
+	$(MAKE) inventory
 	$(MAKE) addkeys
 	$(MAKE) dumpvars
 	$(MAKE) ping
