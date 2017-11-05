@@ -131,7 +131,7 @@ vagrants:
         'red.devops.local':
         'yellow.devops.local':
         'purple.devops.local':
-    coreos-vagrant:
+    coreos_vagrant:
       hosts:
         'core-01':
           ansible_host: '127.0.0.1'

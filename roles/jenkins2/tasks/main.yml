@@ -32,7 +32,7 @@
     append: yes
     groups: jenkins
   become: yes
-  when: "groups['ci-server'] is defined and inventory_hostname in groups['ci-server']"
+  when: "groups['ci_server'] is defined and inventory_hostname in groups['ci_server']"
   tags: [ jenkins2 ]
 
 # Install bats tests first so we can use them to validate

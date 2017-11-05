@@ -1,13 +1,13 @@
 ---
 
 # Example playbook from geerlingguy/ansible-role-jenkins
-# - hosts: ci-server
+# - hosts: ci_server
 #   vars:
 #     jenkins_hostname: jenkins.devops.local
 #   roles:
 #     - ansible-role-jenkins
 
-ci-server:
+ci_server:
   vars:
     jenkins_repo_url: "deb https://pkg.jenkins.io/debian-stable binary/"
     jenkins_repo_key_url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
