@@ -18,20 +18,20 @@
     ! bash -c "make images | grep 'Unable to authenticate you'"
 }
 
-@test "[S][EV] TF_VAR_pub_key (terraform .tf) is defined in environment" {
-    [ ! -z "$TF_VAR_pub_key" ]
+@test "[S][EV] TF_VAR_public_key (terraform .tf) is defined in environment" {
+    [ ! -z "$TF_VAR_public_key" ]
 }
 
-@test "[S][EV] File pointed to by TF_VAR_pub_key exists and is readable" {
-    [ -r "$TF_VAR_pub_key" ]
+@test "[S][EV] File pointed to by TF_VAR_public_key exists and is readable" {
+    [ -r "$TF_VAR_public_key" ]
 }
 
-@test "[S][EV] TF_VAR_pvt_key (terraform .tf) is defined in environment" {
-    [ ! -z "$TF_VAR_pvt_key" ]
+@test "[S][EV] TF_VAR_private_key (terraform .tf) is defined in environment" {
+    [ ! -z "$TF_VAR_private_key" ]
 }
 
-@test "[S][EV] File pointed to by TF_VAR_pvt_key exists and is readable" {
-    [ -r "$TF_VAR_pvt_key" ]
+@test "[S][EV] File pointed to by TF_VAR_private_key exists and is readable" {
+    [ -r "$TF_VAR_private_key" ]
 }
 
 @test "[S][EV] TF_VAR_ssh_fingerprint (terraform .tf) is defined in environment" {
