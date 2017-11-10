@@ -592,6 +592,11 @@
   when: ansible_os_family == "Debian"
   tags: [ base, config, dns ]
 
+- name: Stat /etc/NetworkManager exists
+  stat:
+    path: '/etc/NetworkManager'
+  register: _nm_stat
+
 - name: Make appropriate NetworkManager configruation present
   template:
     src: '{{ item }}'
@@ -611,7 +616,9 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/NetworkManager/'
         - NetworkManager/
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and
+        _nm_stat is defined and
+        _nm_stat.stat.exists
   ignore_errors: true
   tags: [ base, config ]
 
