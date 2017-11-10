@@ -4,9 +4,9 @@
 
 vagrants:
   vars:
-    ansible_user: 'root'
-    ansible_port: 22
-    ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }}') }}"
+    #ansible_user: 'root'
+    #ansible_port: 22
+    #ansible_ssh_private_key_file: "{{ lookup('dims_function', 'get_ssh_private_key_file {{ ansible_user }}') }}"
     artifacts_url: 'file:///home/ansible/sources'
     # Set this variable for all vagrants
     box_name: "{{ lookup('dims_function', 'get_packer_box_name {{ box_osnick }} {{ box_osversion }}') }}"
