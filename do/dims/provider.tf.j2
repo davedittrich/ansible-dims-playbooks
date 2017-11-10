@@ -1,0 +1,29 @@
+variable "do_token" {}
+variable "name" { default = "do" }
+variable "domain" { default = "{{ dims_domain }}" }
+variable "ssh_fingerprint" { default = "{{ do_ssh_key_id }}" }
+variable "public_key" {}
+variable "private_key" {}
+
+module "do-keypair" {
+  name = "${var.name}"
+  source = "./keypair"
+  public_key_filename = "~/.ssh/do.pub"
+}
+
+{% for d in droplets %}
+module "node-{{ d.name }}" {
+  source = "./instance/{{ do.module_source|default('generic') }}"
+  name = "{{ d.name }}"
+  domain = "{{ dims_domain }}"
+  region = "{{ d.region }}"
+  keypair_id = "${module.do-keypair.keypair_id}"
+  ssh_fingerprint = "{{ do_ssh_key_id }}"
+  image_name = "{{ d.image_id }}"
+  size = "{{ d.size }}"
+}
+{% endfor %}
+
+provider "digitalocean" {
+  token = "${var.do_token}"
+}

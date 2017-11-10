@@ -1,5 +1,4 @@
-*.tf
-!provider.tf
+provider.tf
 .terraform
 terraform.log
 ansible-digital_ocean.cache
