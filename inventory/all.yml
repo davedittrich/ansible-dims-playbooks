@@ -6,8 +6,6 @@ all:
     os_version: '?'
   hosts:
     'black.devops.local':
-    'blue14.devops.local':
-    'blue16.devops.local':
     'node01.devops.local':
     'node02.devops.local':
     'node03.devops.local':
@@ -15,7 +13,6 @@ all:
     'purple.devops.local':
     'red.devops.local':
     'gray.devops.local':
-    'vmhost.devops.local':
     'yellow.devops.local':
   children:
     production:
@@ -29,14 +26,13 @@ all:
     development:
       hosts:
         'black.devops.local':
-        'blue14.devops.local':
         'purple.devops.local':
     devtest:
       hosts:
         'red.devops.local':
         'orange.devops.local':
         'purple.devops.local':
-        'yellow.devops.local':
+        'blue.devops.local':
     coreos:
       vars:
         ssl_certs_dir: '?'
@@ -106,14 +102,6 @@ all:
       hosts:
         'black.devops.local':
           os_version: '14.04.5'
-        'blue14.devops.local':
-          os_version: '14.04.5'
-        'blue16.devops.local':
-          os_version: '16.04.1'
-        'red.devops.local':
-          os_version: '14.04.5'
-        'orange.devops.local':
-          os_version: '14.04.5'
     debian:
       vars:
         ssl_certs_dir: '/etc/ssl/certs'
@@ -163,6 +151,10 @@ all:
         services_enabled:
           - 'auditd'
       hosts:
+        'red.devops.local':
+          os_version: '8.5.0'
+        'orange.devops.local':
+          os_version: '8.5.0'
         'gray.devops.local':
           os_version: '8.5.0'
         'green.devops.local':
@@ -180,5 +172,44 @@ all:
       vars:
         ssl_certs_dir: '/etc/pki/ca-trust/source/anchors/'
         ssl_key_dir: '/etc/ssl/private'
+        syslog_user: 'root'
+        root_user: 'root'
+        root_group: 'root'
+        packages_install:
+          - 'bash-completion'
+          - 'ca-certificates'
+          - 'chrony'
+          - 'curl'
+          - 'git-core'
+          - 'gitk'
+          - 'gnupg2'
+          - 'htop'
+          - 'hunspell'
+          - 'libxslt'
+          - 'make'
+          - 'nc'
+          - 'ntpdate'
+          - 'openssh-server'
+          - 'patch'
+          - 'perl'
+          - 'perl-XML-Twig'
+          - 'postfix'
+          - 'python'
+          - 'rsync'
+          - 'rsyslog'
+          - 'sshfs'
+          - 'strace'
+          - 'tree'
+          - 'vim'
+        packages_remove:
+          - 'firewalld'
+          - 'modemmanager'
+          - 'resolvconf'
+          - 'sendmail'
+        services_disabled: []
+        services_enabled:
+          - 'auditd'
+      hosts:
+        'blue.devops.local':
 
 # vim: ft=ansible:
