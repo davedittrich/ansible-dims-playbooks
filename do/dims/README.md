@@ -24,7 +24,8 @@ directory.
 
 ```
 $ make hosts
-red.devops.do
-orange.devops.do
-purple.devops.do
+red.devops.local
+orange.devops.local
+purple.devops.local
+blue.devops.local
 ```
