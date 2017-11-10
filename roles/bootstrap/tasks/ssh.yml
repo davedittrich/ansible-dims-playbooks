@@ -7,10 +7,10 @@
     _public_key: '{{ lookup("dims_function", "get_ssh_private_key_file ansible") }}.pub'
   tags: [ bootstrap ]
   when: _public_key is not defined
-  
+
 - name: Ensure ansible public key in authorized_keys
   authorized_key:
-    user: ansible
+    user: '{{ ansible_user }}'
     state: present
     key: '{{ lookup("file", _public_key) }}'
   tags: [ bootstrap ]
