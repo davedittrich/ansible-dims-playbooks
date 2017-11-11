@@ -13,7 +13,7 @@ module "do-keypair" {
 
 {% for d in droplets %}
 module "node-{{ d.name }}" {
-  source = "./instance/{{ do.module_source|default('generic') }}"
+  source = "./instance/{{ d.module_source|default('generic') }}"
   name = "{{ d.name }}"
   domain = "{{ dims_domain }}"
   region = "{{ d.region }}"
