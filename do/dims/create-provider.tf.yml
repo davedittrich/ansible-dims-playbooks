@@ -12,8 +12,6 @@
 
   tasks:
 
-  - debug: var=vars
-
   - name: "Template provider.tf file"
     template:
       src: 'provider.tf.j2'
