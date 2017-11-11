@@ -10,7 +10,7 @@
 
 - name: Ensure PPA for Java 8 is present
   apt_repository:
-    repo: 'ppa:openjdk-r/ppa'
+    repo: '{{ java8_apt_repo }}'
     state: present
     update_cache: yes
   become: yes
@@ -20,10 +20,9 @@
   apt:
     name: '{{ item }}'
     state: latest
+    default_release: '{{ java8_default_release }}'
   with_items:
-    - openjdk-8-jdk
-    - openjdk-8-jre
-    - openjdk-8-jre-headless
+    - '{{ java8_packages }}'
   become: yes
   tags: [ java8, packages ]
 
@@ -33,9 +32,7 @@
     state: absent
     purge: yes
   with_items:
-    - openjdk-7-jre
-    - openjdk-7-jre-headless
-    - openjdk-7-jdk
+    - '{{ java7_packages }}'
   become: yes
   tags: [ java8, packages ]
 
@@ -44,9 +41,7 @@
     name: '{{ item }}'
     selection: hold
   with_items:
-    - openjdk-7-jre
-    - openjdk-7-jre-headless
-    - openjdk-7-jdk
+    - '{{ java7_packages }}'
   become: yes
   tags: [ java8, packages ]
 
