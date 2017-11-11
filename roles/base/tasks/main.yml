@@ -2,6 +2,16 @@
 
 # File: roles/base/tasks/main.yml
 
+- name: Define manage_dnsmasq
+  set_fact:
+    manage_dnsmasq: false
+  when: manage_dnsmasq is not defined
+
+- name: Define manage_resolv_conf
+  set_fact:
+    manage_resolv_conf: false
+  when: manage_resolv_conf is not defined
+
 - fail: msg="Variable 'packages_install' is not defined.
     Make sure inventory/all.yml includes '{{ inventory_hostname }}' in group '{{ ansible_lsb.id|lowercase }}'"
   when: packages_install is not defined
@@ -99,7 +109,7 @@
         - hosts/
   become: yes
   notify: restart dnsmasq
-  when: ansible_os_family in [ "Debian", "RedHat", "Container Linux by CoreOS" ]
+  when: ansible_os_family in [ "Debian", "RedHat", "Container Linux by CoreOS" ] and manage_dnsmasq
   tags: [ base, hosts, config ]
 
 - name: Disable IPv6 in kernel on non-CoreOS
@@ -589,7 +599,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/resolv.conf/'
         - resolv.conf/
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and manage_resolv_conf
   tags: [ base, config, dns ]
 
 - name: Stat /etc/NetworkManager exists
@@ -628,7 +638,7 @@
 # added "when" statement
 - name: Make DNS service using dnsmasq present (Debian)
   include: dnsmasq.yml
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and manage_dnsmasq
   tags: [ base, packages ]
 
 # Handle the configuration of network interfaces in a manner that
