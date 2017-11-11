@@ -114,6 +114,7 @@ all:
           - 'cpanminus'
           - 'curl'
           - 'dconf-tools'
+          - 'debian-archive-keyring'
           - 'git-core'
           - 'gitk'
           - 'gnupg2'
@@ -140,6 +141,7 @@ all:
           - 'sshfs'
           - 'strace'
           - 'tree'
+          - 'unzip'
           - 'vim'
           - 'xml-twig-tools'
           - 'xsltproc'
@@ -200,6 +202,7 @@ all:
           - 'sshfs'
           - 'strace'
           - 'tree'
+          - 'unzip'
           - 'vim'
         packages_remove:
           - 'firewalld'
