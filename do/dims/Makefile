@@ -110,6 +110,7 @@ test:
 bootstrap:
 	(terraform plan | grep -q "No changes") || $(MAKE) create
 	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/bootstrap.yml -e host=do
+	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/groups/ca-certs.yml
 
 .PHONY: destroy
 destroy:
