@@ -93,7 +93,7 @@ function _write_ssh_known_hosts(_host, _ip, _type, _key_comment)
 	# Extract IP address for droplet
     # arr[1] is shortname
     # arr[2] is IP address
-	if (match($0, /digitalocean_droplet\.([^ ]*) \(remote-exec\): *Host: (.*)/, arr)) {
+	if (match($0, /module\.node-([^ ]*)\.digitalocean_droplet.instance \(remote-exec\): *Host: (.*)/, arr)) {
 		ip_addr[arr[1]]=arr[2];
 	}
 
@@ -101,7 +101,7 @@ function _write_ssh_known_hosts(_host, _ip, _type, _key_comment)
     # arr[1] is short name
     # arr[2] is SSH key type
     # arr[3] is key and comment string
-	if (match($0, /digitalocean_droplet\.([^ ]*) \(remote-exec\): (ssh-[^ ]*) (.*$)/, arr)) {
+	if (match($0, /module\.node-([^ ]*)\.digitalocean_droplet.instance \(remote-exec\): (ssh-[^ ]*) (.*$)/, arr)) {
 		if (fingerprint) {
 			if (debug) { printf "ssh_pubkey: %s %s %s\n", arr[1], arr[2], arr[3] > "/dev/stderr"; }
 			_write_ssh_fingerprint(arr[1], arr[2], arr[3])
