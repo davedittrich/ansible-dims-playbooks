@@ -18,7 +18,7 @@ To get a list of available DigitalOcean images, do:
 $ curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $DO_API_TOKEN" | python -m json.tool | less
 ```
 
-A modified version of the `digital_ocean.py` dynamic inventory file is
+A modified version of the `digital\_ocean.py` dynamic inventory file is
 being used for augmenting the YAML inventory files in the `$PBR/inventory/`
 directory.
 
@@ -28,4 +28,41 @@ red.devops.local
 orange.devops.local
 purple.devops.local
 blue.devops.local
+```
+
+TODO
+----
+
+When droplets are created using `make create`, the SSH public keys and fingerprints are
+extracted from the `terraform` log output. The files are placed in the
+`fingerprints` and `known\_hosts` directories.
+
+```
+$ tree fingerprints known_hosts
+fingerprints
+├── blue.devops.local
+│   └── ssh-rsa.fingerprint
+├── orange.devops.local
+│   ├── ssh-ed25519.fingerprint
+│   └── ssh-rsa.fingerprint
+├── purple.devops.local
+│   ├── ssh-ed25519.fingerprint
+│   └── ssh-rsa.fingerprint
+└── red.devops.local
+    ├── ssh-ed25519.fingerprint
+    └── ssh-rsa.fingerprint
+known_hosts
+├── blue.devops.local
+│   └── ssh-rsa.known_hosts
+├── orange.devops.local
+│   ├── ssh-ed25519.known_hosts
+│   └── ssh-rsa.known_hosts
+├── purple.devops.local
+│   ├── ssh-ed25519.known_hosts
+│   └── ssh-rsa.known_hosts
+└── red.devops.local
+    ├── ssh-ed25519.known_hosts
+    └── ssh-rsa.known_hosts
+
+8 directories, 14 files
 ```
