@@ -14,6 +14,9 @@ do:
     _public_key: '{{ ansible_ssh_private_key_file }}.pub'
     http_proxy: ''
     https_proxy: ''
+    use_letsencrypt: no
+    certbot_staging: yes
+    certbot_sitename: '{{ inventory_hostname }}'
     do_region: 'sfo1'
     do_ssh_key_id: 'eb:ae:63:b8:92:6f:d1:6c:3c:60:82:9c:b2:f9:73:71'
     do_api_token: '{{ lookup("env", "DO_API_TOKEN") }}'
@@ -24,13 +27,8 @@ do:
         image_id: 'debian-8-x64'
         ssh_key_id: '{{ do_ssh_key_id }}'
         backups_enabled: 'no'
-      - name: 'blue'
-        region: '{{ do_region }}'
-        size: '512mb'
-        image_id: 'centos-6-x64'
-        #image_id: 'fedora-25-x64'
-        ssh_key_id: '{{ do_ssh_key_id }}'
-        backups_enabled: 'no'
+        module_source: 'floating_ip'
+        floating_ip: 'yes'
       - name: 'orange'
         region: '{{ do_region }}'
         size: '512mb'
@@ -41,6 +39,13 @@ do:
         region: '{{ do_region }}'
         size: '512mb'
         image_id: 'debian-8-x64'
+        ssh_key_id: '{{ do_ssh_key_id }}'
+        backups_enabled: 'no'
+      - name: 'blue'
+        region: '{{ do_region }}'
+        size: '512mb'
+        image_id: 'centos-6-x64'
+        #image_id: 'fedora-25-x64'
         ssh_key_id: '{{ do_ssh_key_id }}'
         backups_enabled: 'no'
     artifacts_url: ''
@@ -72,6 +77,7 @@ do:
     'blue.devops.local':
       epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
     'orange.devops.local':
+      tridentFQDN: '{{ inventory_hostname }}'
     'purple.devops.local':
 
 # vim: ft=ansible :
