@@ -47,7 +47,7 @@ images:
 
 .PHONY: provider
 provider:
-	-ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) -vvvv create-provider.tf.yml
+	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) -vvvv create-provider.tf.yml
 
 .PHONY: plan
 plan: init
@@ -79,16 +79,20 @@ destroypubkey:
 
 .PHONY: create
 create: init hosts provider
-	$(MAKE) pubkey
+	$(MAKE) insertpubkey && sleep 2
 	terraform apply | tee -a terraform.log | ../../files/common-scripts/keys.host.extract.sh
 	$(MAKE) --always-make inventory/generated
 	$(MAKE) addkeys
-	$(MAKE) dumpvars
 	$(MAKE) ping
+
+.PHONY: bootstrap
+bootstrap: init
+	(terraform plan | grep -q "No changes") || $(MAKE) create
+	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/bootstrap.yml -e host=do
 
 .PHONY: addkeys
 addkeys:
-	-ansible-playbook -i $(INVENTORY) $(DIMS_ANSILE_ARGS) -e known_hosts_root=$(shell pwd)/known_hosts ../../playbooks/do_rekey.yml --ask-sudo-pass
+	ansible-playbook -i $(INVENTORY) $(DIMS_ANSILE_ARGS) -e known_hosts_root=$(shell pwd)/known_hosts ../../playbooks/do_rekey.yml --ask-sudo-pass
 
 .PHONY: removekeys
 removekeys:
@@ -106,12 +110,6 @@ ping:
 test:
 	bats do.bats
 
-.PHONY: bootstrap
-bootstrap:
-	(terraform plan | grep -q "No changes") || $(MAKE) create
-	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/bootstrap.yml -e host=do
-	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/groups/ca-certs.yml
-
 .PHONY: destroy
 destroy:
 	terraform destroy --force
@@ -119,6 +117,7 @@ destroy:
 	-rm -rf fingerprints/ known_hosts/
 	-rm -f ansible-digital_ocean.cache
 	-rm -f inventory/{hosts,generated} $(INVENTORY)/DO/generated
+	-$(MAKE) destroypubkey
 
 .PHONY: spotless
 spotless:
