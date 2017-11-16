@@ -55,9 +55,9 @@ plan: init
 
 .PHONY: graph
 graph: graph.png
-	@[ "$(shell uname -s)" == "Darwin" ] && open graph.png
-	@[ "$(shell uname -s)" == "Linux" && ! -z "$(which evince)" ] && evince graph.png &
-	@[ "$(shell uname -s)" == "Linux" && ! -z "$(which xdg-open)" ] && xdg-open graph.png &
+	@if [[ "$(shell uname -s)" == "Darwin" ]]; then open graph.png; fi
+	@if [[ "$(shell uname -s)" == "Linux" && ! -z "$(shell which evince)" ]] ; then (evince graph.png &); fi
+	@if [[ "$(shell uname -s)" == "Linux" && ! -z "$(shell which xdg-open)" ]] ; then (xdg-open graph.png &); fi
 
 graph.png: init
 	terraform graph | dot -Tpng -o graph.png
