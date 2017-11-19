@@ -30,6 +30,7 @@ resource "digitalocean_droplet" "instance" {
       user = "root"
       type = "ssh"
       private_key = "${file(var.private_key_filename)}"
+      host = "${self.ipv4_address}"
       timeout = "2m"
   }
 
