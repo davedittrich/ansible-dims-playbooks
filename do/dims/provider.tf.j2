@@ -11,7 +11,7 @@ module "do-keypair" {
   public_key_filename = "~/.ssh/do.pub"
 }
 
-{% for d in droplets %}
+{% for d in do_droplets %}
 module "node-{{ d.name }}" {
   source = "./instance/{{ d.module_source|default('generic') }}"
   name = "{{ d.name }}"
