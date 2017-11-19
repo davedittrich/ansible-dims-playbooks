@@ -73,17 +73,11 @@ vagrants:
       box_osversion: "14.04.5"
       box_osnick: "trusty"
       box_type: "server"
-    'blue14.devops.local':
+    'blue.devops.local':
       #box_name: "ubuntu/trusty64"
       box_baseos: "ubuntu"
       box_osversion: "14.04.5"
       box_osnick: "trusty"
-      box_type: "server"
-    'blue16.devops.local':
-      box_name: "ubuntu/xenial64"
-      box_baseos: "ubuntu"
-      box_osversion: "16.04.1"
-      box_osnick: "xenial"
       box_type: "server"
     'yellow.devops.local':
       box_baseos: "debian"
