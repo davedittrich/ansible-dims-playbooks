@@ -124,12 +124,11 @@ destroy:
 	-$(MAKE) removekeys
 	-rm -rf fingerprints/ known_hosts/
 	-rm -f ansible-digital_ocean.cache
-	-rm -f inventory/{hosts,nodes-generated.yml} $(INVENTORY_GENERATED)
+	-rm -f inventory/hosts inventory/nodes-generated.yml $(INVENTORY_GENERATED)
 	-$(MAKE) destroypubkey
 
 .PHONY: spotless
 spotless:
-	$(MAKE) hosts | parallel 2>/dev/null echo rm -f {}
 	rm -f terraform.tfstate terraform.tfstate.backup
 
 # vim: ft=make:
