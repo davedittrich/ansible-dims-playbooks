@@ -1,7 +1,8 @@
 # vim:ft=make:
 
 SHELL=/bin/bash
-INVENTORY=../../inventory
+INVENTORY=../../environments/dev_digitalocean/inventory
+INVENTORY_GENERATED=$(INVENTORY)/digital_ocean/nodes-generated.yml
 
 .PHONY: help
 help:
@@ -32,14 +33,19 @@ terraform.tfstate:
 
 .PHONY: droplets
 droplets:
-	ansible -i $(INVENTORY)/DO/digital_ocean.py $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2
+	ansible -i $(INVENTORY)/digital_ocean.py $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2
 
 .PHONY: hosts
 hosts:
 	$(MAKE) --always-make inventory/hosts
 
 inventory/hosts:
-	(echo "[droplets]"; ansible -i $(INVENTORY)/DO $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) | tee inventory/hosts
+	(echo "[droplets]"; ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) | tee inventory/hosts
+
+.PHONY: etchosts
+etchosts:
+	@#ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' do | grep '\"msg\":' | awk -F\" '{print $$4; }'
+	@ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' do | grep '\"msg\":' | awk -F\" '{print $$4; }'
 
 .PHONY: images
 images:
@@ -62,16 +68,18 @@ graph: graph.png
 graph.png: init
 	terraform graph | dot -Tpng -o graph.png
 
-inventory/generated:
+inventory/nodes-generated.yml:
 	./do_post.sh inventory/
-	cp inventory/generated $(INVENTORY)/DO/generated
+
+$(INVENTORY_GENERATED): inventory/nodes-generated.yml
+	cp inventory/nodes-generated.yml $(INVENTORY_GENERATED)
 
 .PHONY: sshkeys
 	../../files/common-scripts/keys.host.extract.sh < terraform.log
 
 .PHONY: insertpubkey
 insertpubkey:
-	terraform apply -target=digitalocean_ssh_key.default
+	terraform apply -target=digitalocean_ssh_key.default -auto-approve
 
 .PHONY: destroypubkey
 destroypubkey:
@@ -81,7 +89,7 @@ destroypubkey:
 create: init hosts provider
 	$(MAKE) insertpubkey && sleep 2
 	terraform apply | tee -a terraform.log | ../../files/common-scripts/keys.host.extract.sh
-	$(MAKE) --always-make inventory/generated
+	$(MAKE) --always-make $(INVENTORY_GENERATED)
 	$(MAKE) addkeys
 	$(MAKE) ping
 
@@ -100,7 +108,7 @@ removekeys:
 
 .PHONY: dumpvars
 dumpvars:
-	ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) -m debug -a "var=hostvars[inventory_hostname].ansible_host" do
+	ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) -m debug -a "var=hostvars[inventory_hostname]" do | pygmentize -ljson | less -R
 
 .PHONY: ping
 ping:
@@ -116,10 +124,12 @@ destroy:
 	-$(MAKE) removekeys
 	-rm -rf fingerprints/ known_hosts/
 	-rm -f ansible-digital_ocean.cache
-	-rm -f inventory/{hosts,generated} $(INVENTORY)/DO/generated
+	-rm -f inventory/{hosts,nodes-generated.yml} $(INVENTORY_GENERATED)
 	-$(MAKE) destroypubkey
 
 .PHONY: spotless
 spotless:
 	$(MAKE) hosts | parallel 2>/dev/null echo rm -f {}
 	rm -f terraform.tfstate terraform.tfstate.backup
+
+# vim: ft=make:
