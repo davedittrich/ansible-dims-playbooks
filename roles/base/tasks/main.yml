@@ -12,6 +12,11 @@
     manage_resolv_conf: false
   when: manage_resolv_conf is not defined
 
+- name: Define manage_interfaces
+  set_fact:
+    manage_interfaces: false
+  when: manage_interfaces is not defined
+
 - fail: msg="Variable 'packages_install' is not defined.
     Make sure inventory/all.yml includes '{{ inventory_hostname }}' in group '{{ ansible_lsb.id|lowercase }}'"
   when: packages_install is not defined
@@ -667,7 +672,7 @@
         - network/
   become: yes
   ignore_errors: true
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and manage_interfaces
   tags: [ base, config, interfaces ]
 
 # http://www.tecmint.com/configure-network-connections-using-nmcli-tool-in-linux/
