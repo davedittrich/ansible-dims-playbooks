@@ -66,3 +66,11 @@ known_hosts
 
 8 directories, 14 files
 ```
+
+
+See also:
+
+https://github.com/landro/terraform-digitalocean/blob/master/terraform.tf
+
+How to create a VPN using Terraform in Digital Ocean - Infrastructure tutorial part one
+https://techpunch.co.uk/development/how-to-create-a-vpn-using-terraform-in-digital-ocean-infrastructure-tutorial-part-one
