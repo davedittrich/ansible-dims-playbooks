@@ -33,7 +33,9 @@ terraform.tfstate:
 
 .PHONY: droplets
 droplets:
-	ansible -i $(INVENTORY)/digital_ocean.py $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2
+	ansible -i $(INVENTORY)/digital_ocean.py $(DIMS_ANSIBLE_ARGS) --list-hosts all |\
+	       sed 's/ *//g' |\
+	       tail -n +2
 
 .PHONY: hosts
 hosts:
@@ -96,19 +98,34 @@ create: init hosts provider
 .PHONY: bootstrap
 bootstrap: init
 	(terraform plan | grep -q "No changes") || $(MAKE) create
-	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/bootstrap.yml -e host=do
+	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/bootstrap.yml \
+		-e host=do
+	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/groups/ca-certs.yml \
+		-e host=infra \
+		-e ca_init=true \
+		-e ca_force_certify_nodes=true \
+		-e ca_force_create=true
+	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/groups/ca-certs.yml \
+		-e host=instances
 
 .PHONY: addkeys
 addkeys:
-	ansible-playbook -i $(INVENTORY) $(DIMS_ANSILE_ARGS) -e known_hosts_root=$(shell pwd)/known_hosts ../../playbooks/do_rekey.yml --ask-sudo-pass
+	ansible-playbook -i $(INVENTORY) $(DIMS_ANSILE_ARGS) ../../playbooks/do_rekey.yml \
+		-e known_hosts_root=$(shell pwd)/known_hosts \
+		--ask-sudo-pass
 
 .PHONY: removekeys
 removekeys:
-	-ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/do_rekey.yml -e remove_keys=true --ask-sudo-pass
+	-ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/do_rekey.yml \
+		-e remove_keys=true \
+		--ask-sudo-pass
 
 .PHONY: dumpvars
 dumpvars:
-	ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) -m debug -a "var=hostvars[inventory_hostname]" do | pygmentize -ljson | less -R
+	ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) \
+		-m debug -a "var=hostvars[inventory_hostname]" do |\
+		pygmentize -ljson |\
+		less -R
 
 .PHONY: ping
 ping:
@@ -125,7 +142,7 @@ destroy:
 	-rm -rf fingerprints/ known_hosts/
 	-rm -f ansible-digital_ocean.cache
 	-rm -f inventory/hosts inventory/nodes-generated.yml $(INVENTORY_GENERATED)
-	-rm -f do_post.log
+	-rm -f do_post.log provider.tf graph.png
 	-$(MAKE) destroypubkey
 
 .PHONY: spotless
