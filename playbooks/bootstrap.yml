@@ -16,7 +16,7 @@
 - name: Bootstrapping '{{ host|default('bootstrap') }}'
   vars:
    - playbooks_root: '{{ lookup("env", "PBR") }}'
-   - _debug: False
+   - _debug: false
   vars_files:
    - '{{ playbooks_root }}/vars/global.yml'
   hosts: '{{ host|default("bootstrap") }}' # override with '-e host=$host.fq.dn'
