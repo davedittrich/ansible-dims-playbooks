@@ -63,7 +63,7 @@ provider:
 	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) -vvvv create-provider.tf.yml
 
 .PHONY: plan
-plan: init
+plan: init provider
 	terraform plan
 
 .PHONY: graph
