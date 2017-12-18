@@ -2,7 +2,11 @@
 
 SHELL=/bin/bash
 INVENTORY=../../environments/dev_digitalocean/inventory
-INVENTORY_GENERATED=$(INVENTORY)/digital_ocean/nodes-generated.yml
+INVENTORY_GENERATED=inventory/nodes-generated.yml
+
+define get_domain_var
+   $(shell ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED)  -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line do | head -n 1 | cut -d^ -f 2)
+endef
 
 .PHONY: help
 help:
@@ -47,12 +51,12 @@ hosts:
 	$(MAKE) --always-make inventory/hosts
 
 inventory/hosts:
-	(echo "[droplets]"; ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) | tee inventory/hosts
+	(echo "[droplets]"; ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) | tee inventory/hosts
 
 .PHONY: etchosts
 etchosts:
-	@#ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' do | grep '\"msg\":' | awk -F\" '{print $$4; }'
-	@ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' do | grep '\"msg\":' | awk -F\" '{print $$4; }'
+	@#ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' do | grep '\"msg\":' | awk -F\" '{print $$4; }'
+	@ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' do | grep '\"msg\":' | awk -F\" '{print $$4; }'
 
 .PHONY: images
 images:
@@ -60,7 +64,10 @@ images:
 
 .PHONY: provider
 provider:
-	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) -vvvv create-provider.tf.yml
+	ansible-playbook -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		-vvvv create-provider.tf.yml
 
 .PHONY: plan
 plan: init provider
@@ -78,11 +85,9 @@ graph.png: init
 inventory/nodes-generated.yml:
 	./do_post.sh inventory/
 
-$(INVENTORY_GENERATED): inventory/nodes-generated.yml
-	cp inventory/nodes-generated.yml $(INVENTORY_GENERATED)
-
 .PHONY: sshkeys
-	../../files/common-scripts/keys.host.extract.sh < terraform.log
+sshkeys:
+	cat terraform.log | $(call get_domain_var) ../../files/common-scripts/keys.host.extract.sh > /dev/null
 
 .PHONY: insertpubkey
 insertpubkey:
@@ -95,7 +100,7 @@ destroypubkey:
 .PHONY: create
 create: init hosts provider
 	$(MAKE) insertpubkey && sleep 2
-	terraform apply | tee -a terraform.log | ../../files/common-scripts/keys.host.extract.sh
+	terraform apply | tee -a terraform.log | $(call get_domain_var) ../../files/common-scripts/keys.host.extract.sh
 	$(MAKE) --always-make $(INVENTORY_GENERATED)
 	$(MAKE) addkeys
 	$(MAKE) ping
@@ -103,38 +108,58 @@ create: init hosts provider
 .PHONY: bootstrap
 bootstrap: init
 	(terraform plan | grep -q "No changes") || $(MAKE) create
-	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/bootstrap.yml \
+	ansible-playbook -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		../../playbooks/bootstrap.yml \
 		-e host=do
-	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/groups/ca-certs.yml \
-		-e host=infra \
-		-e ca_init=true \
-		-e ca_force_certify_nodes=true \
-		-e ca_force_create=true
-	ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/groups/ca-certs.yml \
-		-e host=instances
+#	ansible-playbook -i $(INVENTORY) \
+#		-i $(INVENTORY_GENERATED) \
+#		$(DIMS_ANSIBLE_ARGS) \
+#		../../playbooks/groups/ca-certs.yml \
+#		-e host=infra \
+#		-e ca_init=true \
+#		-e ca_force_certify_nodes=true \
+#		-e ca_force_create=true
+#	ansible-playbook -i $(INVENTORY) \
+#		-i $(INVENTORY_GENERATED) \
+#		$(DIMS_ANSIBLE_ARGS) \
+#		../../playbooks/groups/ca-certs.yml \
+#		-e host=instances
 
 .PHONY: addkeys
 addkeys:
-	ansible-playbook -i $(INVENTORY) $(DIMS_ANSILE_ARGS) ../../playbooks/do_rekey.yml \
-		-e known_hosts_root=$(shell pwd)/known_hosts \
+	ansible-playbook -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSILE_ARGS) \
+		../../playbooks/do_rekey.yml \
+		-e known_hosts_root="$(shell pwd)/known_hosts" \
 		--ask-sudo-pass
 
 .PHONY: removekeys
 removekeys:
-	-ansible-playbook -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) ../../playbooks/do_rekey.yml \
+	-ansible-playbook -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		../../playbooks/do_rekey.yml \
 		-e remove_keys=true \
 		--ask-sudo-pass
 
 .PHONY: dumpvars
 dumpvars:
-	ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) \
+	ansible -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
 		-m debug -a "var=hostvars[inventory_hostname]" do |\
-		pygmentize -ljson |\
-		less -R
+			pygmentize -ljson |\
+			less -R
 
 .PHONY: ping
 ping:
-	ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) -m ping do
+	ansible -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		-m ping do
 
 .PHONY: test
 test:
@@ -146,7 +171,7 @@ destroy:
 	-$(MAKE) removekeys
 	-rm -rf fingerprints/ known_hosts/
 	-rm -f ansible-digital_ocean.cache
-	-rm -f inventory/hosts inventory/nodes-generated.yml $(INVENTORY_GENERATED)
+	-rm -f inventory/hosts inventory/nodes-generated.yml
 	-rm -f do_post.log provider.tf graph.png
 	-$(MAKE) destroypubkey
 
