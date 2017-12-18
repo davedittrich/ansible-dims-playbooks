@@ -152,6 +152,7 @@ all:
         root_group: 'root'
         packages_install:
           - 'bash-completion'
+          - 'bind_utils'
           - 'ca-certificates'
           - 'chrony'
           - 'curl'
