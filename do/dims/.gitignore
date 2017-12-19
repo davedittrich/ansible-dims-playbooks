@@ -1,5 +1,7 @@
 provider.tf
 .terraform
+known_hosts
+fingerprints
 terraform.log
 do_post.log
 ansible-digital_ocean.cache
