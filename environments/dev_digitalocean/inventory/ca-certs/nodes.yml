@@ -21,7 +21,7 @@ ca_certs:
     ca_domain: '{{ dims_domain }}'
     ca_organizationalunit: 'DIMS'
     ca_commonname: '{{ dims_domain }}'
-    ca_email: 'dittrich@u.washington.edu'
+    ca_email: 'dave.dittrich@gmail.com'
   hosts:
     'red':
     'blue':
