@@ -937,7 +937,7 @@
   tags: [ base, packages, updates ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
+  include: "{{ tasks_path }}/install-bats-tests.yml"
   become: yes
   tags: [ base, tests ]
 

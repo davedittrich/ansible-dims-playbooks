@@ -27,7 +27,7 @@
   tags: [ consul, config, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
+  include: "{{ tasks_path }}/install-bats-tests.yml"
   when: groups.consul is defined and
         inventory_hostname in groups.consul
   tags: [ consul, tests ]
