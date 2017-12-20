@@ -16,7 +16,7 @@
 
 - name: Define certbot_sitename
   set_fact:
-    certbot_sitename: '{{ tridentFQDN|default("{{ inventory_hostname }}") }}' # For now, use this variable
+    certbot_sitename: '{{ tridentFQDN|default("{{ ansible_fqdn }}") }}' # For now, use this variable
   when: certbot_sitename is not defined
 
 - name: Define certbot_adminemail
