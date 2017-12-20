@@ -5,28 +5,28 @@ all:
     dist_tag: '{{ ansible_distribution_version }}'
     os_version: '?'
   hosts:
-    'red.devops.local':
+    'red':
       tcp_ports: [ 53 ]
       udp_ports: [ 53 ]
-    'blue.devops.local':
-    'orange.devops.local':
+    'blue':
+    'orange':
       tcp_ports:
         - '{{ nginx_default_port }}'
         - '{{ jenkins_port }}'
         - '{{ nginx_health_check_port }}'
       udp_ports: [ ]
-      jenkins_url_external: 'http://{{ hostvars["orange.devops.local"].ansible_host }}/jenkins'
-    'purple.devops.local':
+      jenkins_url_external: 'http://{{ hostvars["orange"].ansible_host }}/jenkins'
+    'purple':
       tcp_ports: [ 25, 80, 443 ]
   children:
     production:
       hosts:
-        'red.devops.local':
-        'orange.devops.local':
+        'red':
+        'orange':
     development:
       hosts:
-        'blue.devops.local':
-        'purple.devops.local':
+        'blue':
+        'purple':
     coreos:
       vars:
         ssl_certs_dir: '?'
@@ -137,11 +137,11 @@ all:
         services_enabled:
           - 'auditd'
       hosts:
-        'red.devops.local':
+        'red':
           os_version: '8.5.0'
-        'orange.devops.local':
+        'orange':
           os_version: '8.5.0'
-        'purple.devops.local':
+        'purple':
           os_version: '8.5.0'
     centos:
       vars:
@@ -187,7 +187,7 @@ all:
         services_enabled:
           - 'auditd'
       hosts:
-        'blue.devops.local':
+        'blue':
     darwin:
       vars:
         syslog_user: 'root'

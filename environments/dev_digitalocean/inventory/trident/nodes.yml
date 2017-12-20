@@ -84,7 +84,7 @@ trident:
       trident_perl_sha256sum: '2f120dc75f75f8b2c8e5cdf55a29984e24ee749a75687a10068ed8f353098ffb'
 
   hosts:
-    'yellow.devops.local':
+    'yellow':
       # Specific site setting overrides
       trident_site_name: 'LOCAL Trident Portal'
       trident_site_welcome_text: 'LOCAL Trident'
@@ -156,7 +156,7 @@ trident:
 #           max_vouchdays: 0
 #           idle_guard: '168:00:00'
 #           nom_enabled: 'yes'
-    'purple.devops.local':
+    'purple':
       # Specific site setting overrides
       trident_site_name: 'LOCAL DevTest Trident Portal'
       trident_site_welcome_text: 'LOCAL DevTest Trident'

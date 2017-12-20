@@ -26,9 +26,9 @@ private:
     ca_rootca_password: 'tempted@ignobly+fugal'
     #
   hosts:
-    'red.devops.local':
-    'blue.devops.local':
-    'orange.devops.local':
-    'purple.devops.local':
+    'red':
+    'blue':
+    'orange':
+    'purple':
 
 # vim: ft=ansible :

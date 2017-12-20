@@ -73,11 +73,11 @@ do:
           dns_servers: ''
           vagrant_net: 'private_network'
   hosts:
-    'red.devops.local':
-    'blue.devops.local':
+    'red':
+    'blue':
       epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
-    'orange.devops.local':
+    'orange':
       tridentFQDN: '{{ inventory_hostname }}'
-    'purple.devops.local':
+    'purple':
 
 # vim: ft=ansible :

@@ -39,6 +39,6 @@ rabbitmq:
     #ssl_certs_locality: "Seattle"
     #ssl_certs_state: "WA"
   hosts:
-    'red.devops.local':
+    'red':
 
 # vim: ft=ansible :
