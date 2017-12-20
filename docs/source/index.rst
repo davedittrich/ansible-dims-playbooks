@@ -26,6 +26,7 @@ for short) repository contents.
    debugging
    maintenance
    backups
+   digitalocean
    license
    appendices
 
