@@ -77,7 +77,9 @@ do:
     'blue':
       epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
     'orange':
-      tridentFQDN: '{{ inventory_hostname }}'
+      tridentFQDN: '{{ ansible_fqdn }}'
     'purple':
+      tridentFQDN: '{{ ansible_fqdn }}'
+      trident_perl_disturl: 'https://staff.washington.edu/dittrich/{{ trident_perl_archive }}'
 
 # vim: ft=ansible :

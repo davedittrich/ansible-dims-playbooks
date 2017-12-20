@@ -6,7 +6,7 @@ trident:
   vars:
       use_letsencrypt: no
       certbot_staging: yes
-      tridentFQDN: '{{ inventory_hostname }}'
+      tridentFQDN: '{{ ansible_fqdn }}'
 
       # Default site settings. Over-ride specifics below
       trident_site_name: 'Trident Portal'
