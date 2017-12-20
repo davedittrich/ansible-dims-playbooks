@@ -8,13 +8,18 @@ variable "public_key" {}
 variable "private_key" {}
 
 provider "digitalocean" {
-  token = "${var.do_token}"
+  token = "${chomp(file("~/.secrets/digital-ocean/token"))}"
 }
 
 module "do-keypair" {
   name = "${var.name}"
   source = "./keypair"
   public_key_filename = "~/.ssh/do.pub"
+}
+
+resource "digitalocean_domain" "default" {
+  name = "${var.domain}"
+  ip_address = "0.0.0.0"
 }
 
 {% for d in do_droplets %}
@@ -59,8 +64,17 @@ resource "digitalocean_droplet" "{{ d.name }}" {
     ]
   }
 }
-output "{{ d.name }}-ip" {
-  value = "${join(",", digitalocean_droplet.{{ d.name }}.*.ipv4_address)}"
+
+resource "digitalocean_record" "{{ d.name }}" {
+  domain = "${digitalocean_domain.default.name}"
+  type = "A"
+  name = "{{ d.name }}"
+  ttl = "360"
+  value = "${digitalocean_droplet.{{ d.name }}.ipv4_address}"
+}
+
+output "{{ d.name }}" {
+  value = { "{{ d.name }}.{{ dims_domain }}" = "${join(",", digitalocean_droplet.{{ d.name }}.*.ipv4_address)}" }
 }
 
 {% endfor %}
