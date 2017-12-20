@@ -16,12 +16,12 @@
 
 - name: Define certbot_sitename
   set_fact:
-    certbot_sitename: '{{ tridentFQDN|default("{{ ansible_fqdn }}") }}' # For now, use this variable
+    certbot_sitename: '{{ ansible_fqdn }}'
   when: certbot_sitename is not defined
 
 - name: Define certbot_adminemail
   set_fact:
-    certbot_adminemail: '{{ trident_site_adminemail|default("admin@{{ inventory_hostname }}") }}'
+    certbot_adminemail: 'admin@{{ ansible_fqdn }}'
   when: certbot_adminemail is not defined
 
 - name: Default certbot_save_backups false
@@ -85,14 +85,14 @@
   - name: Set _backup_dir from latest backup file
     set_fact:
       _backup_dir: '{{ backups_files.0|dirname }}'
-    when: backups_files.0 is defined and
+    when: backups_files is defined and
           certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
   - name: Set _backup_file from latest backup file
     set_fact:
       _backup_file: '{{ backups_files.0|basename }}'
-    when: backups_files.0 is defined and
+    when: backups_files is defined and
           certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
@@ -165,7 +165,7 @@
 
 - name: Check for existence of letsencrypt cert
   stat:
-    path: '/etc/letsencrypt/live/{{ tridentFQDN }}/cert.pem'
+    path: '/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem'
   register: _cert_stat
 
 - name: Define _have_cert
