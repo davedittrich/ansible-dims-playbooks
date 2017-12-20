@@ -20,7 +20,7 @@ ci_server:
     git_required_repos:
       - name: 'prisem'
         description: 'PRISEM RPC Utilities'
-        upstream: 'git@git.devops.develop:/opt/git/prisem.git'
+        upstream: 'https://github.com/davedittrich/prisem-rpc.git'
         post_receive_hooks:
           - logamqp
           - email
