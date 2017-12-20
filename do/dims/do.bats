@@ -2,6 +2,22 @@
 #
 # vim: set ts=4 sw=4 tw=0 et :
 
+@test "[S][EV] Directory for secrets (~/.secrets/) exists" {
+    [ -d ~/.secrets ]
+}
+
+@test "[S][EV] Directory for secrets (~/.secrets/) is mode 700" {
+    [ $(stat -c %a ~/.secrets 2>&1) == "700" ]
+}
+
+@test "[S][EV] Directory for DigitalOcean secrets (~/.secrets/digital-ocean/) exists" {
+    [ -d ~/.secrets/digital-ocean ]
+}
+
+@test "[S][EV] DigitalOcean token is in ~/.secrets/digital-ocean/token" {
+    [ -s ~/.secrets/digital-ocean/token ]
+}
+
 @test "[S][EV] DO_API_VERSION (dopy) is defined in environment" {
     [ ! -z "$DO_API_VERSION" ]
 }
