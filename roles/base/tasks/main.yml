@@ -297,13 +297,13 @@
   with_items:
     - '{{ packages_remove }}'
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_pkg_mgr == "apt"
   ignore_errors: yes
   tags: [ base, packages, updates ]
 
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
   apt: update_cache=yes cache_valid_time=3600
-  when: ansible_os_family == "Debian"
+  when: ansible_pkg_mgr == "apt"
   become: yes
   tags: [ base, packages, updates ]
 
@@ -314,13 +314,13 @@
    - "{{ packages_install }}"
   become: yes
   ignore_errors: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_pkg_mgr == "apt"
   tags: [ base, packages, updates ]
 
 - name: Clean APT cache
   command: apt-get clean
   become: yes
-  when: packages_upgrade|bool and ansible_os_family == "Debian"
+  when: packages_upgrade|bool and ansible_pkg_mgr == "apt"
   tags: [ base, packages, updates ]
 
 - name: Make upgraded packages present if we are explicitly upgrading
@@ -329,7 +329,7 @@
     dpkg_options: 'force-confold,force-confdef'
     autoremove: yes
   become: yes
-  when: packages_upgrade|bool and ansible_os_family == "Debian"
+  when: packages_upgrade|bool and ansible_pkg_mgr == "apt"
   tags: [ base, packages, updates ]
 
 # Using "meta: flush_handlers" will run any handlers that have
@@ -685,7 +685,7 @@
 #  with_items:
 #    - libnm-glib-dev
 #  become: yes
-#  when: ansible_distribution == "Debian"
+#  when: ansible_pkg_mgr == "apt"
 #  tags: [ base, config ]
 
 #     - libnm-qt-devel.x86_64
@@ -743,14 +743,24 @@
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
-- name: Ensure pip installed for system Python
+- name: Ensure pip installed for system Python (RedHat)
+  yum:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - python-pip
+  become: yes
+  when: ansible_pkg_mgr == "yum"
+  tags: [ base, config, updates ]
+
+- name: Ensure pip installed for system Python (Debian)
   apt:
     name: '{{ item }}'
     state: latest
   with_items:
     - python-pip
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_pkg_mgr == "apt"
   tags: [ base, config, updates ]
 
 - name: Create base-requirements.txt file
