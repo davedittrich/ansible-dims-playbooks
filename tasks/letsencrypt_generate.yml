@@ -41,7 +41,7 @@
   # Generating a new cert using certbot
   - name: Create temporary directory for generating cert
     shell: >
-      mktemp -d "{{ lookup('env', 'TMPDIR') | default('/tmp', true) }}/ansible.XXXX"
+      mktemp -d '{{ ansible_env["TMPDIR"] | default("/tmp", true) }}/ansible.XXXX'
     register: mktemp_output
 
   - name: Define _tmpdir variable

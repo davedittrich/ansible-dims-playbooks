@@ -14,7 +14,7 @@
 - block:
   - name: Create temporary directory for cert backup
     shell: >
-      mktemp -d "{{ lookup('env', 'TMPDIR') | default('/tmp', true) }}/ansible.XXXX"
+      mktemp -d '{{ ansible_env["TMPDIR"] | default("/tmp", true) }}/ansible.XXXX'
     register: mktemp_output
     become: yes
 

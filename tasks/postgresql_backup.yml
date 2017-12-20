@@ -43,7 +43,7 @@
 
 - name: Create remote temporary directory
   shell: >
-    mktemp -d "{{ lookup('env', 'TMPDIR') | default('/tmp', true) }}/ansible.XXXX"
+    mktemp -d '{{ ansible_env["TMPDIR"] | default("/tmp", true) }}/ansible.XXXX'
   register: mktemp_output
   become: yes
   become_user: postgres
