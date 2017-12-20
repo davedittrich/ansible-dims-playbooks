@@ -61,6 +61,15 @@
   become: yes
   tags: [ nginx, config ]
 
+# https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
+- name: Generate strong Diffie-Hellman group
+  shell: 'openssl dhparam -out dhparam.pem 2048'
+  args:
+    chdir: '/etc/ssl/certs'
+    creates: 'dhparam.pem'
+  become: yes
+  tags: [ nginx, config ]
+
 - name: Configure Nginx
   template:
     src: '{{ item }}'
