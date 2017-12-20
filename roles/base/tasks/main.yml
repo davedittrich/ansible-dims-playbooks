@@ -39,24 +39,24 @@
   ignore_errors: yes
   tags: [ base, config, dns, logrotate, packages, rsyslogd, tests, triggers ]
 
-- debug: msg=System "{{ inventory_hostname }}"
+- debug: msg=System "{{ inventory_hostname }} ({{ ansible_fqdn }})"
   when: verbose
   tags: [ base ]
 
-- name: Set hostname (runtime) (Debian, CoreOS)
-  shell: 'hostname {{ inventory_hostname_short }}'
+- name: Make /etc/hostname present (Debian, CoreOS)
+  shell: 'echo {{ ansible_fqdn }} > /etc/hostname'
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
-- name: Make /etc/hostname present (Debian, CoreOS)
-  shell: 'echo {{ inventory_hostname_short }} > /etc/hostname'
+- name: Set hostname (runtime) (Debian, CoreOS)
+  shell: 'hostname {{ ansible_fqdn }}'
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
 - name: Set domainname (Debian, CoreOS)
-  shell: 'domainname {{ category }}.{{ deployment }}'
+  shell: 'domainname {{ ansible_domain }}'
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
@@ -65,7 +65,7 @@
   lineinfile:
     dest=/etc/defaultdomain
     regexp='^.*$'
-    line={{ category }}.{{ deployment }}
+    line={{ ansible_domain }}
     owner={{ root_user }}
     group={{ root_group }}
     mode=0o644
