@@ -105,9 +105,11 @@ function teardown() {
     assert "$HOME/VirtualBox\ VMs" get_vbox_home_dir
 }
 
+{% if vm_dir is defined %}
 @test "[U][EV] get_vagrant_run_dir host returns '{{ vm_dir }}/run/host'" {
     assert "{{ vm_dir }}/run/host" get_vagrant_run_dir host
 }
+{% endif %}
 
 @test "[U][EV] get_packer_ovf_dir ubuntu 14.04.5 returns '{{ vm_dir }}/ovf/ubuntu-14.04.5'" {
     assert "{{ vm_dir }}/ovf/ubuntu-14.04.5" get_packer_ovf_dir ubuntu 14.04.5
