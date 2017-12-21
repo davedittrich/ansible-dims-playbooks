@@ -13,4 +13,9 @@ ftp: root
 abuse: root
 noc: root
 security: root
-root: {{ ansible_user_id }}@ops.{{ deployment }}
+root: {{ ansible_user_id }}@{{ ansible_domain }}
+
+{% if trident_site_mail_handler is defined %}
+# See https://trident.li/doc/#toc_32
+trident-handler: "|{{ trident_site_mail_handler }}"
+{% endif %}
