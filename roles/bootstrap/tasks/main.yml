@@ -43,6 +43,10 @@
   include: 'ssh.yml'
   tags: [ 'bootstrap', 'ssh' ]
 
+- name: Set up monitoring fatures
+  include: 'monitoring.yml'
+  tags: [ 'bootstrap', 'monitoring' ]
+
 - name: Display diagnostic and validation information
   include: 'info.yml'
   tags: [ 'bootstrap', 'info' ]
