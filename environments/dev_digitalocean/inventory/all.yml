@@ -10,12 +10,9 @@ all:
       udp_ports: [ 53 ]
     'blue':
     'orange':
-      tcp_ports:
-        - '{{ nginx_default_port }}'
-        - '{{ jenkins_port }}'
-        - '{{ nginx_health_check_port }}'
+      tcp_ports: [ 25, '{{ nginx_default_port }}', '{{ nginx_ssl_port }}' ]
       udp_ports: [ ]
-      jenkins_url_external: 'http://{{ hostvars["orange"].ansible_host }}/jenkins'
+      jenkins_url_external: 'https://{{ hostvars["orange"].ansible_fqdn }}/jenkins'
     'purple':
       tcp_ports: [ 25, 80, 443 ]
   children:
