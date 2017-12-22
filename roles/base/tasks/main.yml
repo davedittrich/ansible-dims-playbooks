@@ -993,6 +993,22 @@
   register: _aliases
   tags: [ base, config ]
 
+  # Running "newaliases" fails on CentOS when Postfix main.cf contains
+  # "inet_protocols = all" with the following error message:
+  # newaliases: fatal: parameter inet_interfaces: no local interface found for ::1
+
+- name: Ensure inet_protocols set properly on CentOS
+  lineinfile:
+    dest: /etc/postfix/main.cf
+    regexp: '^inet_protocols'
+    line: 'inet_protocols = ipv4'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  when: ansible_distribution == "CentOS" and
+        not '::1' in ansible_all_ipv6_addresses
+  tags: [ base, config ]
+
 - name: Reload aliases
   shell: newaliases
   become: yes
