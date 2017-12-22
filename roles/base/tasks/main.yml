@@ -763,6 +763,14 @@
   when: ansible_pkg_mgr == "apt"
   tags: [ base, config, updates ]
 
+- name: Upgrade required pip components
+  shell: 'pip install -U {{ item }}'
+  become: yes
+  with_items:
+    - pip
+    - setuptools
+  tags: [ base, config, updates ]
+
 - name: Create base-requirements.txt file
   template:
     src: pip/base-requirements.txt.j2
