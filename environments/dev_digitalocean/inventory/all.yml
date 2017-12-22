@@ -3,6 +3,7 @@
 all:
   vars:
     dist_tag: '{{ ansible_distribution_version }}'
+    use_sphinx: no
     os_version: '?'
   hosts:
     'red':
