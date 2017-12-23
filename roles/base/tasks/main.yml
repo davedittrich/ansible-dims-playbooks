@@ -148,6 +148,31 @@
   when: ansible_os_family == "Debian"
   tags: [ base, config, iptables ]
 
+- name: iptables v4 rules (CentOS)
+  template:
+    src: '{{ item }}'
+    dest: /etc/sysconfig/iptables
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+    validate: '/sbin/iptables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ iptables_rules }}'
+        - rules.v4.{{ inventory_hostname }}.j2
+        - rules.v4.category-{{ category }}.j2
+        - rules.v4.deployment-{{ deployment }}.j2
+        - rules.v4.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  notify:
+    - "restart iptables ({{ dims_os_id }})"
+    - "conditional restart docker"
+  become: yes
+  when: ansible_distribution == "CentOS"
+  tags: [ base, config, iptables ]
+
 - name: iptables v4 rules (CoreOS)
   template:
     src: '{{ item }}'
@@ -196,6 +221,31 @@
     - "conditional restart docker"
   become: yes
   when: ansible_os_family == "Debian"
+  tags: [ base, config, iptables ]
+
+- name: iptables v6 rules (CentOS)
+  template:
+    src: '{{ item }}'
+    dest: /etc/sysconfig/ip6tables
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+    validate: '/sbin/ip6tables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ ip6tables_rules }}'
+        - rules.v6.{{ inventory_hostname }}.j2
+        - rules.v6.category-{{ category }}.j2
+        - rules.v6.deployment-{{ deployment }}.j2
+        - rules.v6.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  become: yes
+  notify:
+    - "restart iptables ({{ dims_os_id }})"
+    - "conditional restart docker"
+  when: ansible_distribution == "CentOS"
   tags: [ base, config, iptables ]
 
 - name: iptables v6 rules (CoreOS)
