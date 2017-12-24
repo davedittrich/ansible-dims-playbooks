@@ -22,12 +22,12 @@ function setup() {
 
 @test "[S][EV] Docker Client version is {{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}" {
     is_coreos && skip "Not applicable on CoreOS"
-    assert "{{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}"  docker version --format '{{ '{{' }}.Client.Version{{ '}}' }}'
+    assert "{{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}-ce"  docker version --format '{{ '{{' }}.Client.Version{{ '}}' }}'
 }
 
 @test "[S][EV] Docker Server version is {{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}" {
     is_coreos && skip "Not applicable on CoreOS"
-    assert "{{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}"  docker version --format '{{ '{{' }}.Server.Version{{ '}}' }}'
+    assert "{{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}-ce"  docker version --format '{{ '{{' }}.Server.Version{{ '}}' }}'
 }
 
 # NOTE: Programs like docker-machine report their version numbers in a
