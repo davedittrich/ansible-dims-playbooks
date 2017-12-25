@@ -404,10 +404,6 @@
   include: "{{ tasks_path }}/proxy_check.yml"
   tags: [ base, config, packages, updates, triggers ]
 
-- name: Make DIMS-specific resources present
-  include: dims_base.yml
-  tags: [ base, packages ]
-
 - name: Make CoreOS resources present
   include: coreos.yml
   when: ansible_os_family == "Container Linux by CoreOS"

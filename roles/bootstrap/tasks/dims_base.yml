@@ -15,10 +15,13 @@
   user:
     name: ansible
     append: yes
-    groups: '{{ item }}'
-  with_items:
-    - '{{ dims_group }}'
-    - sudo
+    shell: /bin/bash
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+    groups:
+      - '{{ dims_group }}'
+      - sudo
   become: yes
   tags: [ base, config ]
 
@@ -28,7 +31,7 @@
     append: yes
     group: '{{ dims_group }}'
     home: '{{ dims }}'
-    shell: /bin/bash
+    shell: /bin/true
     comment: 'DIMS Service Account'
   become: yes
   tags: [ base, config ]
