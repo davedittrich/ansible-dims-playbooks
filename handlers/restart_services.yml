@@ -83,6 +83,12 @@
 - name: restart ip6tables (Ubuntu/xenial)
   action: service name=netfilter-persistent state=reloaded
 
+- name: restart iptables (centos7)
+  action: service name=iptables state=restarted
+
+- name: restart iptables6 (centos7)
+  action: service name=iptables6 state=restarted
+
 - name: restart virtualbox
   action: service name=virtualbox state=restarted
 

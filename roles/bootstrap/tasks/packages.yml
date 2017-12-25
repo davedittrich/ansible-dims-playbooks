@@ -11,7 +11,7 @@
   with_items:
    - "{{ packages_install }}"
   ignore_errors: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_pkg_mgr == "apt"
 
 - name: Make sure required RPM packages are present (RedHat)
   yum:
@@ -21,7 +21,22 @@
   with_items:
    - "{{ packages_install }}"
   ignore_errors: yes
-  when: ansible_os_family == "RedHat"
+  when: ansible_pkg_mgr == "yum"
+
+- name: Remove broken git from CentOS 6
+  yum:
+    name: git
+    state: absent
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version|int == 6
+
+- name: Ensure wandisco Git installed on CentOS 6
+  yum:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - 'http://opensource.wandisco.com/centos/6/git/x86_64/wandisco-git-release-6-1.noarch.rpm'
+    - git
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version|int == 6
 
   # TODO(dittrich): Implement CoreOS preparation from $GIT/dims-packer/
   #
@@ -33,5 +48,36 @@
   # └── prep.sh
   #
   # 0 directories, 4 files
+
+  # Switch to using iptables like other hosts on CentOS 7
+  # See: https://community.rackspace.com/products/f/25/t/4504
+
+- name: Check for presense of firewalld service on CentOS 7
+  shell: >
+    systemctl | grep -q firewalld
+  register: _firewalld
+  ignore_errors: yes
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version|int >= 7
+
+- name: Stop and mask firewalld service on CentOS 7
+  shell: >
+    systemctl stop firewalld &&
+    systemctl mask firewalld
+  ignore_errors: yes
+  when: _firewalld.rc is defined and _firewalld.rc|int == 0
+
+- name: Install and enable iptables-services on CentOS 7
+  shell: >
+    yum install -y iptables-services &&
+    systemctl enable iptables &&
+    systemctl enable ip6tables
+  when: ansible_distribution == "CentOS" and ansible_distribution_major_version|int >= 7
+
+#- name: Ensure CentOS devtoolset is installed
+#  shell: >
+#    cd /etc/yum.repos.d &&
+#    wget https://people.centos.org/tru/devtools-1.1/devtools-1.1.repo &&
+#    yum install -y devtoolset-1.1
+#  when: ansible_distribution == "CentOS"
 
 # vim: ft=ansible :
