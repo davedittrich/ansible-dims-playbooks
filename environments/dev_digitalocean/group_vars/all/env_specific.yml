@@ -116,7 +116,7 @@ go_sha256_sum: '6d894da8b4ad3f7f6c295db0d73ccc3646bce630e1c43e662a0120681d47e988
 # Local settings for geerlingguy/nginx role
 
 nginx_version: '1.6.2-5+deb8u3'
-nginx_health_check_port: 8888
+nginx_health_check_port: 8008
 nginx_worker_processes: 4
 nginx_default_port: 80
 nginx_default_domain: '{{ category }}.{{ deployment }}'
