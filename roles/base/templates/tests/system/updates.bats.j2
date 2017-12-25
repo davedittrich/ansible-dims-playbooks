@@ -6,14 +6,30 @@
 
 load helpers
 
+function setup() {
+    source $DIMS/bin/dims_functions.sh
+    HELD_PACKAGES=$(get_temp_file)
+    # Obtain a list of held packages so we can ignore them when
+    # it comes time to list available updates.
+    dpkg -l | grep "^hi" | awk '{ print $2; }' > $HELD_PACKAGES
+}
+
+function teardown() {
+    rm -f $HELD_PACKAGES
+}
+
 {% if ansible_distribution == 'Ubuntu' %}
 @test "[S][EV] All APT packages are up to date ({{ ansible_distribution }})" {
     bash -c "(/usr/lib/update-notifier/apt-check -p && echo '')" 1>&2
     assert "0 packages can be updated.0 updates are security updates." bash -c "/usr/lib/update-notifier/apt-check --human-readable"
 }
 {% elif ansible_distribution == 'Debian' %}
-@test "[S][EV] All APT packages are up to date ({{ ansible_distribution }})" {
-    assert "Listing..." bash -c "apt list --upgradable"
+@test "[S][EV] All non-held APT packages are up to date ({{ ansible_distribution }})" {
+    assert "Listing..." bash -c "apt list --upgradable|fgrep -v -f $HELD_PACKAGES"
+}
+
+@test "[S][EV] All held APT packages are up to date ({{ ansible_distribution }})" {
+    assert "Listing..." bash -c "apt list --upgradable|fgrep -f $HELD_PACKAGES"
 }
 {% else %}
 @test "[S][EV] All packages are up to date ({{ ansible_distribution }})" {
