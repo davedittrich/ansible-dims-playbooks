@@ -4,45 +4,60 @@ SHELL=/bin/bash
 INVENTORY=../../environments/dev_digitalocean/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 
+# The following checks to see if local sudo requires a password. If so,
+# the flag is added to the command line when invoking Ansible.
+ASK_SUDO_PASS:=$(shell ansible -i localhost, -m shell -a 'date' --become localhost -c local 2>&1 >/dev/null && echo "--ask-sudo-pass")
+ANSIBLE:=ansible $(ASK_SUDO_PASS)
+ANSIBLE_PLAYBOOK:=ansible-playbook $(ASK_SUDO_PASS)
+
 define get_domain_var
    $(shell ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED)  -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line do | head -n 1 | cut -d^ -f 2)
 endef
+
+# By nature of being defined first, 'make help' is the default.
 
 .PHONY: help
 help:
 	@echo "Usage: make [something]"
 	@echo ""
 	@echo "Where 'something' is one of these:"
+	@echo " help - print this help text"
 	@echo " init - initialize terraform state (this is automatic)"
 	@echo " droplets - show list of active droplets using digital_ocean.py dynamic inventory"
 	@echo " hosts - show list of hosts in group 'do'"
 	@echo " images - lists available digitalocean images"
+	@echo " regions - lists available digitalocean regions"
 	@echo " provider - generate terraform provider.tf file for creating nodes in group 'do'"
 	@echo " plan - show the terraform plan for the current state"
 	@echo " graph - generate terraform graph (output is 'graph.png')"
+	@echo " newkeypair - generate a new SSH user keypair"
 	@echo " insertpubkey - insert SSH public key on DigitalOcean"
-	@echo " destroypubkey - remove SSH public key on DigitalOcean"
+	@echo " removepubkey - remove SSH public key on DigitalOcean"
 	@echo " create - applies terraform plan to create droplets for hosts in group 'do'"
 	@echo " bootstrap - create, then run bootstrap.yml and ca-certs.yml playbooks"
-	@echo " addkeys - adds SSH host public keys to selected known_hosts files"
-	@echo " removekeys - removes SSH host public keys from selected known_hosts files"
+	@echo " addhostkeys - adds SSH host public keys to selected known_hosts files"
+	@echo " removehostkeys - removes SSH host public keys from selected known_hosts files"
 	@echo " dumpvars - produces Ansible debug output of vars for hosts in group 'do'"
 	@echo " ping - does Ansible ad-hoc ping of hosts in group 'do'"
 	@echo " test - run pre-requisite tests for using terraform with digitalocean"
 	@echo " destroy - destroys droplets for hosts in group 'do'"
 	@echo " spotless - remove terraform log and state files"
 	@echo ""
-	@echo " The default if you just type 'make' is the same as 'make pdf'"
+	@echo " The default if you just type 'make' is the same as 'make help'"
 
 .PHONY: init
 init: terraform.tfstate
+	@[ -d $(HOME)/.secrets/digital-ocean ] || mkdir -p $(HOME)/.secrets/digital-ocean
+	@chmod 700 $(HOME)/.secrets $(HOME)/.secrets/digital-ocean
+	@touch $(HOME)/.secrets/digital-ocean/token
+	@chmod 600 $(HOME)/.secrets/digital-ocean/token
 
 terraform.tfstate:
 	terraform init
 
 .PHONY: droplets
 droplets:
-	ansible -i $(INVENTORY)/digital_ocean.py $(DIMS_ANSIBLE_ARGS) --list-hosts all |\
+	$(ANSIBLE) -i $(INVENTORY)/digital_ocean.py $(DIMS_ANSIBLE_ARGS) --list-hosts all |\
 	       sed 's/ *//g' |\
 	       tail -n +2
 
@@ -51,20 +66,37 @@ hosts:
 	$(MAKE) --always-make inventory/hosts
 
 inventory/hosts:
-	(echo "[droplets]"; ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) | tee inventory/hosts
+	(echo "[droplets]"; $(ANSIBLE) -i $(INVENTORY) -i $(INVENTORY_GENERATED) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) |\
+		tee inventory/hosts
 
 .PHONY: etchosts
 etchosts:
-	@#ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' do | grep '\"msg\":' | awk -F\" '{print $$4; }'
-	@ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' do | grep '\"msg\":' | awk -F\" '{print $$4; }'
+	@#$(ANSIBLE) -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' do |\
+		grep '\"msg\":' |\
+		awk -F\" '{ print $$4; }'
+	@$(ANSIBLE) -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' do |\
+		grep '\"msg\":' |\
+		awk -F\" '{ print $$4; }'
+
+.PHONY: dumpjson
+dumpjson:
+	curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" |\
+		python -m json.tool |\
+		less
 
 .PHONY: images
 images:
-	curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" | python -m json.tool | less
+	@curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" |\
+		jq -rc '.images[] | select(.slug | length >= 1) | { slug: .slug, distribution: .distribution, name: .name }' | sort
+
+.PHONY: regions
+regions:
+	@curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" |\
+		jq -rc '.images[] | select(.slug | length >= 1) | .regions' | sort | uniq
 
 .PHONY: provider
 provider:
-	ansible-playbook -i $(INVENTORY) \
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-vvvv create-provider.tf.yml
@@ -82,63 +114,77 @@ graph: graph.png
 graph.png: init
 	terraform graph | dot -Tpng -o graph.png
 
-inventory/nodes-generated.yml:
-	./do_post.sh inventory/
+$(INVENTORY_GENERATED):
+	./do_post.sh > $(INVENTORY_GENERATED)
 
-.PHONY: sshkeys
-sshkeys:
-	cat terraform.log | $(call get_domain_var) ../../files/common-scripts/keys.host.extract.sh > /dev/null
+.PHONY: newkeypair
+newkeypair:
+	@if [ $(shell jq -r '.resources' terraform.tfstate) != "null" ]; then \
+		echo '[!] Refusing to replace SSH keys while droplets are running'; \
+		echo '[!] Use "make destroy" first or manually re-key droplets'; \
+		false; \
+	fi
+	@echo "[+] Generating new SSH key pair"
+	ssh-keygen -t rsa -f $(TF_VAR_private_key)
 
 .PHONY: insertpubkey
 insertpubkey:
 	terraform apply -target=digitalocean_ssh_key.default -auto-approve
 
-.PHONY: destroypubkey
-destroypubkey:
+.PHONY: removepubkey
+removepubkey:
 	terraform destroy -target=digitalocean_ssh_key.default --force
 
 .PHONY: create
 create: init hosts provider
 	$(MAKE) insertpubkey && sleep 2
 	terraform apply | tee -a terraform.log | $(call get_domain_var) ../../files/common-scripts/keys.host.extract.sh
+	! grep -q "Error: Error applying plan:" terraform.log
 	$(MAKE) --always-make $(INVENTORY_GENERATED)
-	$(MAKE) addkeys
+	$(MAKE) addhostkeys
 	$(MAKE) ping
 
+.PHONY: sshkeys
+sshkeys:
+	cat terraform.log | $(call get_domain_var) ../../files/common-scripts/keys.host.extract.sh > /dev/null
+
 .PHONY: bootstrap
-bootstrap: init
+bootstrap:
 	(terraform plan | grep -q "No changes") || $(MAKE) create
-	ansible-playbook -i $(INVENTORY) \
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		../../playbooks/bootstrap.yml \
 		-e host=do
-#	ansible-playbook -i $(INVENTORY) \
-#		-i $(INVENTORY_GENERATED) \
-#		$(DIMS_ANSIBLE_ARGS) \
-#		../../playbooks/groups/ca-certs.yml \
-#		-e host=infra \
-#		-e ca_init=true \
-#		-e ca_force_certify_nodes=true \
-#		-e ca_force_create=true
-#	ansible-playbook -i $(INVENTORY) \
-#		-i $(INVENTORY_GENERATED) \
-#		$(DIMS_ANSIBLE_ARGS) \
-#		../../playbooks/groups/ca-certs.yml \
-#		-e host=instances
 
-.PHONY: addkeys
-addkeys:
-	ansible-playbook -i $(INVENTORY) \
+.PHONY: installcerts
+installcerts:
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		../../playbooks/certbot-installcert.yml \
+		-e host=do
+
+.PHONY: provision
+provision:
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		-e@~/.secrets/digital-ocean/secrets.yml \
+		master.yml
+
+.PHONY: addhostkeys
+addhostkeys:
+	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSILE_ARGS) \
 		../../playbooks/do_rekey.yml \
 		-e known_hosts_root="$(shell pwd)/known_hosts" \
 		--ask-sudo-pass
 
-.PHONY: removekeys
-removekeys:
-	-ansible-playbook -i $(INVENTORY) \
+.PHONY: removehostkeys
+removehostkeys:
+	-$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		../../playbooks/do_rekey.yml \
@@ -147,7 +193,7 @@ removekeys:
 
 .PHONY: dumpvars
 dumpvars:
-	ansible -i $(INVENTORY) \
+	$(ANSIBLE) -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-m debug -a "var=hostvars[inventory_hostname]" do |\
@@ -156,7 +202,7 @@ dumpvars:
 
 .PHONY: ping
 ping:
-	ansible -i $(INVENTORY) \
+	$(ANSIBLE) -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-m ping do
@@ -168,15 +214,15 @@ test:
 .PHONY: destroy
 destroy:
 	terraform destroy --force
-	-$(MAKE) removekeys
+	-$(MAKE) removehostkeys
 	-rm -rf fingerprints/ known_hosts/
 	-rm -f ansible-digital_ocean.cache
 	-rm -f inventory/hosts inventory/nodes-generated.yml
 	-rm -f do_post.log provider.tf graph.png
-	-$(MAKE) destroypubkey
+	-$(MAKE) removepubkey
 
 .PHONY: spotless
-spotless:
+spotless: destroy
 	-rm -f terraform.log
 	-rm -f terraform.tfstate terraform.tfstate.backup
 
