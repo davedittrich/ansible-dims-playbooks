@@ -5,16 +5,16 @@
 
 - hosts: '{{ host|default("webservers") }}'
   become: yes
-  vars:
-    certbot_auto_renew_user: ansible
-    certbot_auto_renew_minute: 20
-    certbot_auto_renew_hour: 5
-    certbot_install_from_source: yes
-    certbot_repo: https://github.com/certbot/certbot.git
-    certbot_version: master
-    certbot_keep_updated: yes
-    certbot_sitename: '{{ tridentFQDN }}' # For now, use this variable
-    certbot_adminemail: '{{ trident_site_adminemail }}'
+  #vars:
+  #  certbot_auto_renew_user: ansible
+  #  certbot_auto_renew_minute: 20
+  #  certbot_auto_renew_hour: 5
+  #  certbot_install_from_source: yes
+  #  certbot_repo: https://github.com/certbot/certbot.git
+  #  certbot_version: master
+  #  certbot_keep_updated: yes
+  #  certbot_sitename: '{{ ansible_fqdn }}'
+  #  certbot_adminemail: '{{ dims_adminemail }}'
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
 
