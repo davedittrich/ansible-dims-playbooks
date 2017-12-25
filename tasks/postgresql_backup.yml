@@ -11,7 +11,7 @@
 # TODO(dittrich): Could use dims.function to get backup dir
 - name: Define local postgresql backup directory
   set_fact:
-    postgresql_backup_dir: '{{ dims_backups }}/{{ inventory_hostname }}'
+    postgresql_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
   when: postgresql_backup_dir is not defined
 
 - debug: 'var=postgresql_backup_dir'
