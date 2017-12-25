@@ -21,27 +21,28 @@ write_files:
     owner: 'root:root'
     content: |
       net.ipv6.conf.all.disable_ipv6 = 1
+  # TODO(dittrich): Fix this? Commenting out as it should be handled by bootstrap.yml
   # Adding section for user 'ansible' as switching over to using it for control
-  - path: /home/ansible/.ssh/config
-    permissions: "0644"
-    owner: ansible:ansible
-    content: |
-      host core-*.{{ category }}.{{ deployment }}
-          port 22
-          user core
-          Identityfile ~/.ssh/dims_ansible_rsa
-      host *.{{ category }}.{{ deployment }}
-          port {{ dims_ssh_port }}
-  - path: /home/core/.ssh/config
-    permissions: "0644"
-    owner: core:core
-    content: |
-      host core-*.{{ category }}.{{ deployment }}
-          port 22
-          user core
-          Identityfile ~/.ssh/dims_core_rsa
-      host *.{{ category }}.{{ deployment }}
-          port {{ dims_ssh_port }}
+  #- path: /home/ansible/.ssh/config
+  #  permissions: "0644"
+  #  owner: ansible:ansible
+  #  content: |
+  #    host core-*.{{ category }}.{{ deployment }}
+  #        port 22
+  #        user core
+  #        Identityfile ~/.ssh/dims_ansible_rsa
+  #    host *.{{ category }}.{{ deployment }}
+  #        port {{ dims_ssh_port }}
+  #- path: /home/core/.ssh/config
+  #  permissions: "0644"
+  #  owner: core:core
+  #  content: |
+  #    host core-*.{{ category }}.{{ deployment }}
+  #        port 22
+  #        user core
+  #        Identityfile ~/.ssh/dims_core_rsa
+  #    host *.{{ category }}.{{ deployment }}
+  #        port {{ dims_ssh_port }}
   - path: /etc/ntp.conf
     content: |
       #
