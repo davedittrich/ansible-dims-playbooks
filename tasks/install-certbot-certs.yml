@@ -21,7 +21,7 @@
 
 - name: Define certbot_adminemail
   set_fact:
-    certbot_adminemail: 'admin@{{ ansible_fqdn }}'
+    certbot_adminemail: '{{ root_user }}@{{ ansible_fqdn }}'
   when: certbot_adminemail is not defined
 
 - name: Default certbot_save_backups false
