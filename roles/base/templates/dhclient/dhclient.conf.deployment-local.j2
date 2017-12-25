@@ -16,11 +16,8 @@
 
 option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;
 
-#send host-name "andare.fugue.com";
-send host-name = {{ ansible_hostname }}.{{ category }}.{{ deployment }}
-#send dhcp-client-identifier 1:0:a0:24:ab:fb:9c;
-#send dhcp-lease-time 3600;
-supersede domain-name "{{ category }}.{{ deployment }}";
+send host-name = {{ ansible_fqdn }}
+supersede domain-name "{{ ansible_domain }}";
 prepend domain-name-servers 127.0.0.1
 {% if groups['nameserver'] is defined %}
 {% for nameserver in groups['nameserver'] %}
