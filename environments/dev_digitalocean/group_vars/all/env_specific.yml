@@ -119,6 +119,7 @@ nginx_version: '1.6.2-5+deb8u3'
 nginx_health_check_port: 8008
 nginx_worker_processes: 4
 nginx_default_port: 80
+nginx_ssl_port: 443
 nginx_default_domain: '{{ category }}.{{ deployment }}'
 
 # For use by ansible-role-certbot
