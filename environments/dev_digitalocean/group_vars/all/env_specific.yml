@@ -183,7 +183,7 @@ ssl_cacertfile: '{{ ssl_certs_dir }}/ca.pem'
 ssl_certfile: '{{ ssl_certs_dir }}/{{ inventory_hostname }}-cert.pem'
 ssl_keyfile: '{{ ssl_key_dir }}/{{ inventory_hostname }}-priv-key.pem'
 ssl_dhparam_file: '/etc/ssl/certs/dhparam.pem'
-ssl_dhparam_keysize: '4096'
+ssl_dhparam_keysize: '2048'
 
 #sslCertDir: '/etc/nginx/ssl'
 #sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='
