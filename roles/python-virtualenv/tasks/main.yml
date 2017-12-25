@@ -40,7 +40,7 @@
   become: yes
   tags: [ python-virtualenv, packages ]
 
-- name: Install debian prerequisites if needed
+- name: Ensure prerequisites packages present (apt)
   apt:
     name={{ item }}
     state=present
@@ -48,29 +48,58 @@
   with_items:
     - autoconf
     - build-essential
-    - libreadline-dev
-    - libbz2-dev
-    - libgdbm-dev
-    - libsqlite3-dev
-    - libffi-dev
     - gettext
     - graphviz
+    - libbz2-dev
+    - libcurl4-gnutls-dev
+    - libffi-dev
+    - libgdbm-dev
     - libgraphviz-dev
+    - libncurses-dev
+    - libreadline-dev
+    - libsqlite3-dev
+    - libssl-dev
     - libxml2-dev
     - libxslt1-dev
     - libyaml-dev
-    - libncurses-dev
-    - libssl-dev
-    - libcurl4-gnutls-dev
     - pkg-config
+    - python-tk
     - python2.7-dev
     - xsltproc
-    - python-tk
-  when: ansible_os_family == "Debian"
+  when: ansible_pkg_mgr == "apt"
   become: yes
   tags: [ python-virtualenv, packages ]
 
-- name: Ensure required Sphinx prerequisites present
+- name: Ensure prerequisites packages present (yum)
+  yum:
+    name: '{{ item }}'
+    state: present
+    update_cache: yes
+  with_items:
+    - autoconf
+    - bzip2-devel
+    - bzip2-libs
+    - gcc-c++
+    - gettext
+    - gnutls-devel
+    - graphviz
+    - graphviz-devel
+    - graphviz-python
+    - libxml2
+    - libxml2-devel
+    - libxslt
+    - libxslt-devel
+    - libyaml-devel
+    - ncurses-devel
+    - openssl-devel
+    - perl-devel
+    - php-common
+    - readline-devel
+  when: ansible_pkg_mgr == "yum"
+  become: yes
+  tags: [ python-virtualenv, packages ]
+
+- name: Ensure required Sphinx prerequisites present (apt)
   apt:
     state=present
     name={{ item }}
@@ -82,7 +111,19 @@
     - texlive-extra-utils
     - texlive-fonts-recommended
     - texlive-fonts-extra
-  when: ansible_os_family == "Debian" and (use_sphinx is defined and use_sphinx)
+  when: ansible_pkg_mgr == "apt" and (use_sphinx is defined and use_sphinx|bool)
+  become: yes
+  tags: [ python-virtualenv, packages ]
+
+- name: Ensure required Sphinx prerequisites present (yum)
+  yum:
+    name: '{{ item }}'
+    state: present
+    update_cache: yes
+  with_items:
+    - texlive
+    - 'texlive-*.noarch'
+  when: ansible_pkg_mgr == "yum" and (use_sphinx is defined and use_sphinx|bool)
   become: yes
   tags: [ python-virtualenv, packages ]
 
@@ -176,9 +217,11 @@
 
 - name: Ensure source for 'hub-flow' is present
   git:
-    repo=https://github.com/datasift/gitflow
-    dest={{ dims_src }}/gitflow
-    force=yes
+    repo: 'https://github.com/datasift/gitflow'
+    dest: '{{ dims_src }}/gitflow'
+    recursive: false
+    track_submodules: false
+    force: yes
   become: yes
   become_user: '{{ dims_user }}'
   tags: [ python-virtualenv ]
@@ -269,6 +312,18 @@
 - name: Debug on build or test failure
   debug: "msg={{ build_result.stdout }}"
   when: build_result.rc|int != 0 or unit_test_result.rc|int != 0
+  tags: [ python-virtualenv ]
+
+  # This marker is checked in the dimsenv.build.j2 script template
+- name: Mark build completion on success
+  file:
+    path: '{{ dims }}/envs/{{ venv_name }}/.built'
+    state: touch
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o755
+  become: yes
+  when: build_result.rc|int == 0 and unit_test_result.rc|int == 0
   tags: [ python-virtualenv ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
