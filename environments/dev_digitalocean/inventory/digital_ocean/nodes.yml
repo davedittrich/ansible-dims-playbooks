@@ -34,7 +34,7 @@ do:
         floating_ip: 'yes'
       - name: 'orange'
         region: '{{ do_region }}'
-        size: '512mb'
+        size: '1gb'
         image_id: 'debian-8-x64'
         ssh_key_id: '{{ do_ssh_key_id }}'
         backups_enabled: 'no'
