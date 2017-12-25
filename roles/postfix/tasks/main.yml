@@ -7,11 +7,11 @@
 
 - name: Only "update_cache=yes" if >3600s since last update
   apt: update_cache=yes cache_valid_time=3600
-  when: ansible_os_family == "Debian"
+  when: ansible_pkg_mgr == "apt"
   become: yes
   tags: [ postfix, packages ]
 
-- name: Make related mail utilities present
+- name: Make related mail utilities present (APT)
   apt:
     name={{ item }}
     state=present
@@ -20,19 +20,30 @@
   with_items:
     - mailutils
     - alpine
-  when: ansible_os_family == "Debian"
+  when: ansible_pkg_mgr == "apt"
+  become: yes
+  tags: [ postfix, packages ]
+
+- name: Make related mail utilities present (yum)
+  yum:
+    name={{ item }}
+    state=present
+  with_items:
+    - mailx
+    - alpine
+  when: ansible_pkg_mgr == "yum"
   become: yes
   tags: [ postfix, packages ]
 
 - name: Make /var/mail directory permissions present
   file:
-    path=/var/mail
-    state=directory
-    owner=root
-    group=mail
-    mode=0o1777
+    path: '/var/mail'
+    state: directory
+    owner: root
+    group: mail
+    mode: 0o1777
+    follow: yes
   become: yes
-  when: ansible_os_family == "Debian"
   tags: [ postfix, packages ]
 
 - name: Make /etc/postfix/main.cf present
