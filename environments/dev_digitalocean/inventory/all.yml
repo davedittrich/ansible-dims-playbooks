@@ -3,11 +3,11 @@
 all:
   vars:
     dist_tag: '{{ ansible_distribution_version }}'
+    ip6tables_rules: '{{ (ansible_distribution == "Debian")|ternary("rules-v6-no_conntrack.j2","") }}'
     use_sphinx: no
     os_version: '?'
   hosts:
     'red':
-      ip6tables_rules: 'rules-v6-no_conntrack.j2'
       tcp_ports: [ 53 ]
       udp_ports: [ 53 ]
     'blue':
