@@ -122,6 +122,7 @@ nginx_worker_processes: 4
 nginx_default_port: 80
 nginx_ssl_port: 443
 nginx_default_domain: '{{ ansible_fqdn }}'
+nginx_webroot: '/var/www'
 
 # For use by ansible-role-certbot
 certbot_auto_renew_user: ansible
