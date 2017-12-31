@@ -170,8 +170,11 @@
 
 - name: Define _have_cert
   set_fact:
-    _have_cert: _cert_stat.stat is defined and
-                _cert_stat.stat.exists|bool
+    _have_cert: '{{ _cert_stat.stat is defined and
+                    _cert_stat.stat.exists|bool }}'
+
+- debug:
+    msg: '_have_cert is {{ _have_cert }}'
 
 - include: '{{ tasks_path }}/letsencrypt_generate.yml'
   when: use_letsencrypt and not _have_cert
