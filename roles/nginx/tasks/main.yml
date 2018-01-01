@@ -2,6 +2,13 @@
 
 # File: roles/nginx/tasks/main.yml
 
+- name: Define nginx_source_dir
+  set_fact:
+     nginx_source_dir: '/opt/dims/source'
+  when: nginx_source_dir is not defined
+        and '"source" in nginx_sites_available'
+  tags: [ always ]
+
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ nginx, packages, config ]
 
@@ -217,7 +224,7 @@
 
 - name: Make artifacts (source) directory present
   file:
-    path: '{{ dims }}/source'
+    path: '{{ nginx_source_dir }}'
     state: directory
     owner: '{{ dims_user }}'
     group: www-data
@@ -229,7 +236,7 @@
 
 - name: Define nginx_source_hostname
   set_fact:
-    nginx_source_hostname: 'source.devops.{{ deployment }}'
+    nginx_source_hostname: 'source.{{ ansible_domain }}'
   when: '"source" in nginx_sites_available
         and nginx_source_hostname is not defined'
   tags: [ nginx, config ]
