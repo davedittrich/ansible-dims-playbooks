@@ -6,9 +6,10 @@ INVENTORY_GENERATED=inventory/nodes-generated.yml
 
 # The following checks to see if local sudo requires a password. If so,
 # the flag is added to the command line when invoking Ansible.
-ASK_SUDO_PASS:=$(shell ansible -i localhost, -m shell -a 'date' --become localhost -c local 2>&1 >/dev/null && echo "--ask-sudo-pass")
-ANSIBLE:=ansible $(ASK_SUDO_PASS)
-ANSIBLE_PLAYBOOK:=ansible-playbook $(ASK_SUDO_PASS)
+ASK_SUDO_PASS:=$(shell ansible -i localhost, -m shell -a date --become localhost -c local | grep -q "password is required" && echo "--ask-sudo-pass")
+
+foo:
+	@echo "ASK_SUDO_PASS=$(ASK_SUDO_PASS)"
 
 define get_domain_var
    $(shell ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED)  -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line do | head -n 1 | cut -d^ -f 2)
@@ -57,7 +58,7 @@ terraform.tfstate:
 
 .PHONY: droplets
 droplets:
-	$(ANSIBLE) -i $(INVENTORY)/digital_ocean.py $(DIMS_ANSIBLE_ARGS) --list-hosts all |\
+	ansible -i $(INVENTORY)/digital_ocean.py $(DIMS_ANSIBLE_ARGS) --list-hosts all |\
 	       sed 's/ *//g' |\
 	       tail -n +2
 
@@ -66,15 +67,15 @@ hosts:
 	$(MAKE) --always-make inventory/hosts
 
 inventory/hosts:
-	(echo "[droplets]"; $(ANSIBLE) -i $(INVENTORY) -i $(INVENTORY_GENERATED) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) |\
+	(echo "[droplets]"; ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) |\
 		tee inventory/hosts
 
 .PHONY: etchosts
 etchosts:
-	@#$(ANSIBLE) -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' do |\
+	@#ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' do |\
 		grep '\"msg\":' |\
 		awk -F\" '{ print $$4; }'
-	@$(ANSIBLE) -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' do |\
+	@$ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' do |\
 		grep '\"msg\":' |\
 		awk -F\" '{ print $$4; }'
 
@@ -96,7 +97,7 @@ regions:
 
 .PHONY: provider
 provider:
-	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
+	ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-vvvv create-provider.tf.yml
@@ -151,7 +152,7 @@ sshkeys:
 .PHONY: bootstrap
 bootstrap:
 	(terraform plan | grep -q "No changes") || $(MAKE) create
-	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
+	ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		../../playbooks/bootstrap.yml \
@@ -159,7 +160,7 @@ bootstrap:
 
 .PHONY: installcerts
 installcerts:
-	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
+	ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		../../playbooks/certbot-installcert.yml \
@@ -167,7 +168,7 @@ installcerts:
 
 .PHONY: provision
 provision:
-	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
+	ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
@@ -175,16 +176,24 @@ provision:
 
 .PHONY: addhostkeys
 addhostkeys:
-	$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
+	@echo "[+] Adding host keys to known_hosts on localhost"
+	ansible-playbook -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSILE_ARGS) \
+		$(ASK_SUDO_PASS) \
+		../../playbooks/do_rekey.yml \
+		-e known_hosts_root="$(shell pwd)/known_hosts"
+	@echo "[+] Adding host keys to known_hosts on droplets"
+	ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSILE_ARGS) \
 		../../playbooks/do_rekey.yml \
 		-e known_hosts_root="$(shell pwd)/known_hosts" \
-		--ask-sudo-pass
+		-e host=do
 
 .PHONY: removehostkeys
 removehostkeys:
-	-$(ANSIBLE_PLAYBOOK) -i $(INVENTORY) \
+	-ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		../../playbooks/do_rekey.yml \
@@ -193,7 +202,7 @@ removehostkeys:
 
 .PHONY: dumpvars
 dumpvars:
-	$(ANSIBLE) -i $(INVENTORY) \
+	ansible -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-m debug -a "var=hostvars[inventory_hostname]" do |\
@@ -202,7 +211,7 @@ dumpvars:
 
 .PHONY: ping
 ping:
-	$(ANSIBLE) -i $(INVENTORY) \
+	ansible -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-m ping do
