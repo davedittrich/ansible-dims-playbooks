@@ -317,6 +317,38 @@
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
+# Note that /etc/environment is not read on CoreOS the same way that
+# it is done on Debian based Linux systems. See the tasks/coreos.yml
+# file for learning how they are applied.
+
+- name: Populate /etc/environment (Debian, CoreOS)
+  template:
+    src={{ item }}
+    dest=/etc/environment
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode=0o644
+  with_first_found:
+    - files:
+        - '{{ dims_environment }}'
+        - environment.{{ ansible_fqdn }}.j2
+        - environment.category-{{ category }}.j2
+        - environment.deployment-{{ deployment }}.j2
+        - environment.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/environment/'
+        - environment/
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  become: yes
+  tags: [ base, config ]
+
+# TODO(dittrich): Do this for Darwin as well
+#- name: Populate /etc/environment on Darwin
+#  template: "src=environment.j2 dest=/etc/environment owner={{ root_user }} group={{ root_group }} mode=0o644"
+#  when: ansible_os_family == "Darwin"
+#  become: yes
+#  tags: [ base, config ]
+
 - name: Check to see if update-manager is running on Ubuntu
   shell: "ps aux | awk '/[ ]\\/usr\\/bin\\/update-manager/ { print $2; }'"
   register: _ps
@@ -408,6 +440,79 @@
   include: coreos.yml
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, packages ]
+
+- name: Ensure DIMS system shell init hook is present (Debian, CoreOS)
+  template:
+    src={{ item }}
+    dest=/etc/bash.bashrc
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode=0o755
+  with_first_found:
+    - files:
+        - '{{ dims_bashrc }}'
+        - bash.bashrc.{{ ansible_fqdn }}.j2
+        - bash.bashrc.category-{{ category }}.j2
+        - bash.bashrc.deployment-{{ deployment }}.j2
+        - bash.bashrc.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/bash.bashrc/'
+        - bash.bashrc/
+  become: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Make DIMS system level profile present
+  template:
+    src={{ item }}
+    dest=/etc/profile.d/dims.sh
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode=0o644
+  with_first_found:
+    - files:
+        - '{{ dims_profile }}'
+        - dims.sh.{{ ansible_fqdn }}.j2
+        - dims.sh.category-{{ category }}.j2
+        - dims.sh.deployment-{{ deployment }}.j2
+        - dims.sh.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/profile.d/'
+        - profile.d/
+  become: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Make directory for DIMS bashrc plugins present
+  file:
+    state: directory
+    path: '{{ dims_etc }}/bashrc.dims.d'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o775
+  become: yes
+  tags: [ base, config ]
+
+- name: Make DIMS-specific bashrc setup file present
+  template:
+    src={{ item }}
+    dest={{ dims_etc }}/bashrc.dims
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode=0o755
+  with_first_found:
+    - files:
+        - '{{ dims_bashrc_dims }}'
+        - bashrc.dims.{{ ansible_fqdn }}.j2
+        - bashrc.dims.category-{{ category }}.j2
+        - bashrc.dims.deployment-{{ deployment }}.j2
+        - bashrc.dims.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/bashrc.dims/'
+        - bashrc.dims/
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  become: yes
+  tags: [ base, config ]
 
 # Set up logging first to aid in debugging installation problems.
 
@@ -856,6 +961,17 @@
    - '{{ files }}/common-scripts/*.j2'
   become: yes
   tags: [ base, packages, scripts, tests ]
+
+# These are used by tests, so the 'tests' tag is applied specifically for this library.
+- name: Make DIMS bash shell functions present
+  copy:
+    src=dims_functions.sh
+    dest={{ dims_bin }}/dims_functions.sh
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode=0o644
+  become: yes
+  tags: [ base, config, tests ]
 
 - name: Make sure common (non-templated) BASH scripts are present
   copy:
