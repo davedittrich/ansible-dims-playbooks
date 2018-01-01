@@ -8,9 +8,6 @@ INVENTORY_GENERATED=inventory/nodes-generated.yml
 # the flag is added to the command line when invoking Ansible.
 ASK_SUDO_PASS:=$(shell ansible -i localhost, -m shell -a date --become localhost -c local | grep -q "password is required" && echo "--ask-sudo-pass")
 
-foo:
-	@echo "ASK_SUDO_PASS=$(ASK_SUDO_PASS)"
-
 define get_domain_var
    $(shell ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED)  -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line do | head -n 1 | cut -d^ -f 2)
 endef
