@@ -1,7 +1,10 @@
 # vim: set ts=4 sw=4 tw=0 et :
 
-from netaddr import *
+import bcrypt
+import six
 import socket
+
+from netaddr import *
 from ansible import errors
 
 def _list_to_args(_list):
@@ -183,6 +186,16 @@ def _uppercase(_str):
         return "{}".format(_str).upper()
 
 
+def _bcrypt_hashpw(_str):
+    '''Return the salted bcrypt hash of a password string'''
+    if isinstance(_str, basestring):
+        return "#jbcrypt:" + bcrypt.hashpw(_str, bcrypt.gensalt())
+    elif isinstance(_str, six.text_type):
+        return "#jbcrypt:{}".format(bcrypt.hashpw(_str.encode("utf-8"), bcrypt.gensalt()))
+    else:
+        return "#jbcrypt:{}".format(bcrypt.hashpw(_str, bcrypt.gensalt()))
+
+
 class FilterModule(object):
     '''DIMS Ansible filters.'''
 
@@ -204,6 +217,7 @@ class FilterModule(object):
             # String filters
             'lowercase': _lowercase,
             'uppercase': _uppercase,
+            'bcrypt_hashpw': _bcrypt_hashpw,
 
             # Other filters go here...
         }
