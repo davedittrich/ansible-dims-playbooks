@@ -1,5 +1,3 @@
-# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
-#
 # vim: set ts=4 sw=4 tw=0 et :
 #
 # Copyright (C) 2014-2016, University of Washington. All rights reserved.
@@ -243,8 +241,6 @@ export PROGRAM="${0##-}"
 export BASE=$(basename "$PROGRAM")
 #HELP_Global: PWD
 export PWD=$(pwd); export PWD
-#HELP_Global: RECIPIENTS
-export RECIPIENTS=dims-devops@uw.ops-trust.net
 #HELP_Global: COMMAND
 export COMMAND=""
 
