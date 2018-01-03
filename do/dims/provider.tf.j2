@@ -23,6 +23,7 @@ resource "digitalocean_domain" "default" {
 }
 
 {% for d in do_droplets %}
+{% if d.name in groups.do %}
 resource "digitalocean_droplet" "{{ d.name }}" {
     image = "{{ d.image_id|default('debian-8-x64') }}"
     #name = "{{ d.name }}-${var.role}-${format(var.count_format, count.index+1)}"
@@ -77,4 +78,5 @@ output "{{ d.name }}" {
   value = { "{{ d.name }}.{{ dims_domain }}" = "${join(",", digitalocean_droplet.{{ d.name }}.*.ipv4_address)}" }
 }
 
+{% endif %}
 {% endfor %}
