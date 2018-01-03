@@ -45,10 +45,12 @@ function setup() {
     assert "{{ docker_ce_pool }}" bash -c "grep {{ docker_repo_host }} /etc/apt/sources.list.d/docker.list | awk '{ print \$NF; }'"
 }
 
+{% if docker_machine_version is defined %}
 @test "[S][EV] Docker machine version is {{ docker_machine_version | regex_replace('-[0-9]+$', '') }}" {
     is_coreos && skip "Not applicable on CoreOS"
     assert "docker-machine version {{ docker_machine_version | regex_replace('-[0-9]+$', '') }}" bash -c "docker-machine --version | sed 's/, build.*//'"
 }
+{% endif %}
 
 @test "[S][EV] Docker compose version is {{ docker_compose_version | regex_replace('-[0-9]+$', '') }}" {
     is_coreos && skip "Not applicable on CoreOS"
