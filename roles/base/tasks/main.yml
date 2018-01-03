@@ -52,10 +52,16 @@
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
-- name: Set hostname (runtime) (Debian, CoreOS)
+- name: Set hostname (runtime) (Ubuntu, CoreOS)
   shell: 'hostname {{ ansible_fqdn }}'
   become: yes
-  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  when: ansible_distribution == "Ubuntu" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Set hostname (runtime) (Debian)
+  shell: 'hostname -F /etc/hostname'
+  become: yes
+  when: ansible_distribution == "Debian"
   tags: [ base, config ]
 
 - name: Set domainname (Debian, CoreOS)
