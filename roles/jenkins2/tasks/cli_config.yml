@@ -126,6 +126,7 @@
   register: cli_whoami
   become: true
   become_user: jenkins
+  no_log: '{{ nolog }}'
   changed_when: false
 
 # vim: ft=ansible :
