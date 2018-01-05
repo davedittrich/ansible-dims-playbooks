@@ -143,4 +143,14 @@
 - name: restart rabbitmq-server
   service: name=rabbitmq-server state=restarted
 
+- name: restart fail2ban (service)
+  service:
+    name: fail2ban
+    state: restarted
+
+- name: restart fail2ban (systemd)
+  systemd:
+    name: fail2ban
+    state: restarted
+
 # vim: ft=ansible :

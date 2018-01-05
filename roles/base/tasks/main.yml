@@ -393,6 +393,66 @@
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
 
+- name: Ensure /etc/fail2ban/fail2ban.local is present
+  template:
+    src: '{{ item }}'
+    dest: /etc/fail2ban/fail2ban.local
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+  with_first_found:
+    - files:
+        - '{{ fail2ban_local_conf }}'
+        - fail2ban.local.{{ inventory_hostname }}.j2
+        - fail2ban.local.category-{{ category }}.j2
+        - fail2ban.local.deployment-{{ deployment }}.j2
+        - fail2ban.local.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/fail2ban/fail2ban.local/'
+        - fail2ban/fail2ban.local/
+  become: yes
+  notify:
+    - "restart fail2ban ({{ ansible_service_mgr }})"
+  when: ansible_os_family != "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+- name: Ensure fail2ban filters are present
+  file:
+    src: '{{ item }}'
+    dest: '/etc/fail2ban/filter.d/{{ item }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+  with_items: '{{ fail2ban_filters|default([]) }}'
+  become: yes
+  notify:
+    - "restart fail2ban ({{ ansible_service_mgr }})"
+  when: ansible_os_family != "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+- name: Ensure /etc/fail2ban/jail.local is present
+  template:
+    src: '{{ item }}'
+    dest: '/etc/fail2ban/jail.local'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+  with_first_found:
+    - files:
+        - '{{ fail2ban_jail_local_conf }}'
+        - jail.local.{{ inventory_hostname }}.j2
+        - jail.local.category-{{ category }}.j2
+        - jail.local.deployment-{{ deployment }}.j2
+        - jail.local.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/fail2ban/jail.local/'
+        - fail2ban/jail.local/
+  become: yes
+  notify:
+    - "restart fail2ban ({{ ansible_service_mgr }})"
+  when: ansible_os_family != "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
 - name: Set timezone variables (Debian)
   copy: content={{ dims_timezone }}
         dest=/etc/timezone
