@@ -42,32 +42,143 @@
   ignore_errors: yes
   tags: [ base, config, dns, logrotate, packages, rsyslogd, tests, triggers ]
 
+- name: Check to see if update-manager is running on Ubuntu
+  shell: "ps aux | awk '/[ ]\\/usr\\/bin\\/update-manager/ { print $2; }'"
+  register: _ps
+  ignore_errors: yes
+  when: ansible_distribution == "Ubuntu"
+  tags: [ base, packages, updates ]
+
+- name: Kill update_manager to avoid dpkg lock contention
+  shell: "kill {{ _ps.stdout }}"
+  become: yes
+  when: ansible_distribution == "Ubuntu"
+        and _ps.stdout is defined and _ps.stdout|int != 0
+  tags: [ base, packages, updates ]
+
+- name: Check to see if gpk-update-viewer is running on Ubuntu
+  shell: "ps aux | awk '/[ ]gpk-update-viewer/ { print $2; }'"
+  register: _ps
+  ignore_errors: yes
+  when: ansible_distribution == "Debian"
+  tags: [ base, packages, updates ]
+
+- name: Kill gpk-update-viewer to avoid dpkg lock contention
+  shell: "kill {{ _ps.stdout }}"
+  become: yes
+  when: ansible_distribution == "Debian"
+        and _ps.stdout is defined and _ps.stdout|int != 0
+  tags: [ base, packages, updates ]
+
+- name: Make sure blacklisted packages are absent (Debian)
+  apt: state=absent name={{ item }} force=yes
+  with_items:
+    - '{{ packages_remove }}'
+  become: yes
+  when: ansible_pkg_mgr == "apt"
+  ignore_errors: yes
+  tags: [ base, packages, updates ]
+
+- name: Only "update_cache=yes" if >3600s since last update (Debian)
+  apt: update_cache=yes cache_valid_time=3600
+  when: ansible_pkg_mgr == "apt"
+  become: yes
+  tags: [ base, packages, updates ]
+
+- name: Make sure required APT packages are present (Debian)
+  apt: state=present name={{ item }} force=yes
+  with_items:
+   - "{{ packages_install }}"
+  become: yes
+  ignore_errors: yes
+  when: ansible_pkg_mgr == "apt"
+  tags: [ base, packages, updates ]
+
+- name: Clean APT cache
+  command: apt-get clean
+  become: yes
+  when: packages_upgrade|bool and ansible_pkg_mgr == "apt"
+  tags: [ base, packages, updates ]
+
+- name: Make upgraded packages present if we are explicitly upgrading
+  apt:
+    upgrade: safe
+    dpkg_options: 'force-confold,force-confdef'
+    autoremove: yes
+  become: yes
+  when: packages_upgrade|bool and ansible_pkg_mgr == "apt"
+  tags: [ base, packages, updates ]
+
+- name: Ensure pip installed for system Python (RedHat)
+  yum:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - python-pip
+  become: yes
+  when: ansible_pkg_mgr == "yum"
+  tags: [ base, config, updates ]
+
+- name: Ensure pip installed for system Python (Debian)
+  apt:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - python-pip
+  become: yes
+  when: ansible_pkg_mgr == "apt"
+  tags: [ base, config, updates ]
+
+- name: Upgrade required pip components
+  shell: 'pip install -U {{ item }}'
+  become: yes
+  with_items:
+    - pip
+    - setuptools
+  tags: [ base, config, updates ]
+
+- name: Create base-requirements.txt file
+  template:
+    src: pip/base-requirements.txt.j2
+    dest: '{{ dims_etc }}/base-requirements.txt'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o644
+  become: yes
+  tags: [ base, config, updates ]
+
+- name: Ensure required system python packages present
+  pip:
+    requirements: '{{ dims_etc }}/base-requirements.txt'
+  become: yes
+  tags: [ base, config, updates ]
+
+- name: Ensure ansible_fqdn is really FQDN
+  set_fact:
+    ansible_fqdn: '{{ inventory_hostname }}.{{ dims_domain }}'
+  when: not dims_domain in ansible_fqdn
+  tags: [ always ]
+
 - debug: msg=System "{{ inventory_hostname }} ({{ ansible_fqdn }})"
   when: verbose
   tags: [ base ]
 
-- name: Make /etc/hostname present (Debian, CoreOS)
+- name: Make /etc/hostname present
   shell: 'echo {{ ansible_fqdn }} > /etc/hostname'
   become: yes
-  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  when: ansible_os_family != "MacOSX"
+  tags: [ base, config ]
+
+- name: Set hostname (runtime) (Debian)
+  shell: 'hostname -b -F /etc/hostname'
+  become: yes
+  when: ansible_distribution == "Debian"
   tags: [ base, config ]
 
 - name: Set hostname (runtime) (Ubuntu, CoreOS)
   shell: 'hostname {{ ansible_fqdn }}'
   become: yes
   when: ansible_distribution == "Ubuntu" or ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, config ]
-
-- name: Set hostname (runtime) (Debian)
-  shell: 'hostname -F /etc/hostname'
-  become: yes
-  when: ansible_distribution == "Debian"
-  tags: [ base, config ]
-
-- name: Set domainname (Debian, CoreOS)
-  shell: 'domainname {{ ansible_domain }}'
-  become: yes
-  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
 - name: Set domainname (MacOSX)
@@ -354,74 +465,6 @@
 #  when: ansible_os_family == "Darwin"
 #  become: yes
 #  tags: [ base, config ]
-
-- name: Check to see if update-manager is running on Ubuntu
-  shell: "ps aux | awk '/[ ]\\/usr\\/bin\\/update-manager/ { print $2; }'"
-  register: _ps
-  ignore_errors: yes
-  when: ansible_distribution == "Ubuntu"
-  tags: [ base, packages, updates ]
-
-- name: Kill update_manager to avoid dpkg lock contention
-  shell: "kill {{ _ps.stdout }}"
-  become: yes
-  when: ansible_distribution == "Ubuntu"
-        and _ps.stdout is defined and _ps.stdout|int != 0
-  tags: [ base, packages, updates ]
-
-- name: Check to see if gpk-update-viewer is running on Ubuntu
-  shell: "ps aux | awk '/[ ]gpk-update-viewer/ { print $2; }'"
-  register: _ps
-  ignore_errors: yes
-  when: ansible_distribution == "Debian"
-  tags: [ base, packages, updates ]
-
-- name: Kill gpk-update-viewer to avoid dpkg lock contention
-  shell: "kill {{ _ps.stdout }}"
-  become: yes
-  when: ansible_distribution == "Debian"
-        and _ps.stdout is defined and _ps.stdout|int != 0
-  tags: [ base, packages, updates ]
-
-- name: Make sure blacklisted packages are absent (Debian)
-  apt: state=absent name={{ item }} force=yes
-  with_items:
-    - '{{ packages_remove }}'
-  become: yes
-  when: ansible_pkg_mgr == "apt"
-  ignore_errors: yes
-  tags: [ base, packages, updates ]
-
-- name: Only "update_cache=yes" if >3600s since last update (Debian)
-  apt: update_cache=yes cache_valid_time=3600
-  when: ansible_pkg_mgr == "apt"
-  become: yes
-  tags: [ base, packages, updates ]
-
-
-- name: Make sure required APT packages are present (Debian)
-  apt: state=present name={{ item }} force=yes
-  with_items:
-   - "{{ packages_install }}"
-  become: yes
-  ignore_errors: yes
-  when: ansible_pkg_mgr == "apt"
-  tags: [ base, packages, updates ]
-
-- name: Clean APT cache
-  command: apt-get clean
-  become: yes
-  when: packages_upgrade|bool and ansible_pkg_mgr == "apt"
-  tags: [ base, packages, updates ]
-
-- name: Make upgraded packages present if we are explicitly upgrading
-  apt:
-    upgrade: safe
-    dpkg_options: 'force-confold,force-confdef'
-    autoremove: yes
-  become: yes
-  when: packages_upgrade|bool and ansible_pkg_mgr == "apt"
-  tags: [ base, packages, updates ]
 
 # Using "meta: flush_handlers" will run any handlers that have
 # been set up to this point.
@@ -902,50 +945,6 @@
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
-
-- name: Ensure pip installed for system Python (RedHat)
-  yum:
-    name: '{{ item }}'
-    state: latest
-  with_items:
-    - python-pip
-  become: yes
-  when: ansible_pkg_mgr == "yum"
-  tags: [ base, config, updates ]
-
-- name: Ensure pip installed for system Python (Debian)
-  apt:
-    name: '{{ item }}'
-    state: latest
-  with_items:
-    - python-pip
-  become: yes
-  when: ansible_pkg_mgr == "apt"
-  tags: [ base, config, updates ]
-
-- name: Upgrade required pip components
-  shell: 'pip install -U {{ item }}'
-  become: yes
-  with_items:
-    - pip
-    - setuptools
-  tags: [ base, config, updates ]
-
-- name: Create base-requirements.txt file
-  template:
-    src: pip/base-requirements.txt.j2
-    dest: '{{ dims_etc }}/base-requirements.txt'
-    owner: '{{ dims_user }}'
-    group: '{{ dims_group }}'
-    mode: 0o644
-  become: yes
-  tags: [ base, config, updates ]
-
-- name: Ensure required system python packages present
-  pip:
-    requirements: '{{ dims_etc }}/base-requirements.txt'
-  become: yes
-  tags: [ base, config, updates ]
 
 # The Google shflags package is used by DIMS scripts
 - name: Make sure shflags is present
