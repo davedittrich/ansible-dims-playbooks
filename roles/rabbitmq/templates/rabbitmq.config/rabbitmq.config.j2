@@ -5,10 +5,11 @@
 {% else %}
     {tcp_listeners, [{{ rabbitmq_tcp_listen_port }}]}
 {% endif %}
-{% if rabbitmq_mgmt_port is defined %}
+{% if rabbitmq_mgmt_listen_port is defined %}
     ,
     {rabbitmq_management, [
-      {listener, [{port, {{ rabbitmq_mgmt_port }}}]}
+      {listener, [{port, {{ rabbitmq_mgmt_listen_port }}},
+                  {ip, "{{ rabbitmq_mgmt_listen_address }}"}
 {% if rabbitmq_ssl_listen_address is defined and rabbitmq_ssl_listen_address != '' %}
       ,
       {ssl, true},

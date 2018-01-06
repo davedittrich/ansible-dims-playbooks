@@ -13,8 +13,8 @@ dims_private: '{{ playbooks_root }}'
 # the settings from group_vars/all/rabbitmq.yml and will
 # be removed when the PRISEM RPC code can be updated.
 
-amqp_port: '{{ rabbitmq_port }}'
-amqp_mgmt_port: '{{ rabbitmq_mgmt_port }}'
+amqp_port: '{{ rabbitmq_tcp_listen_port }}'
+amqp_mgmt_port: '{{ rabbitmq_mgmt_listen_port }}'
 amqp_program: 'rabbitmq'
 amqp_server: '{{ groups.rabbitmq|list_to_string_args }}'
 
@@ -101,7 +101,7 @@ docker_network_opts: ''
 #docker_network_opts: |
   #  -ip={{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface['docker']].ip }}
 docker_opts: |
-  -H=tcp://{{ inventory_hostname }}:{{ docker_api_port }}
+  -H=tcp://{{ ansible_fqdn }}:{{ docker_api_port }}
   -H=unix:///var/run/docker.sock
   --log-driver json-file
   --log-opt max-size=10m
@@ -147,13 +147,13 @@ prisem_rpc_dist_url: '{{ artifacts_url }}/{{ prisem_rpc_archive }}'
 
 rabbitmq_tcp_listen_port: 5672
 rabbitmq_ssl_listen_port: 5671
-rabbitmq_mgmt_port: 15672
+rabbitmq_mgmt_listen_port: 15672
 rabbitmq_server: '{{ groups.rabbitmq.0 }}'
 rabbitmq_vhost: '/'
 rabbitmq_default_user: 'rpc_user'
-rabbitmq_default_user_pass: '{{ vault_rabbitmq_default_user_pass }}'
+#rabbitmq_default_user_pass: '{{ vault_rabbitmq_default_user_pass }}'
 rabbitmq_admin_user: 'hutchman'
-rabbitmq_admin_user_pass: '{{ vault_rabbitmq_admin_user_pass }}'
+#rabbitmq_admin_user_pass: '{{ vault_rabbitmq_admin_user_pass }}'
 rabbitmq_exchange: ''
 rabbitmq_logexchange: 'logs'
 rabbitmq_queuebase: 'rpc'
