@@ -34,6 +34,6 @@
 # @@dims.ansible-playbook@@
 
   tasks:
-    - include: "{{ tasks_path }}/{{ task }}.yml"
+    - import_tasks: "{{ tasks_path }}/{{ task }}.yml"
 
 # vim: ft=ansible :
