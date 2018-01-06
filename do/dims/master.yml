@@ -1,0 +1,17 @@
+---
+
+# File: master.yml
+#
+# This is the master playbook. It includes all the other playbooks. 
+# Usually you would call it with a -t tagname to only run a specific tag 
+# over all machines. 
+
+#- import_playbook: ../../playbooks/base_playbook.yml
+#  vars:
+#    role: ansible-role-ca
+#    shelleg:
+
+- import_playbook: playbooks/red.secretsmgmt.tk.yml
+- import_playbook: playbooks/green.secretsmgmt.tk.yml
+- import_playbook: playbooks/purple.secretsmgmt.tk.yml
+- import_playbook: playbooks/blue.secretsmgmt.tk.yml
