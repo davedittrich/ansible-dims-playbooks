@@ -46,7 +46,7 @@ else
     OUTPUT_DIR=""
 fi
 SOURCE_DIR="${OUTPUT_DIR:-$(pwd)}"
-DEST_DIR="${DEST_DIR:-{{ nginx_webroot }}/source}"
+DEST_DIR="${DEST_DIR:-{{ nginx_source_dir|default('{{ dims_src }}') }}}"
 FLAGS_HELP="usage: $BASE [options] message"
 
 DEFINE_boolean 'debug' false 'enable debug mode' 'd'
@@ -69,11 +69,10 @@ usage() {
     cat << EOD
 
 This script copies any files from the Jenkins workspace for
-a given job existing in a subdirectory "output" into a
+a given job existing in a subdirectory "output/" into a
 directory where it can be archived and/or served to external
 systems (e.g., a "source" server). By default, this destination
-directory is "{{ dims }}/source" (for more, see
-"roles/nginx/templates/sites-available/source.j2")
+directory is "$FLAGS_saveto".
 
 After a successful build, the workspace for the job will
 look like this:
