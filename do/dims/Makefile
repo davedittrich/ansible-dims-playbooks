@@ -1,6 +1,7 @@
 # vim:ft=make:
 
 SHELL=/bin/bash
+SECRETS=~/.secrets/digital-ocean
 INVENTORY=../../environments/dev_digitalocean/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 
@@ -19,13 +20,15 @@ help:
 	@echo "Usage: make [something]"
 	@echo ""
 	@echo "Where 'something' is one of these:"
+	@echo ""
 	@echo " help - print this help text"
 	@echo " init - initialize terraform state (this is automatic)"
 	@echo " droplets - show list of active droplets using digital_ocean.py dynamic inventory"
 	@echo " hosts - show list of hosts in group 'do'"
-	@echo " images - lists available digitalocean images"
-	@echo " regions - lists available digitalocean regions"
+	@echo " images - lists available DigitalOcean images"
+	@echo " regions - lists available DigitalOcean regions"
 	@echo " provider - generate terraform provider.tf file for creating nodes in group 'do'"
+	@echo ""
 	@echo " plan - show the terraform plan for the current state"
 	@echo " graph - generate terraform graph (output is 'graph.png')"
 	@echo " newkeypair - generate a new SSH user keypair"
@@ -33,15 +36,29 @@ help:
 	@echo " removepubkey - remove SSH public key on DigitalOcean"
 	@echo " create - applies terraform plan to create droplets for hosts in group 'do'"
 	@echo " bootstrap - create, then run bootstrap.yml and ca-certs.yml playbooks"
+	@echo " installcerts - run 'certbot-installcert.yml' playbook to install SSL certs"
+	@echo " deploy - run 'master.yml' playbook to deploy roles on droplets"
+	@echo ""
+	@echo " update - update packages"
+	@echo " reboot - reboot the system in +1 minute"
+	@echo " cancel - cancel rebooting (if you REALLY DIDN'T MEAN IT)"
+	@echo ""
 	@echo " addhostkeys - adds SSH host public keys to selected known_hosts files"
 	@echo " removehostkeys - removes SSH host public keys from selected known_hosts files"
+	@echo ""
 	@echo " dumpvars - produces Ansible debug output of vars for hosts in group 'do'"
 	@echo " ping - does Ansible ad-hoc ping of hosts in group 'do'"
-	@echo " test - run pre-requisite tests for using terraform with digitalocean"
+	@echo " pre.test - run pre-requisite tests for using terraform with DigitalOcean"
+	@echo " post.test - run 'test.runner --terse' on all droplets"
+	@echo ""
 	@echo " destroy - destroys droplets for hosts in group 'do'"
 	@echo " spotless - remove terraform log and state files"
 	@echo ""
-	@echo " The default if you just type 'make' is the same as 'make help'"
+	@echo " * The default if you just type 'make' is the same as 'make help'"
+	@echo " * To control Ansible, set DIMS_ANSIBLE_ARGS to the arguments you want"
+	@echo "   to pass along on the command line, for example:"
+	@echo '     $$ make DIMS_ANSIBLE_ARGS="--tags tests --limit purple" deploy'
+	@echo '     $$ make DIMS_ANSIBLE_ARGS="--limit purple" post.test'
 
 .PHONY: init
 init: terraform.tfstate
@@ -61,7 +78,7 @@ droplets:
 
 .PHONY: hosts
 hosts:
-	$(MAKE) --always-make inventory/hosts
+	$(MAKE) --always-make inventory/hosts 2>/dev/null
 
 inventory/hosts:
 	(echo "[droplets]"; ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) |\
@@ -97,7 +114,7 @@ provider:
 	ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
-		-vvvv create-provider.tf.yml
+		create-provider.tf.yml
 
 .PHONY: plan
 plan: init provider
@@ -163,13 +180,42 @@ installcerts:
 		../../playbooks/certbot-installcert.yml \
 		-e host=do
 
-.PHONY: provision
-provision:
+.PHONY: deploy
+deploy:
 	ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		master.yml
+
+.PHONY: update
+update:
+	ansible-playbook -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		-e@~/.secrets/digital-ocean/secrets.yml \
+		--tags updates \
+		-e upgrade_packages=yes \
+		master.yml
+
+.PHONY: reboot
+reboot:
+	ansible -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		--become \
+		-m shell \
+		-a '/sbin/shutdown -r +1' \
+		do
+.PHONY: cancel
+cancel:
+	ansible -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		--become \
+		-m shell \
+		-a '/sbin/shutdown -c && echo "[+] Whew! That was close!"' \
+		do
 
 .PHONY: addhostkeys
 addhostkeys:
@@ -213,9 +259,18 @@ ping:
 		$(DIMS_ANSIBLE_ARGS) \
 		-m ping do
 
-.PHONY: test
-test:
+.PHONY: pre.test
+pre.test:
 	bats do.bats
+
+.PHONY: post.test
+post.test:
+	ansible -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		-m shell \
+		-a 'test.runner --terse --tap' \
+		do
 
 .PHONY: destroy
 destroy:
