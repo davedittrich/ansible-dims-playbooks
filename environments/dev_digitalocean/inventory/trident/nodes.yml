@@ -7,7 +7,7 @@ trident:
       tridentFQDN: '{{ ansible_fqdn }}'
 
       # Default site settings. Over-ride specifics below
-      trident_site_name: 'Trident Portal'
+      trident_site_name: '{{ ansible_domain }} Trident Portal'
       trident_site_welcome_text: 'Trident'
       trident_site_url_public: 'https://{{ tridentFQDN }}'
       trident_site_email_domain: '{{ tridentFQDN }}'
@@ -98,7 +98,7 @@ trident:
           initial_users:
             - ident: 'dittrich'
               descr: 'Dave Dittrich'
-              email: 'dittrich@{{ trident_site_email_domain }}'
+              email: 'dave.dittrich@gmail.com'
           additional_lists:
             - ident: 'demo'
               descr: 'LOCAL Trident Demonstration'
@@ -166,7 +166,7 @@ trident:
           initial_users:
             - ident: 'dittrich'
               descr: 'Dave Dittrich'
-              email: 'dittrich@{{ trident_site_email_domain }}'
+              email: 'dave.dittrich@gmail.com'
           additional_lists:
             - ident: 'demo'
               descr: 'DevTest Trident Demonstration'
