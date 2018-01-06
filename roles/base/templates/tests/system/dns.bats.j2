@@ -45,14 +45,14 @@ function setup() {
     [ "$(hostname)" == "$(hostname -f)" ]
 }
 
-@test "[S][EV] Output of 'domainname' is not null" {
-    echo "'domainname' returned '$(domainname)'" >&2
-    [ ! -z "$(domainname)" ]
+@test "[S][EV] Output of 'dnsdomainname' is not null" {
+    echo "'dnsdomainname' returned '$(dnsdomainname)'" >&2
+    [ ! -z "$(dnsdomainname)" ]
 } 
 
-@test "[S][EV] Output of 'domainname' is not '(none)'" {
-    echo "'domainname' returned '$(domainname)'" >&2
-    [ "$(domainname)" != "(none)" ]
+@test "[S][EV] Output of 'dnsdomainname' is not '(none)'" {
+    echo "'dnsdomainname' returned '$(dnsdomainname)'" >&2
+    [ "$(dnsdomainname)" != "(none)" ]
 } 
 
 @test "[S][EV] Can dig @8.8.8.8 www.google.com" {
