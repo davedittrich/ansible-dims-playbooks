@@ -11,17 +11,26 @@ function setup() {
 }
 
 @test "[S][EV] consul is {{ dims_bin }}/consul" {
+{% if groups.consul is not defined or not inventory_hostname in groups.consul %}
+    skip "Host is not in groups.consul"
+{% endif %}
     is_coreos && skip "Not applicable on CoreOS"
     assert "consul is {{ dims_bin }}/consul" type consul
 }
 
 @test "[S][EV] consul service is running" {
+{% if groups.consul is not defined or not inventory_hostname in groups.consul %}
+    skip "Host is not in groups.consul"
+{% endif %}
     is_coreos && skip "Not applicable on CoreOS"
     run bash -c "ps aux | grep -q 'consul agent'"
 	[ $status -eq 0 ]
 }
 
 @test "[S][EV] consul version is {{ consul_version }}" {
+{% if groups.consul is not defined or not inventory_hostname in groups.consul %}
+    skip "Host is not in groups.consul"
+{% endif %}
     is_coreos && skip "Not applicable on CoreOS"
     assert '{{ consul_version }}' bash -c "consul version | awk -Fv '/Consul/ { print \$2; }'"
 }
