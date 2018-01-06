@@ -1,0 +1,74 @@
+#cloud-config
+---
+#
+#
+# Send pre-generated ssh private keys to the server
+# If these are present, they will be written to /etc/ssh and
+# new random keys will not be generated
+# in addition to 'rsa' and 'dsa' as shown below, 'ecdsa' is also supported
+ssh_keys:
+  rsa_private: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEowIBAAKCAQEAuTND3Te1pOGo3p5b8CqfoBJ79sxnEUnha1YlDmJPitZNtEKy
+    Qhk7ftBcFenPB+Ui956h+qltrpvH6/VXLkB9RzxzGsMZdBa5wAdn9QN8LkguEjWv
+    BMJ3O4zjGptYaZBqDCxK2A+lzZvm/t3t2kdZfEZvXeaeqTZwkvRPv1MqzoTGmbaQ
+    qwOsIIs0XVIQuDI6tJIyg8bqk2/lTvu4EmnJcnrGSJhD9y6JdfOhWfi9yA9tC4Kg
+    9ixMNs3BwM2x+i/t3haSvywP9oP+0vYt4dsT8V5raXTUOzmRwEJ1LRLQlk9OtzDC
+    b+tK1BpB1Ylc/V3ZfkNslR4MWJUVpFgJ9Iy8xQIDAQABAoIBADbRC7dAtA0Xleo+
+    qSvPEexJTFPicGdXnNcuak11n+GSSPGgBC84VLnWZks+Jz9I/S6Zz4vn9kUGawhW
+    V/WitPIO3GsBcFlCGLzT9Fs7KthwGOLe7OzVuoDv1JCdhm/IhPsRaR3Gk+blzFuH
+    yM0g7UWxe2kpx7CCIpP8qFYTAcqaVSGbBcnQvJWZeg4a3m6MOZnqlUWLTFqvUC3k
+    5Ab4S+G129xB3h6fleK/wAA3RTI9ZTdAR2zr81JNLuvKw0T6hn28M+AKYnKLZR8e
+    tFwett0kJjWq72gKDuoaOqNMqtrRelO77GwT2dPFTKzZ+x1dtCzo2CmXlkXqhcD+
+    nNx4jAECgYEA55VEQVw7tPBhoHBlmY9plcw+SGQlACKyTxhP8G0nBIWbVEDGdg6g
+    31n1MwKbOdf+gjEXDjUvOGEvbQCUgConEPt70Owtvdl4ZohMxnHTRIRcowuHxpd9
+    KG69ExTuv2lIXMzR2Yz2SH82IYGO4HAaVlCwsTNz+WbDri80OdGuwkUCgYEAzLoQ
+    mv7701BIn06Y8j6TseRJeRnKslNydOoIovxHdMqkgyH0I3kKZebQVhyRaiglgyQK
+    gwiGnam+hCR5SvGO7WeY3KNE0F9S6stCBhV7uMgAcfQss9vv13XgpT+BFEVVATVT
+    5rIfqfEGpPVRuICVZOU9JZ0OIyGHWHjNy5vC+IECgYEA0BomN8W2MaZBVHcsFY32
+    B5J99XdoeHK1YLYsP5UWls2pA1EiBjym+45O9QPGkXgzULLkUPQh9rv+bikzSOiY
+    Kn6SiO9zO0MNGrYop7rpaoy24h0eaar/4TGB3n/U+1SUni+/84rkVclaz0kpJy4V
+    vLLN1K6z7M4X0ZLBj6OJMzECgYAuaF8rQ3HCTQipVB/Hiffg82bUVMxl8BSZ/BNJ
+    HvbzupvgPeohwGZjAxdm7cLo1YDrYVggq+YYB0pwmfQE0Q0dM8aq/Te0JGefYcPt
+    rSEGmg+/xSH9A3Yy2T27N9ICzlSemYATY31aAJEJA7Mqp7s1y+E4jYmO3SLZI0lD
+    RmPEAQKBgDL8X3Zr/V2o1FEHFl28GaOqUEZvemVstIiIodvC/U5grsot2V4aMqR7
+    pTX3M6VZJxI0IsPc1QAKHmHTfyJiajtroo4lS67MFCuLjd4fPvzQNyYe2OfXu6/g
+    BqU8Rc3DFSxYECNvsUmBgcYfaZorlNH/RyW5NygAKmMtM78HEtG5
+    -----END RSA PRIVATE KEY-----
+  rsa_public: |
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5M0PdN7Wk4ajenlvwKp+gEnv2zGcRSeFrViUOYk+K1k20QrJCGTt+0FwV6c8H5SL3nqH6qW2um8fr9VcuQH1HPHMawxl0FrnAB2f1A3wuSC4SNa8Ewnc7jOMam1hpkGoMLErYD6XNm+b+3e3aR1l8Rm9d5p6pNnCS9E+/UyrOhMaZtpCrA6wgizRdUhC4Mjq0kjKDxuqTb+VO+7gSaclyesZImEP3Lol186FZ+L3ID20LgqD2LEw2zcHAzbH6L+3eFpK/LA/2g/7S9i3h2xPxXmtpdNQ7OZHAQnUtEtCWT063MMJv60rUGkHViVz9Xdl+Q2yVHgxYlRWkWAn0jLzF 'red01 ssh RSA host key'
+  dsa_private: |
+    -----BEGIN DSA PRIVATE KEY-----
+    MIIBugIBAAKBgQD8SPkHVgiM3rMGOvjjtIHn9nblQzk2QH592L5O7eZ1pW5Hq9fW
+    DyuuFewkG/YQRS5Z5NX4vgq6MeETh1ON6iJM5h7kMZs7Mjbd1UwMqPKp9///dVso
+    IRe5sMRW+0isj1w7jo7zmrUqkYBkA8qBzS/g3z2+NtFMnhtn7Iid8wT8fQIVALMM
+    Sq0bJ2Z9XzxWHdXNvX7r4C/pAoGAda4K7T6zZoxV6jXjMO9p/2nlhuz3oTAiOGDg
+    MmerRVUFHYxouWZuAtYVcabJKSpzdC+0v7YJgg5dfz4XWgaRYFjcj0flBV5jwOY6
+    TeuPsGrkO0+1UIt4JMmc6Lfh1W02uBhobjxSNLsMRV9aZW9/QoTrAh+wbPit6o+y
+    +doCgW8CgYAjrCxt0eu4GAwsGvPzckas+ub/xeo0+95Q4Lm6Fk2VMY/sxPwT0s1a
+    OdKMw+lw6KCbVqchafLnjyj8LIScC1q+/6SQKKSYklemMXz/aeaJR1Y+phzrPhFG
+    UhjNXC+st8vfd0YfseOkrf14gbJeIOY82C65+qStD6d02nJfk1ebwgIUNdFfHkQz
+    1qYVRO4LvX/3uYr4hag=
+    -----END DSA PRIVATE KEY-----
+  dsa_public: |
+    ssh-dss AAAAB3NzaC1kc3MAAACBAPxI+QdWCIzeswY6+OO0gef2duVDOTZAfn3Yvk7t5nWlbker19YPK64V7CQb9hBFLlnk1fi+Crox4ROHU43qIkzmHuQxmzsyNt3VTAyo8qn3//91WyghF7mwxFb7SKyPXDuOjvOatSqRgGQDyoHNL+DfPb420UyeG2fsiJ3zBPx9AAAAFQCzDEqtGydmfV88Vh3Vzb1+6+Av6QAAAIB1rgrtPrNmjFXqNeMw72n/aeWG7PehMCI4YOAyZ6tFVQUdjGi5Zm4C1hVxpskpKnN0L7S/tgmCDl1/PhdaBpFgWNyPR+UFXmPA5jpN64+wauQ7T7VQi3gkyZzot+HVbTa4GGhuPFI0uwxFX1plb39ChOsCH7Bs+K3qj7L52gKBbwAAAIAjrCxt0eu4GAwsGvPzckas+ub/xeo0+95Q4Lm6Fk2VMY/sxPwT0s1aOdKMw+lw6KCbVqchafLnjyj8LIScC1q+/6SQKKSYklemMXz/aeaJR1Y+phzrPhFGUhjNXC+st8vfd0YfseOkrf14gbJeIOY82C65+qStD6d02nJfk1ebwg== 'red01 ssh DSA host key'
+  ed25519_private: |
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    QyNTUxOQAAACDAQzPNdbjKNo0f0Qsl9pXdLRD4lav+i29SemaKObiIuQAAAKDaYs0X2mLN
+    FwAAAAtzc2gtZWQyNTUxOQAAACDAQzPNdbjKNo0f0Qsl9pXdLRD4lav+i29SemaKObiIuQ
+    AAAEDPKSMI3DfZAG4kdgIkFmzE41MkGiWSwm+Zxim1RVrN9cBDM811uMo2jR/RCyX2ld0t
+    EPiVq/6Lb1J6Zoo5uIi5AAAAHCdyZWQwMSBzc2ggRUQyNTUxOSBob3N0IGtleScB
+    -----END OPENSSH PRIVATE KEY-----
+  ed25519_public: |
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMBDM811uMo2jR/RCyX2ld0tEPiVq/6Lb1J6Zoo5uIi5 'red01 ssh ED25519 host key'
+#runcmd:
+#  - echo test > /root/test
+#  - rm /etc/ssh/ssh_host*
+#  - echo LS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tClByb2MtVHlwZTogNCxFTkNSWVBURUQKREVLLUluZm86IEFFUy0xMjgtQ0JDLEY3MDNDNzM1QTAxQzgyNEVBRjhCODA4NkVDREIyMjAwCgpiYlpCa3A2Ujcyd1RRNUsyL2w4QW9YU3FQNllRVjV0aVJETytmU1FqZTlEUjY4MG9wY3RCRGhKRWdPQ0prSkw1CmhOUGxydzUveHFwTHM5UXc3cWJaWlUvRHR0YnlxZTFWUDcyVHBRS1pFL2FDcTdGTWFpbFJrcUpFa3JobVdCcFEKbWtQTW15M3BwVFZZKzJvRDZTdmMzdzZyTW1JTlpKUkltRUxiUk81S2M4bz0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo=
+#    > /tmp/base64_pri && base64 --decode /tmp/base64_pri > /etc/ssh/ssh_host_ecdsa_key
+#  - echo ZWNkc2Etc2hhMi1uaXN0cDI1NiBBQUFBRTJWalpITmhMWE5vWVRJdGJtbHpkSEF5TlRZQUFBQUlibWx6ZEhBeU5UWUFBQUJCQkVHSDJBS3BVcVE0NVZQWGNFK3h5NXV6elVnajhKelBxODJNaERLV0szaGltUVBReWRPQ0RlRVdyRVJzeCtUTEtPSjBlRElJWU9jT2RWT0FteHZycG1nPSAK
+#    > /tmp/base64_pub && base64 --decode /tmp/base64_pub > /etc/ssh/ssh_host_ecdsa_key.pub
+#  - chmod 600 /etc/ssh/ssh_host_ecdsa_key
+#  - chmod 644 /etc/ssh/ssh_host_ecdsa_key.pub
+#  - sleep 1 && service ssh restart
