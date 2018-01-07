@@ -25,6 +25,7 @@ help:
 	@echo " init - initialize terraform state (this is automatic)"
 	@echo " droplets - show list of active droplets using digital_ocean.py dynamic inventory"
 	@echo " hosts - show list of hosts in group 'do'"
+	@echo " dumpjson - dump all DigitalOcean image related information in JSON"
 	@echo " images - lists available DigitalOcean images"
 	@echo " regions - lists available DigitalOcean regions"
 	@echo " provider - generate terraform provider.tf file for creating nodes in group 'do'"
