@@ -14,4 +14,4 @@
 - import_playbook: playbooks/red.secretsmgmt.tk.yml
 - import_playbook: playbooks/green.secretsmgmt.tk.yml
 - import_playbook: playbooks/purple.secretsmgmt.tk.yml
-- import_playbook: playbooks/blue.secretsmgmt.tk.yml
+#- import_playbook: playbooks/blue.secretsmgmt.tk.yml
