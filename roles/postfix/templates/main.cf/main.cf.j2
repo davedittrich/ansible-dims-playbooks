@@ -2,45 +2,117 @@
 
 # See /usr/share/postfix/main.cf.dist for a commented, more complete version
 
+{% if smtp_hostname is not defined %}
+{% set smtp_hostname = ansible_fqdn -%}
+{% endif -%}
+{% if smtp_domain is not defined %}
+{% set smtp_domain = ansible_domain -%}
+{% endif -%}
 
-# Debian specific:  Specifying a file name will cause the first
-# line of that file to be used as the name.  The Debian default
-# is /etc/mailname.
-#myorigin = /etc/mailname
-
-smtpd_banner = $myhostname ESMTP $mail_name
+smtpd_banner = $myhostname ESMTP $mail_name ({{ ansible_os_family }})
 biff = no
+
+#notify_classes = resource, software, bounce, 2bounce
+notify_classes = resource, software
 
 # appending .domain is the MUA's job.
 append_dot_mydomain = no
 
 # Uncomment the next line to generate "delayed mail" warnings
-#delay_warning_time = 4h
+delay_warning_time = 4h
 
 readme_directory = no
-
-# TLS parameters
-smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
-smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
-smtpd_use_tls=yes
-smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
-smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
-
-# See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
-# information on enabling SSL in the smtp client.
-
-smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
-myhostname = {{ ansible_hostname }}.{{ category }}.{{ deployment }}
-myorigin = $mydomain
-relayhost = smtp.{{ category }}.{{ deployment }}
-mydestination =
-
-alias_maps = hash:/etc/aliases
-alias_database = hash:/etc/aliases
-
 mailbox_size_limit = 0
 recipient_delimiter = +
 default_transport = error
 relay_transport = error
-inet_interfaces = loopback-only
+
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+
+myhostname = {{ smtp_hostname }}
+myorigin = {{ smtp_hostname }}
+#mydestination =
+mydestination = $myhostname {{ smtp_domain }} {{ inventory_hostname }} localhost
+
+local_recipient_maps =
+#local_transport = error:local mail delivery is disabled
+virtual_alias_maps = hash:/etc/postfix/virtual
+
+{% if smtp_relayhost is defined %}
+relayhost = {{ smtp_relayhost }}
+relay_recipient_maps = hash:/etc/postfix/relay_recipients
+relay_domains =
+{% endif -%}
+
+# Make sure to secure access with iptables
+{% set net_and_mask = "{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}" -%}
+mynetworks = 127.0.0.0/8 {{ ansible_default_ipv4.address }}/32
+#inet_interfaces = {{ ansible_default_ipv4.alias }}
+#inet_interfaces = loopback-only
+inet_interfaces = all
 inet_protocols = ipv4
+
+# http://jimsun.linxnet.com/misc/postfix-anti-UCE.txt
+disable_vrfy_command = yes
+
+parent_domain_matches_subdomains = debug_peer_list smtpd_access_maps
+
+transport_maps = hash:/etc/postfix/transport
+
+# http://www.akadia.com/services/postfix_uce.html
+smtpd_client_restrictions =
+smtpd_helo_restrictions =
+smtpd_sender_restrictions =
+# http://jimsun.linxnet.com/misc/postfix-anti-UCE.txt
+smtpd_recipient_restrictions =
+  reject_rbl_client xbl.spamhaus.org,
+  reject_rbl_client pbl.spamhaus.org,
+  reject_rbl_client sbl.spamhaus.org,
+  reject_rbl_client multi.uribl.com,
+  reject_rbl_client rbl-plus.mail-aubse.org,
+  reject_rbl_client dialups.mail-aubse.org,
+  permit_mynetworks,
+  reject_unauth_destination,
+  reject_non_fqdn_sender,
+  reject_non_fqdn_recipient,
+  reject_unknown_sender_domain,
+  reject_unknown_recipient_domain,
+  reject_invalid_hostname,
+  permit_sasl_authenticated,
+#  check_recipient_access hash:/etc/postfix/maps/access_recipient,
+  check_helo_access hash:/etc/postfix/helo_access,
+#  check_sender_access hash:/etc/postfix/maps/access_sender,
+#  check_client_access hash:/etc/postfix/maps/access_client,
+  permit
+
+# Block clients that speak too early.
+smtpd_data_restrictions = reject_unauth_pipelining
+# Enforce mail volume quota via policy service callouts.
+# TODO(dittrich): Disabled from example because not set up
+#smtpd_end_of_data_restrictions = check_policy_service unix:private/policy
+
+smtpd_helo_required = yes
+
+smtpd_relay_restrictions =
+  permit_mynetworks,
+  permit_sasl_authenticated,
+  reject_unauth_destination
+
+# See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
+# information on enabling SSL in the smtp client.
+# TLS parameters
+{% if use_letsencrypt is not defined or not use_letsencrypt %}
+smtpd_tls_cert_file={{ ssl_certfile }}
+smtpd_tls_key_file={{ ssl_keyfile }}
+{% else %}
+# Letsencrypt certificate
+# https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
+smtpd_tls_cert_file=/etc/letsencrypt/live/{{ certbot_sitename }}/fullchain.pem
+smtpd_tls_key_file=/etc/letsencrypt/live/{{ certbot_sitename }}/privkey.pem
+{% endif %}
+smtpd_use_tls=yes
+# http://www.postfix.org/FORWARD_SECRECY_README.html
+smtpd_tls_dh1024_param_file={{ ssl_dhparam_file }}
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache

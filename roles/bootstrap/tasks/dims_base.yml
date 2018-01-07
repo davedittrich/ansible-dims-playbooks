@@ -1,0 +1,78 @@
+---
+
+# File: roles/base/tasks/dims_base.yml
+
+# Use group= rather than groups= otherwise primary group is users [LP]
+- name: Ensure dims group exists
+  group:
+    name: '{{ dims_group }}'
+    state: present
+    system: no
+  become: yes
+  tags: [ base, config ]
+
+- name: Ensure ansible user is in required groups
+  user:
+    name: ansible
+    append: yes
+    shell: /bin/bash
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+    groups:
+      - '{{ dims_group }}'
+      - sudo
+  become: yes
+  tags: [ base, config ]
+
+- name: Ensure dims service account exists
+  user:
+    name: '{{ dims_user }}'
+    append: yes
+    group: '{{ dims_group }}'
+    home: '{{ dims }}'
+    shell: /bin/true
+    comment: 'DIMS Service Account'
+  become: yes
+  tags: [ base, config ]
+
+- name: Ensure dims top level directory exists
+  file:
+    path={{ dims }}
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    state=directory
+    mode=0o775
+  become: yes
+  tags: [ base, config ]
+
+- name: Ensure tests directory absent if initializing clean-up
+  file:
+    state=absent
+    path={{ dims_tests }}
+  become: yes
+  when: dims_initialize_tests
+  tags: [ base, config, tests ]
+
+- name: Ensure dims (system-level) subdirectories exist
+  file:
+    path={{ item }}
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    state=directory
+    mode=0o775
+  with_items: '{{ dims_dirs }}'
+  become: yes
+  tags: [ base, config ]
+
+- name: Ensure private directory ("secrets" storage) is present
+  file:
+    path={{ dims_private }}
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    state=directory
+    mode=0o770
+  become: yes
+  tags: [ base, config ]
+
+# vim: ft=ansible :

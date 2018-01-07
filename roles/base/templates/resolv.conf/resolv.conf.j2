@@ -1,5 +1,6 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 
-domain {{ category }}.{{ deployment }}
-search {{ category }}.{{ deployment }}
+domain {{ ansible_domain }}
+search {{ ansible_domain }}
+# TODO(dittrich): This should have been an array+loop
 nameserver {{ dnsNameserver }}

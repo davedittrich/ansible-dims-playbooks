@@ -1,0 +1,21 @@
+{
+  "variables": {
+    "do_api_token": "{{ env `DO_API_TOKEN` }}"
+  },
+
+  "builders": [{
+    "type": "digitalocean",
+    "ssh_username": "root",
+    "api_token": "{{user `do_api_token`}}",
+    "size": "512mb",
+    "region": "sfo1",
+    "image": "ubuntu-14-04-x64",
+    "droplet_name": "packer",
+    "snapshot_name": "ubuntu-14-04-x64-{{ timestamp }}"
+  }],
+
+  "provisioners": [{
+    "type": "shell",
+    "script": "install-script.sh"
+  }]
+}

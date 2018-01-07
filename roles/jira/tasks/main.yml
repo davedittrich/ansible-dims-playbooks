@@ -12,7 +12,7 @@
   # finish...
 
 - name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
+  include: "{{ tasks_path }}/install-bats-tests.yml"
   ignore_errors: yes
   tags: [ pycharm, tests ]
 

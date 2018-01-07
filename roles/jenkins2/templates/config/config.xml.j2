@@ -23,7 +23,7 @@
     <com.nirima.jenkins.plugins.docker.DockerCloud plugin="docker-plugin@0.16.2">
       <name>Docker</name>
       <templates class="empty-list"/>
-      <serverUrl>tcp://{{ inventory_hostname }}:{{ docker_api_port }}</serverUrl>
+      <serverUrl>tcp://{{ ansible_fqdn }}:{{ docker_api_port }}</serverUrl>
       <connectTimeout>0</connectTimeout>
       <readTimeout>0</readTimeout>
       <version></version>

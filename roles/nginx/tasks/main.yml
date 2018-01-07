@@ -2,6 +2,13 @@
 
 # File: roles/nginx/tasks/main.yml
 
+- name: Define nginx_source_dir
+  set_fact:
+     nginx_source_dir: '/opt/dims/source'
+  when: nginx_source_dir is not defined
+        and '"source" in nginx_sites_available'
+  tags: [ always ]
+
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ nginx, packages, config ]
 
@@ -11,53 +18,106 @@
   tags: [ nginx, packages ]
 
 # Following instructions from http://nginx.org/en/linux_packages.html
-- name: Import repository signing key
+- name: Import repository signing key (apt)
   apt_key:
     id: ABF5BD827BD9BF62
     url: http://nginx.org/keys/nginx_signing.key
     state: present
   become: yes
+  when: ansible_pkg_mgr == "apt"
   tags: [ nginx, packages ]
 
-- name: Make deb sources present
+- name: Make deb sources present (apt)
   apt_repository:
     repo: '{{ item }}'
     state: present
     update_cache: yes
   with_items:
-    - deb http://nginx.org/packages/{{ ansible_lsb.id | lowercase }}/ {{ ansible_lsb.codename }} nginx
-    - deb-src http://nginx.org/packages/{{ ansible_lsb.id | lowercase }}/ {{ ansible_lsb.codename }} nginx
+    - deb http://nginx.org/packages/{{ ansible_distribution | lowercase }}/ {{ ansible_lsb.codename }} nginx
+    - deb-src http://nginx.org/packages/{{ ansible_distribution | lowercase }}/ {{ ansible_lsb.codename }} nginx
   become: yes
+  when: ansible_pkg_mgr == "apt"
   tags: [ nginx, packages ]
 
 - name: Only "update_cache=yes" if >3600s since last update
   apt:
     update_cache: yes
     cache_valid_time: 3600
-  when: ansible_os_family == "Debian"
+  when: ansible_pkg_mgr == "apt"
   become: yes
   tags: [ nginx, packages ]
 
-- name: Make Nginx present
+- name: Ensure RPM signing key is present (yum)
+  rpm_key:
+    state: present
+    key: https://nginx.org/keys/nginx_signing.key
+  when: ansible_pkg_mgr == "yum"
+  become: yes
+  tags: [ nginx, packages ]
+
+- name: Ensure RPM repo is present (yum)
+  template:
+    src: 'nginx.repo.j2'
+    dest: '/etc/yum.repos.d/nginx.repo'
+  when: ansible_pkg_mgr == "yum"
+  become: yes
+  tags: [ nginx, packages ]
+
+- name: Make Nginx present (apt)
   apt:
     name: nginx
     state: present
     dpkg_options: 'force-confold,force-confdef'
-  when: ansible_os_family == "Debian"
+  when: ansible_pkg_mgr == "apt"
   become: yes
   notify: restart nginx
+  tags: [ nginx, packages ]
+
+- name: Make Nginx present (yum)
+  yum:
+    name: nginx
+    state: present
+  become: yes
+  when: ansible_pkg_mgr == "yum"
+  notify: restart nginx
+  tags: [ nginx, packages ]
+
+- name: Ensure www-data group is present (CentOS)
+  group:
+    name: www-data
+    state: present
+  become: yes
+  when: ansible_distribution == "CentOS"
+  tags: [ nginx, packages ]
+
+- name: Ensure www-data user is present (CentOS)
+  user:
+    name: www-data
+    state: present
+    shell: '/bin/true'
+    group: www-data
+  become: yes
+  when: ansible_distribution == "CentOS"
   tags: [ nginx, packages ]
 
 - name: Ensure nginx sites directories exist
   file:
     path: '{{ item }}'
     state: directory
-    owner: "{{ root_user }}"
-    group: "{{ root_group }}"
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
     mode: 0o755
   with_items:
     - /etc/nginx/sites-available
     - /etc/nginx/sites-enabled
+  become: yes
+  tags: [ nginx, config ]
+
+# https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
+- name: Generate strong Diffie-Hellman group
+  shell: 'openssl dhparam -out {{ ssl_dhparam_file }} {{ ssl_dhparam_keysize }}'
+  args:
+    creates: '{{ ssl_dhparam_file }}'
   become: yes
   tags: [ nginx, config ]
 
@@ -164,7 +224,7 @@
 
 - name: Make artifacts (source) directory present
   file:
-    path: '{{ dims }}/source'
+    path: '{{ nginx_source_dir }}'
     state: directory
     owner: '{{ dims_user }}'
     group: www-data
@@ -176,7 +236,7 @@
 
 - name: Define nginx_source_hostname
   set_fact:
-    nginx_source_hostname: 'source.devops.{{ deployment }}'
+    nginx_source_hostname: 'source.{{ ansible_domain }}'
   when: '"source" in nginx_sites_available
         and nginx_source_hostname is not defined'
   tags: [ nginx, config ]
@@ -189,7 +249,7 @@
   tags: [ nginx ]
 
 - name: Make defined bats tests present
-  include: '{{ tasks_path }}/bats-tests.yml'
+  include: '{{ tasks_path }}/install-bats-tests.yml'
   tags: [ nginx, tests ]
 
 - include: '{{ tasks_path }}/post_tasks.yml'

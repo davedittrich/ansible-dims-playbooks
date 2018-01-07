@@ -37,11 +37,13 @@ DIMS_VERSION=2.12.0
 # keys and fingerprints that were printed out by the complementary script
 # "keys.host.fingerprints.sh".
 
+DIMS_DOMAIN=${DIMS_DOMAIN:-devops.local}
+
 # See also:
 # $PBR/ansible-dims-playbooks/roles/bootstrap/tasks/info.yml
 # https://fullmetalhealth.com/spin-off-ansible-ssh-bastion-host-dynamic-infrastructure-aws-gathering-ssh-public-key-aws-system-log/
 
-awk -v domain="devops.local" '
+awk -v domain="${DIMS_DOMAIN}" '
 BEGIN {
     SUBSEP="@";
     FS=" ";

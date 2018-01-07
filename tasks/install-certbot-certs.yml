@@ -16,12 +16,12 @@
 
 - name: Define certbot_sitename
   set_fact:
-    certbot_sitename: '{{ tridentFQDN|default("{{ inventory_hostname }}") }}' # For now, use this variable
+    certbot_sitename: '{{ ansible_fqdn }}'
   when: certbot_sitename is not defined
 
 - name: Define certbot_adminemail
   set_fact:
-    certbot_adminemail: '{{ trident_site_adminemail|default("admin@{{ inventory_hostname }}") }}'
+    certbot_adminemail: '{{ root_user }}@{{ ansible_fqdn }}'
   when: certbot_adminemail is not defined
 
 - name: Default certbot_save_backups false
@@ -71,7 +71,7 @@
 - block:
   - name: Define _default_backups_dir
     set_fact:
-      _default_backups_dir: '{{ dims_backups }}/{{ inventory_hostname }}'
+      _default_backups_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
     when: certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
@@ -85,14 +85,14 @@
   - name: Set _backup_dir from latest backup file
     set_fact:
       _backup_dir: '{{ backups_files.0|dirname }}'
-    when: backups_files.0 is defined and
+    when: backups_files is defined and
           certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
   - name: Set _backup_file from latest backup file
     set_fact:
       _backup_file: '{{ backups_files.0|basename }}'
-    when: backups_files.0 is defined and
+    when: backups_files is defined and
           certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
@@ -165,13 +165,16 @@
 
 - name: Check for existence of letsencrypt cert
   stat:
-    path: '/etc/letsencrypt/live/{{ tridentFQDN }}/cert.pem'
+    path: '/etc/letsencrypt/live/{{ certbot_sitename }}/cert.pem'
   register: _cert_stat
 
 - name: Define _have_cert
   set_fact:
-    _have_cert: _cert_stat.stat is defined and
-                _cert_stat.stat.exists|bool
+    _have_cert: '{{ _cert_stat.stat is defined and
+                    _cert_stat.stat.exists|bool }}'
+
+- debug:
+    msg: '_have_cert is {{ _have_cert }}'
 
 - include: '{{ tasks_path }}/letsencrypt_generate.yml'
   when: use_letsencrypt and not _have_cert

@@ -60,7 +60,7 @@
     - files:
         - '{{ nsswitch_conf }}'
         - nsswitch.conf.{{ inventory_hostname }}.j2
-        - nsswitch.conf.{{ ansible_lsb.id }}.j2
+        - nsswitch.conf.{{ ansible_distribution }}.j2
         - nsswitch.conf.category-{{ category }}.j2
         - nsswitch.conf.deployment-{{ deployment }}.j2
         - nsswitch.conf.j2

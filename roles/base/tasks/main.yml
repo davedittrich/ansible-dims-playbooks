@@ -21,7 +21,7 @@
   tags: [ always ]
 
 - fail: msg="Variable 'packages_install' is not defined.
-    Make sure inventory/all.yml includes '{{ inventory_hostname }}' in group '{{ ansible_lsb.id|lowercase }}'"
+    Make sure inventory/all.yml includes '{{ inventory_hostname }}' in group '{{ ansible_distribution|lowercase }}'"
   when: packages_install is not defined
   tags: [ base, packages, updates ]
 
@@ -42,33 +42,150 @@
   ignore_errors: yes
   tags: [ base, config, dns, logrotate, packages, rsyslogd, tests, triggers ]
 
-- debug: msg=System "{{ inventory_hostname }}"
+- name: Check to see if update-manager is running on Ubuntu
+  shell: "ps aux | awk '/[ ]\\/usr\\/bin\\/update-manager/ { print $2; }'"
+  register: _ps
+  ignore_errors: yes
+  when: ansible_distribution == "Ubuntu"
+  tags: [ base, packages, updates ]
+
+- name: Kill update_manager to avoid dpkg lock contention
+  shell: "kill {{ _ps.stdout }}"
+  become: yes
+  when: ansible_distribution == "Ubuntu"
+        and _ps.stdout is defined and _ps.stdout|int != 0
+  tags: [ base, packages, updates ]
+
+- name: Check to see if gpk-update-viewer is running on Ubuntu
+  shell: "ps aux | awk '/[ ]gpk-update-viewer/ { print $2; }'"
+  register: _ps
+  ignore_errors: yes
+  when: ansible_distribution == "Debian"
+  tags: [ base, packages, updates ]
+
+- name: Kill gpk-update-viewer to avoid dpkg lock contention
+  shell: "kill {{ _ps.stdout }}"
+  become: yes
+  when: ansible_distribution == "Debian"
+        and _ps.stdout is defined and _ps.stdout|int != 0
+  tags: [ base, packages, updates ]
+
+- name: Make sure blacklisted packages are absent (Debian)
+  apt: state=absent name={{ item }} force=yes
+  with_items:
+    - '{{ packages_remove }}'
+  become: yes
+  when: ansible_pkg_mgr == "apt"
+  ignore_errors: yes
+  tags: [ base, packages, updates ]
+
+- name: Only "update_cache=yes" if >3600s since last update (Debian)
+  apt: update_cache=yes cache_valid_time=3600
+  when: ansible_pkg_mgr == "apt"
+  become: yes
+  tags: [ base, packages, updates ]
+
+- name: Make sure required APT packages are present (Debian)
+  apt: state=present name={{ item }} force=yes
+  with_items:
+   - "{{ packages_install }}"
+  become: yes
+  ignore_errors: yes
+  when: ansible_pkg_mgr == "apt"
+  tags: [ base, packages, updates ]
+
+- name: Clean APT cache
+  command: apt-get clean
+  become: yes
+  when: packages_upgrade|bool and ansible_pkg_mgr == "apt"
+  tags: [ base, packages, updates ]
+
+- name: Make upgraded packages present if we are explicitly upgrading
+  apt:
+    upgrade: safe
+    dpkg_options: 'force-confold,force-confdef'
+    autoremove: yes
+  become: yes
+  when: packages_upgrade|bool and ansible_pkg_mgr == "apt"
+  tags: [ base, packages, updates ]
+
+- name: Ensure pip installed for system Python (RedHat)
+  yum:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - python-pip
+  become: yes
+  when: ansible_pkg_mgr == "yum"
+  tags: [ base, config, updates ]
+
+- name: Ensure pip installed for system Python (Debian)
+  apt:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - python-pip
+  become: yes
+  when: ansible_pkg_mgr == "apt"
+  tags: [ base, config, updates ]
+
+- name: Upgrade required pip components
+  shell: 'pip install -U {{ item }}'
+  become: yes
+  with_items:
+    - pip
+    - setuptools
+  tags: [ base, config, updates ]
+
+- name: Create base-requirements.txt file
+  template:
+    src: pip/base-requirements.txt.j2
+    dest: '{{ dims_etc }}/base-requirements.txt'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o644
+  become: yes
+  tags: [ base, config, updates ]
+
+- name: Ensure required system python packages present
+  pip:
+    requirements: '{{ dims_etc }}/base-requirements.txt'
+  become: yes
+  tags: [ base, config, updates ]
+
+- name: Ensure ansible_fqdn is really FQDN
+  set_fact:
+    ansible_fqdn: '{{ inventory_hostname }}.{{ dims_domain }}'
+  when: not dims_domain in ansible_fqdn
+  tags: [ always ]
+
+- debug: msg=System "{{ inventory_hostname }} ({{ ansible_fqdn }})"
   when: verbose
   tags: [ base ]
 
-- name: Set hostname (runtime) (Debian, CoreOS)
-  shell: 'hostname {{ inventory_hostname_short }}'
+- name: Make /etc/hostname present
+  shell: 'echo {{ ansible_fqdn }} > /etc/hostname'
   become: yes
-  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  when: ansible_os_family != "MacOSX"
   tags: [ base, config ]
 
-- name: Make /etc/hostname present (Debian, CoreOS)
-  shell: 'echo {{ inventory_hostname_short }} > /etc/hostname'
+- name: Set hostname (runtime) (Debian)
+  shell: 'hostname -b -F /etc/hostname'
   become: yes
-  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  when: ansible_distribution == "Debian"
   tags: [ base, config ]
 
-- name: Set domainname (Debian, CoreOS)
-  shell: 'domainname {{ category }}.{{ deployment }}'
+- name: Set hostname (runtime) (Ubuntu, CoreOS)
+  shell: 'hostname {{ ansible_fqdn }}'
   become: yes
-  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  when: ansible_distribution == "Ubuntu" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
 - name: Set domainname (MacOSX)
   lineinfile:
     dest=/etc/defaultdomain
     regexp='^.*$'
-    line={{ category }}.{{ deployment }}
+    line={{ ansible_domain }}
     owner={{ root_user }}
     group={{ root_group }}
     mode=0o644
@@ -151,6 +268,31 @@
   when: ansible_os_family == "Debian"
   tags: [ base, config, iptables ]
 
+- name: iptables v4 rules (CentOS)
+  template:
+    src: '{{ item }}'
+    dest: /etc/sysconfig/iptables
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+    validate: '/sbin/iptables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ iptables_rules }}'
+        - rules.v4.{{ inventory_hostname }}.j2
+        - rules.v4.category-{{ category }}.j2
+        - rules.v4.deployment-{{ deployment }}.j2
+        - rules.v4.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  notify:
+    - "restart iptables ({{ dims_os_id }})"
+    - "conditional restart docker"
+  become: yes
+  when: ansible_distribution == "CentOS"
+  tags: [ base, config, iptables ]
+
 - name: iptables v4 rules (CoreOS)
   template:
     src: '{{ item }}'
@@ -201,6 +343,31 @@
   when: ansible_os_family == "Debian"
   tags: [ base, config, iptables ]
 
+- name: iptables v6 rules (CentOS)
+  template:
+    src: '{{ item }}'
+    dest: /etc/sysconfig/ip6tables
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+    validate: '/sbin/ip6tables-restore --test %s'
+  with_first_found:
+    - files:
+        - '{{ ip6tables_rules }}'
+        - rules.v6.{{ inventory_hostname }}.j2
+        - rules.v6.category-{{ category }}.j2
+        - rules.v6.deployment-{{ deployment }}.j2
+        - rules.v6.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
+        - iptables/
+  become: yes
+  notify:
+    - "restart iptables ({{ dims_os_id }})"
+    - "conditional restart docker"
+  when: ansible_distribution == "CentOS"
+  tags: [ base, config, iptables ]
+
 - name: iptables v6 rules (CoreOS)
   template:
     src: '{{ item }}'
@@ -224,6 +391,66 @@
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
     - "conditional restart docker"
   when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+- name: Ensure /etc/fail2ban/fail2ban.local is present
+  template:
+    src: '{{ item }}'
+    dest: /etc/fail2ban/fail2ban.local
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+  with_first_found:
+    - files:
+        - '{{ fail2ban_local_conf }}'
+        - fail2ban.local.{{ inventory_hostname }}.j2
+        - fail2ban.local.category-{{ category }}.j2
+        - fail2ban.local.deployment-{{ deployment }}.j2
+        - fail2ban.local.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/fail2ban/fail2ban.local/'
+        - fail2ban/fail2ban.local/
+  become: yes
+  notify:
+    - "restart fail2ban ({{ ansible_service_mgr }})"
+  when: ansible_os_family != "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+- name: Ensure fail2ban filters are present
+  file:
+    src: '{{ item }}'
+    dest: '/etc/fail2ban/filter.d/{{ item }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+  with_items: '{{ fail2ban_filters|default([]) }}'
+  become: yes
+  notify:
+    - "restart fail2ban ({{ ansible_service_mgr }})"
+  when: ansible_os_family != "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+- name: Ensure /etc/fail2ban/jail.local is present
+  template:
+    src: '{{ item }}'
+    dest: '/etc/fail2ban/jail.local'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+  with_first_found:
+    - files:
+        - '{{ fail2ban_jail_local_conf }}'
+        - jail.local.{{ inventory_hostname }}.j2
+        - jail.local.category-{{ category }}.j2
+        - jail.local.deployment-{{ deployment }}.j2
+        - jail.local.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/fail2ban/jail.local/'
+        - fail2ban/jail.local/
+  become: yes
+  notify:
+    - "restart fail2ban ({{ ansible_service_mgr }})"
+  when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
 
 - name: Set timezone variables (Debian)
@@ -267,73 +494,37 @@
   when: ansible_os_family == "Debian"
   tags: [ base, config ]
 
-- name: Check to see if update-manager is running on Ubuntu
-  shell: "ps aux | awk '/[ ]\\/usr\\/bin\\/update-manager/ { print $2; }'"
-  register: _ps
-  ignore_errors: yes
-  when: '"Ubuntu" in ansible_lsb.id'
-  tags: [ base, packages, updates ]
+# Note that /etc/environment is not read on CoreOS the same way that
+# it is done on Debian based Linux systems. See the tasks/coreos.yml
+# file for learning how they are applied.
 
-- name: Kill update_manager to avoid dpkg lock contention
-  shell: "kill {{ _ps.stdout }}"
+- name: Populate /etc/environment (Debian, CoreOS)
+  template:
+    src={{ item }}
+    dest=/etc/environment
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode=0o644
+  with_first_found:
+    - files:
+        - '{{ dims_environment }}'
+        - environment.{{ ansible_fqdn }}.j2
+        - environment.category-{{ category }}.j2
+        - environment.deployment-{{ deployment }}.j2
+        - environment.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/environment/'
+        - environment/
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   become: yes
-  when: '"Ubuntu" in ansible_lsb.id
-        and _ps.stdout is defined and _ps.stdout|int != 0'
-  tags: [ base, packages, updates ]
+  tags: [ base, config ]
 
-- name: Check to see if gpk-update-viewer is running on Ubuntu
-  shell: "ps aux | awk '/[ ]gpk-update-viewer/ { print $2; }'"
-  register: _ps
-  ignore_errors: yes
-  when: '"Debian" in ansible_lsb.id'
-  tags: [ base, packages, updates ]
-
-- name: Kill gpk-update-viewer to avoid dpkg lock contention
-  shell: "kill {{ _ps.stdout }}"
-  become: yes
-  when: '"Debian" in ansible_lsb.id
-        and _ps.stdout is defined and _ps.stdout|int != 0'
-  tags: [ base, packages, updates ]
-
-- name: Make sure blacklisted packages are absent (Debian)
-  apt: state=absent name={{ item }} force=yes
-  with_items:
-    - '{{ packages_remove }}'
-  become: yes
-  when: ansible_os_family == "Debian"
-  ignore_errors: yes
-  tags: [ base, packages, updates ]
-
-- name: Only "update_cache=yes" if >3600s since last update (Debian)
-  apt: update_cache=yes cache_valid_time=3600
-  when: ansible_os_family == "Debian"
-  become: yes
-  tags: [ base, packages, updates ]
-
-
-- name: Make sure required APT packages are present (Debian)
-  apt: state=present name={{ item }} force=yes
-  with_items:
-   - "{{ packages_install }}"
-  become: yes
-  ignore_errors: yes
-  when: ansible_os_family == "Debian"
-  tags: [ base, packages, updates ]
-
-- name: Clean APT cache
-  command: apt-get clean
-  become: yes
-  when: packages_upgrade|bool and ansible_os_family == "Debian"
-  tags: [ base, packages, updates ]
-
-- name: Make upgraded packages present if we are explicitly upgrading
-  apt:
-    upgrade: safe
-    dpkg_options: 'force-confold,force-confdef'
-    autoremove: yes
-  become: yes
-  when: packages_upgrade|bool and ansible_os_family == "Debian"
-  tags: [ base, packages, updates ]
+# TODO(dittrich): Do this for Darwin as well
+#- name: Populate /etc/environment on Darwin
+#  template: "src=environment.j2 dest=/etc/environment owner={{ root_user }} group={{ root_group }} mode=0o644"
+#  when: ansible_os_family == "Darwin"
+#  become: yes
+#  tags: [ base, config ]
 
 # Using "meta: flush_handlers" will run any handlers that have
 # been set up to this point.
@@ -354,14 +545,83 @@
   include: "{{ tasks_path }}/proxy_check.yml"
   tags: [ base, config, packages, updates, triggers ]
 
-- name: Make DIMS-specific resources present
-  include: dims_base.yml
-  tags: [ base, packages ]
-
 - name: Make CoreOS resources present
   include: coreos.yml
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, packages ]
+
+- name: Ensure DIMS system shell init hook is present (Debian, CoreOS)
+  template:
+    src={{ item }}
+    dest=/etc/bash.bashrc
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode=0o755
+  with_first_found:
+    - files:
+        - '{{ dims_bashrc }}'
+        - bash.bashrc.{{ ansible_fqdn }}.j2
+        - bash.bashrc.category-{{ category }}.j2
+        - bash.bashrc.deployment-{{ deployment }}.j2
+        - bash.bashrc.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/bash.bashrc/'
+        - bash.bashrc/
+  become: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Make DIMS system level profile present
+  template:
+    src={{ item }}
+    dest=/etc/profile.d/dims.sh
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode=0o644
+  with_first_found:
+    - files:
+        - '{{ dims_profile }}'
+        - dims.sh.{{ ansible_fqdn }}.j2
+        - dims.sh.category-{{ category }}.j2
+        - dims.sh.deployment-{{ deployment }}.j2
+        - dims.sh.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/profile.d/'
+        - profile.d/
+  become: yes
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config ]
+
+- name: Make directory for DIMS bashrc plugins present
+  file:
+    state: directory
+    path: '{{ dims_etc }}/bashrc.dims.d'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o775
+  become: yes
+  tags: [ base, config ]
+
+- name: Make DIMS-specific bashrc setup file present
+  template:
+    src={{ item }}
+    dest={{ dims_etc }}/bashrc.dims
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode=0o755
+  with_first_found:
+    - files:
+        - '{{ dims_bashrc_dims }}'
+        - bashrc.dims.{{ ansible_fqdn }}.j2
+        - bashrc.dims.category-{{ category }}.j2
+        - bashrc.dims.deployment-{{ deployment }}.j2
+        - bashrc.dims.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/bashrc.dims/'
+        - bashrc.dims/
+  when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
+  become: yes
+  tags: [ base, config ]
 
 # Set up logging first to aid in debugging installation problems.
 
@@ -688,7 +948,7 @@
 #  with_items:
 #    - libnm-glib-dev
 #  become: yes
-#  when: ansible_distribution == "Debian"
+#  when: ansible_pkg_mgr == "apt"
 #  tags: [ base, config ]
 
 #     - libnm-qt-devel.x86_64
@@ -746,32 +1006,6 @@
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]
 
-- name: Ensure pip installed for system Python
-  apt:
-    name: '{{ item }}'
-    state: latest
-  with_items:
-    - python-pip
-  become: yes
-  when: ansible_os_family == "Debian"
-  tags: [ base, config, updates ]
-
-- name: Create base-requirements.txt file
-  template:
-    src: pip/base-requirements.txt.j2
-    dest: '{{ dims_etc }}/base-requirements.txt'
-    owner: '{{ dims_user }}'
-    group: '{{ dims_group }}'
-    mode: 0o644
-  become: yes
-  tags: [ base, config, updates ]
-
-- name: Ensure required system python packages present
-  pip:
-    requirements: '{{ dims_etc }}/base-requirements.txt'
-  become: yes
-  tags: [ base, config, updates ]
-
 # The Google shflags package is used by DIMS scripts
 - name: Make sure shflags is present
   include: "{{ tasks_path }}/install-shflags.yml"
@@ -792,6 +1026,17 @@
    - '{{ files }}/common-scripts/*.j2'
   become: yes
   tags: [ base, packages, scripts, tests ]
+
+# These are used by tests, so the 'tests' tag is applied specifically for this library.
+- name: Make DIMS bash shell functions present
+  copy:
+    src=dims_functions.sh
+    dest={{ dims_bin }}/dims_functions.sh
+    owner={{ dims_user }}
+    group={{ dims_group }}
+    mode=0o644
+  become: yes
+  tags: [ base, config, tests ]
 
 - name: Make sure common (non-templated) BASH scripts are present
   copy:
@@ -822,7 +1067,7 @@
   notify:
   - update Ubuntu locales
   become: yes
-  when: ansible_lsb.id == "Ubuntu"
+  when: ansible_distribution == "Ubuntu"
   tags: [ base, packages ]
 
 - name: Ensure Debian locale set (Debian)
@@ -834,7 +1079,7 @@
   notify:
   - update Debian locales
   become: yes
-  when: ansible_lsb.id == "Debian"
+  when: ansible_distribution == "Debian"
   tags: [ base, packages ]
 
 # NOTE(mboggess): on CoreOS, /etc/ssh/sshd_config is a symlink to /usr/share/ssh/sshd_config
@@ -940,7 +1185,7 @@
   tags: [ base, packages, updates ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
+  include: "{{ tasks_path }}/install-bats-tests.yml"
   become: yes
   tags: [ base, tests ]
 
@@ -976,6 +1221,22 @@
   when: not ( ( groups.postfix is defined and inventory_hostname in groups.postfix )
            or ( groups.trident is defined and inventory_hostname in groups.trident ) )
   register: _aliases
+  tags: [ base, config ]
+
+  # Running "newaliases" fails on CentOS when Postfix main.cf contains
+  # "inet_protocols = all" with the following error message:
+  # newaliases: fatal: parameter inet_interfaces: no local interface found for ::1
+
+- name: Ensure inet_protocols set properly on CentOS
+  lineinfile:
+    dest: /etc/postfix/main.cf
+    regexp: '^inet_protocols'
+    line: 'inet_protocols = ipv4'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  when: ansible_distribution == "CentOS" and
+        not '::1' in ansible_all_ipv6_addresses
   tags: [ base, config ]
 
 - name: Reload aliases

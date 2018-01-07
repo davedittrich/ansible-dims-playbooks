@@ -31,7 +31,7 @@
 
 - name: Define backups_dir
   set_fact:
-    backups_dir: '{{ dims_backups }}/{{ host }}'
+    backups_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
   when: backups_dir is not defined
 
 - fail: msg="'backups_service' must be defined to select service backups"

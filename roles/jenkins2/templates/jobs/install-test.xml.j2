@@ -15,7 +15,7 @@
     <hudson.tasks.Shell>
       <command>#BOJ
 [ -d output ] || mkdir output
-echo &quot;[+] Jenkins job &apos;install-test&apos; on $(hostname)&quot; |
+echo &quot;[+] Jenkins job &apos;install-test&apos; on $(hostname) completed at $(dims.function iso8601date)&quot; |
 tee output/install-test.txt
 cd output
 sha256sum install-test.txt > install-test.txt.sha256sum

@@ -2,9 +2,9 @@
 
 category: 'devops'
 deployment: 'local'
-dims_domain: '{{ category }}.{{ deployment }}'
-playbooks_root: "{{ lookup('env', 'PBR') }}"
-#dims_private: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}"
+dims_domain: '{{ lookup("env", "DIMS_DOMAIN") }}'
+playbooks_root: '{{ lookup("env", "PBR") }}'
+#dims_private: '{{ lookup("env", "GIT") }}/private-{{ deployment }}'
 dims_private: '{{ playbooks_root }}'
 
 
@@ -13,8 +13,8 @@ dims_private: '{{ playbooks_root }}'
 # the settings from group_vars/all/rabbitmq.yml and will
 # be removed when the PRISEM RPC code can be updated.
 
-amqp_port: '{{ rabbitmq_port }}'
-amqp_mgmt_port: '{{ rabbitmq_mgmt_port }}'
+amqp_port: '{{ rabbitmq_tcp_listen_port }}'
+amqp_mgmt_port: '{{ rabbitmq_mgmt_listen_port }}'
 amqp_program: 'rabbitmq'
 amqp_server: '{{ groups.rabbitmq|list_to_string_args }}'
 
@@ -27,8 +27,8 @@ consul_ui_port: 8500
 consul_dns_port: 8600
 consul_start_join: '[{{ groups.consul|list_to_string_args }}]'
 consul_retry_join: '[{{ groups.consul|list_to_string_args }}]'
-consul_data_center: '{{ deployment }}'
-consul_dns_domain: '{{ deployment }}'
+consul_data_center: '{{ ansible_domain }}'
+consul_dns_domain: '{{ ansible_domain }}'
 # Type (and mode... not sure why both?) are set based on whether in groups.consul
 consul_agent_type: '{{ (inventory_hostname in groups.consul)|ternary("server","client") }}'
 consul_mode: '{{ (inventory_hostname in groups.consul)|ternary("server","client") }}'
@@ -91,7 +91,8 @@ dnsmasq_sha256_sum: '777c4762d2fee3738a0380401f2d087b47faa41db2317c60660d69ad10a
 
 docker_listen_port: 2375
 docker_api_port: 2376
-docker_registry: hub.devops.{{ deployment }}:5000
+docker_registry_port: 5000
+docker_registry: hub.{{ ansible_domain }}:{{ docker_registry_port }}
 
 # TODO(dittrich): This should be derived from (a) more global variable(s)
 # e.g., docker_insecure_registry_net: '{{ networks["vlan1"].network }}/{{ networks["vlan1"].cidr_bits }}'
@@ -100,7 +101,7 @@ docker_network_opts: ''
 #docker_network_opts: |
   #  -ip={{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface['docker']].ip }}
 docker_opts: |
-  -H=tcp://{{ inventory_hostname }}:{{ docker_api_port }}
+  -H=tcp://{{ ansible_fqdn }}:{{ docker_api_port }}
   -H=unix:///var/run/docker.sock
   --log-driver json-file
   --log-opt max-size=10m
@@ -116,10 +117,12 @@ go_sha256_sum: '6d894da8b4ad3f7f6c295db0d73ccc3646bce630e1c43e662a0120681d47e988
 # Local settings for geerlingguy/nginx role
 
 nginx_version: '1.6.2-5+deb8u3'
-nginx_health_check_port: 8888
+nginx_health_check_port: 8008
 nginx_worker_processes: 4
 nginx_default_port: 80
-nginx_default_domain: '{{ category }}.{{ deployment }}'
+nginx_ssl_port: 443
+nginx_default_domain: '{{ ansible_fqdn }}'
+nginx_webroot: '/var/www'
 
 # For use by ansible-role-certbot
 certbot_auto_renew_user: ansible
@@ -144,13 +147,13 @@ prisem_rpc_dist_url: '{{ artifacts_url }}/{{ prisem_rpc_archive }}'
 
 rabbitmq_tcp_listen_port: 5672
 rabbitmq_ssl_listen_port: 5671
-rabbitmq_mgmt_port: 15672
+rabbitmq_mgmt_listen_port: 15672
 rabbitmq_server: '{{ groups.rabbitmq.0 }}'
 rabbitmq_vhost: '/'
 rabbitmq_default_user: 'rpc_user'
-rabbitmq_default_user_pass: '{{ vault_rabbitmq_default_user_pass }}'
+#rabbitmq_default_user_pass: '{{ vault_rabbitmq_default_user_pass }}'
 rabbitmq_admin_user: 'hutchman'
-rabbitmq_admin_user_pass: '{{ vault_rabbitmq_admin_user_pass }}'
+#rabbitmq_admin_user_pass: '{{ vault_rabbitmq_admin_user_pass }}'
 rabbitmq_exchange: ''
 rabbitmq_logexchange: 'logs'
 rabbitmq_queuebase: 'rpc'
@@ -159,7 +162,7 @@ rsyslog_user: syslog
 rsyslog_server: '10.0.2.2'
 rsyslog_port: 10514
 rsyslog_domains: [
-    '.{{ deployment }}',
+    '.{{ ansible_domain }}',
 ]
 
 #rsyslog_ignore_config:
@@ -179,8 +182,11 @@ squidBasename: 'squid'
 # ssl_certs_dir and ssl_key_dir defined in vars/*.yml files.
 
 ssl_cacertfile: '{{ ssl_certs_dir }}/ca.pem'
-ssl_certfile: '{{ ssl_certs_dir }}/{{ inventory_hostname }}-cert.pem'
-ssl_keyfile: '{{ ssl_key_dir }}/{{ inventory_hostname }}-priv-key.pem'
+ssl_certfile: '{{ ssl_certs_dir }}/{{ ansible_fqdn }}-cert.pem'
+ssl_keyfile: '{{ ssl_key_dir }}/{{ ansible_fqdn }}-priv-key.pem'
+
+ssl_dhparam_file: '/etc/ssl/certs/dhparam.pem'
+ssl_dhparam_keysize: '2048'
 
 #sslCertDir: '/etc/nginx/ssl'
 #sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='

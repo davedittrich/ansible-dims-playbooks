@@ -17,8 +17,7 @@ $ModLoad imklog   # provides kernel logging support
 #$ModLoad immark  # provides --MARK-- message capability
 
 # Keep FQDN for remote logging (instead of every host using "localhost")
-#$LocalHostName {{ name | default('inventory_hostname') }}
-$LocalHostName {{ ansible_hostname }}.{{ category }}.{{ deployment }}
+$LocalHostName {{ ansible_fqdn }}
 $PreserveFQDN on
 
 # provides UDP syslog reception

@@ -4,12 +4,10 @@
 
 trident:
   vars:
-      use_letsencrypt: no
-      certbot_staging: yes
-      tridentFQDN: '{{ inventory_hostname }}'
+      tridentFQDN: '{{ ansible_fqdn }}'
 
       # Default site settings. Over-ride specifics below
-      trident_site_name: 'Trident Portal'
+      trident_site_name: '{{ ansible_domain }} Trident Portal'
       trident_site_welcome_text: 'Trident'
       trident_site_url_public: 'https://{{ tridentFQDN }}'
       trident_site_email_domain: '{{ tridentFQDN }}'
@@ -84,7 +82,7 @@ trident:
       trident_perl_sha256sum: '2f120dc75f75f8b2c8e5cdf55a29984e24ee749a75687a10068ed8f353098ffb'
 
   hosts:
-    'yellow.devops.local':
+    'yellow':
       # Specific site setting overrides
       trident_site_name: 'LOCAL Trident Portal'
       trident_site_welcome_text: 'LOCAL Trident'
@@ -98,12 +96,9 @@ trident:
       trident_site_trust_groups:
         - name: 'main'
           initial_users:
-            - ident: 'dims'
-              descr: 'DIMS Mail (no-reply)'
-              email: 'noreply@{{ trident_site_email_domain }}'
             - ident: 'dittrich'
               descr: 'Dave Dittrich'
-              email: 'dittrich@{{ trident_site_email_domain }}'
+              email: 'dave.dittrich@gmail.com'
           additional_lists:
             - ident: 'demo'
               descr: 'LOCAL Trident Demonstration'
@@ -156,11 +151,11 @@ trident:
 #           max_vouchdays: 0
 #           idle_guard: '168:00:00'
 #           nom_enabled: 'yes'
-    'purple.devops.local':
+    'purple':
       # Specific site setting overrides
-      trident_site_name: 'LOCAL DevTest Trident Portal'
-      trident_site_welcome_text: 'LOCAL DevTest Trident'
-      trident_site_adminname: 'LOCAL DevTest Trident Administrator'
+      trident_site_name: 'DevTest Trident Portal'
+      trident_site_welcome_text: 'DevTest Trident'
+      trident_site_adminname: 'DevTest Trident Administrator'
       trident_site_admins:
         - dittrich
 
@@ -169,21 +164,18 @@ trident:
       trident_site_trust_groups:
         - name: 'main'
           initial_users:
-            - ident: 'dims'
-              descr: 'DIMS Mail (no-reply)'
-              email: 'noreply@{{ trident_site_email_domain }}'
             - ident: 'dittrich'
               descr: 'Dave Dittrich'
-              email: 'dittrich@{{ trident_site_email_domain }}'
+              email: 'dave.dittrich@gmail.com'
           additional_lists:
             - ident: 'demo'
-              descr: 'LOCAL DevTest Trident Demonstration'
+              descr: 'DevTest Trident Demonstration'
             - ident: 'warroom'
-              descr: 'LOCAL DevTest Trust Group War Room'
+              descr: 'DevTest Trust Group War Room'
             - ident: 'exercise'
-              descr: 'LOCAL DevTest Trust Group Exercise Comms'
+              descr: 'DevTest Trust Group Exercise Comms'
             - ident: 'events'
-              descr: 'LOCAL DevTest Trust Group Social Events'
+              descr: 'DevTest Trust Group Social Events'
           settings:
             descr: 'Main TG'
             pgp_required: 'no'

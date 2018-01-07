@@ -43,11 +43,6 @@
 #
 # @@dims.ansible-playbook@@
   pre_tasks:
-    - name: Debugging
-      include: "{{ tasks_path }}/debug-dump-vars.yml"
-      when: _debug is defined and _debug|bool
-      tags: [ debug ]
-
     - name: Include codename-specific variables
       include_vars:
         file: '{{ item }}'

@@ -28,7 +28,8 @@
     path: '{{ _base_path }}'
     file_type: directory
     recurse: true
-  delegate_to: 127.0.0.1
+  delegate_to: '127.0.0.1'
+  become: no
   ignore_errors: true
   register: _tests_find
 
@@ -109,7 +110,8 @@
     file_type: file
     patterns: "*.bats.j2"
     use_regex: false
-  delegate_to: 127.0.0.1
+  delegate_to: '127.0.0.1'
+  become: no
   ignore_errors: true
   register: _templates_find
 

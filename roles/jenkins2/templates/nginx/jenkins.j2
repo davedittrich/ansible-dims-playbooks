@@ -3,34 +3,38 @@
 # This NGINX configuration comes from the Jenkins web site:
 # https://wiki.jenkins-ci.org/display/JENKINS/Jenkins+behind+an+NGinX+reverse+proxy
 
-# The following is for cleartext HTTP access.
+{% if jenkins_fqdn is not defined %}
+{% set jenkins_fqdn = ansible_fqdn %}
+{% endif %}
 
 upstream jenkins {
-    server 127.0.0.1:8080;
+    server 127.0.0.1:{{ jenkins_port }};
 }
 
+# The following is for cleartext HTTP access.
+#
 #server {
 #  listen {{ nginx_default_port }};
-#  server_name {{ ansible_hostname }}.devops.{{ deployment }};
-#  return 301 http://{{ ansible_hostname }}.devops.{{ deployment }}$request_uri;
+#  server_name {{ jenkins_fqdn }};
+#  return 301 http://{{ jenkins_fqdn }}$request_uri;
 #}
 
 server {
-  listen 80;
-  server_name jenkins.devops.{{ deployment }};
+  listen 443;
+  server_name {{ jenkins_fqdn }};
 
   location ^~ /jenkins {
     sendfile off;
-    proxy_pass http://jenkins;
+    proxy_pass http://127.0.0.1:{{ jenkins_port }};
+    proxy_set_header Host $host:$server_port;
+    proxy_set_header X-Forwarded-Host $host:$server_port;
+    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
     proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
     proxy_redirect off;
     proxy_http_version 1.1;
-    #proxy_set_header Host jenkins.devops.local;
-    #proxy_set_header Host jenkins.devops.{{ deployment }};
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
     proxy_max_temp_file_size 0;
     client_max_body_size       10m;
     client_body_buffer_size    128k;
@@ -43,35 +47,3 @@ server {
     proxy_temp_file_write_size 64k;
   }
 }
-
-
-
-# The following is an alternative for HTTPS access.
-#upstream jenkins {
-#  server 127.0.0.1:8080 fail_timeout=0;
-#}
-# 
-#server {
-#  listen 80;
-#  server_name {{ ansible_hostname }}.devops.{{ deployment }};
-#  return 301 https://$host$request_uri;
-#}
-# 
-#server {
-#  listen 443 ssl;
-#  server_name {{ ansible_hostname }}.devops.{{ deployment }};
-# 
-#  ssl_certificate /etc/nginx/ssl/server.crt;
-#  ssl_certificate_key /etc/nginx/ssl/server.key;
-# 
-#  location / {
-#    proxy_set_header        Host $host:$server_port;
-#    proxy_set_header        X-Real-IP $remote_addr;
-#    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-#    proxy_set_header        X-Forwarded-Proto $scheme;
-#    proxy_redirect http:// https://;
-#    proxy_pass              http://jenkins;
-#    # Required for new HTTP-based CLI
-#    proxy_http_version 1.1;
-#  }
-#}

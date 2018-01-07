@@ -3,30 +3,29 @@
 all:
   vars:
     dist_tag: '{{ ansible_distribution_version }}'
+    ip6tables_rules: '{{ (ansible_distribution == "Debian")|ternary("rules-v6-no_conntrack.j2","") }}'
+    use_sphinx: no
     os_version: '?'
   hosts:
-    'red.devops.local':
+    'red':
       tcp_ports: [ 53 ]
       udp_ports: [ 53 ]
-    'blue.devops.local':
-    'orange.devops.local':
-      tcp_ports:
-        - '{{ nginx_default_port }}'
-        - '{{ jenkins_port }}'
-        - '{{ nginx_health_check_port }}'
+    'blue':
+    'green':
+      tcp_ports: [ 25, '{{ nginx_default_port }}', '{{ nginx_ssl_port }}' ]
       udp_ports: [ ]
-      jenkins_url_external: 'http://{{ hostvars["orange.devops.local"].ansible_host }}/jenkins'
-    'purple.devops.local':
+      jenkins_url_external: 'https://{{ hostvars[inventory_hostname].ansible_fqdn }}/jenkins'
+    'purple':
       tcp_ports: [ 25, 80, 443 ]
   children:
     production:
       hosts:
-        'red.devops.local':
-        'orange.devops.local':
+        'red':
+        'green':
     development:
       hosts:
-        'blue.devops.local':
-        'purple.devops.local':
+        'blue':
+        'purple':
     coreos:
       vars:
         ssl_certs_dir: '?'
@@ -45,6 +44,7 @@ all:
           - 'curl'
           - 'dconf-tools'
           - 'default-jdk'
+          - 'fail2ban'
           - 'git-core'
           - 'gitk'
           - 'gnupg2'
@@ -99,6 +99,7 @@ all:
           - 'curl'
           - 'dconf-tools'
           - 'debian-archive-keyring'
+          - 'fail2ban'
           - 'git-core'
           - 'gitk'
           - 'gnupg2'
@@ -137,11 +138,11 @@ all:
         services_enabled:
           - 'auditd'
       hosts:
-        'red.devops.local':
+        'red':
           os_version: '8.5.0'
-        'orange.devops.local':
+        'green':
           os_version: '8.5.0'
-        'purple.devops.local':
+        'purple':
           os_version: '8.5.0'
     centos:
       vars:
@@ -152,24 +153,31 @@ all:
         root_group: 'root'
         packages_install:
           - 'bash-completion'
+          - 'bind-utils'
           - 'ca-certificates'
           - 'chrony'
           - 'curl'
+          - 'fail2ban'
+          - 'gcc'
           - 'git-core'
           - 'gitk'
           - 'gnupg2'
           - 'htop'
           - 'hunspell'
+          - 'libffi-devel'
           - 'libxslt'
           - 'make'
           - 'nc'
           - 'ntpdate'
           - 'openssh-server'
+          - 'openssl-devel'
           - 'patch'
           - 'perl'
           - 'perl-XML-Twig'
           - 'postfix'
           - 'python'
+          - 'python-cffi'
+          - 'python-devel'
           - 'rsync'
           - 'rsyslog'
           - 'sshfs'
@@ -186,7 +194,7 @@ all:
         services_enabled:
           - 'auditd'
       hosts:
-        'blue.devops.local':
+        'blue':
     darwin:
       vars:
         syslog_user: 'root'

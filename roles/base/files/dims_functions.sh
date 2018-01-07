@@ -1,5 +1,3 @@
-# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
-#
 # vim: set ts=4 sw=4 tw=0 et :
 #
 # Copyright (C) 2014-2016, University of Washington. All rights reserved.
