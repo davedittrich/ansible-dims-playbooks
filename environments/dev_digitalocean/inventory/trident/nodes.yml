@@ -84,9 +84,9 @@ trident:
   hosts:
     'yellow':
       # Specific site setting overrides
-      trident_site_name: 'LOCAL Trident Portal'
-      trident_site_welcome_text: 'LOCAL Trident'
-      trident_site_adminname: 'LOCAL Trident Administrator'
+      trident_site_name: '{{ dims_domain }} Trident Portal'
+      trident_site_welcome_text: '{{ dims_domain }} Trident'
+      trident_site_adminname: 'Trident Administrator'
       trident_site_adminemail: 'admin@{{ trident_site_email_domain }}'
       trident_site_admins:
         - dittrich
@@ -101,7 +101,7 @@ trident:
               email: 'dave.dittrich@gmail.com'
           additional_lists:
             - ident: 'demo'
-              descr: 'LOCAL Trident Demonstration'
+              descr: 'LOCAL Trident Demos'
             - ident: 'warroom'
               descr: 'LOCAL Trust Group War Room'
             - ident: 'exercise'
@@ -153,9 +153,10 @@ trident:
 #           nom_enabled: 'yes'
     'purple':
       # Specific site setting overrides
-      trident_site_name: 'DevTest Trident Portal'
-      trident_site_welcome_text: 'DevTest Trident'
-      trident_site_adminname: 'DevTest Trident Administrator'
+      postgresql_backup_restorefrom: 'latest'
+      trident_site_name: '{{ dims_domain }} DevTest Trident Portal'
+      trident_site_welcome_text: '{{ dims_domain }} DevTest Trident'
+      trident_site_adminname: 'Trident Administrator'
       trident_site_admins:
         - dittrich
 
@@ -169,7 +170,7 @@ trident:
               email: 'dave.dittrich@gmail.com'
           additional_lists:
             - ident: 'demo'
-              descr: 'DevTest Trident Demonstration'
+              descr: 'DevTest Trident Demos'
             - ident: 'warroom'
               descr: 'DevTest Trust Group War Room'
             - ident: 'exercise'
