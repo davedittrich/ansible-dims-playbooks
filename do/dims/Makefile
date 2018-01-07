@@ -186,6 +186,7 @@ deploy:
 	ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
+		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		master.yml
 
