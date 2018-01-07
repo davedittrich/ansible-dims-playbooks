@@ -14,7 +14,7 @@
 # certbot_staging - Controls use of staging area to avoid throttle.
 # certbot_sitename - Domain name for certificate
 # certbot_adminemail - Email address for cert (may differ from
-#                      inventory_hostname if NAT in use).
+#                      ansible_fqdn if NAT in use).
 
 - name: Define _certbot_staging option
   set_fact:

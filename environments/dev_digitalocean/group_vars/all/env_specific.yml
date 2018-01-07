@@ -182,8 +182,8 @@ squidBasename: 'squid'
 # ssl_certs_dir and ssl_key_dir defined in vars/*.yml files.
 
 ssl_cacertfile: '{{ ssl_certs_dir }}/ca.pem'
-ssl_certfile: '{{ ssl_certs_dir }}/{{ inventory_hostname }}-cert.pem'
-ssl_keyfile: '{{ ssl_key_dir }}/{{ inventory_hostname }}-priv-key.pem'
+ssl_certfile: '{{ ssl_certs_dir }}/{{ ansible_fqdn }}-cert.pem'
+ssl_keyfile: '{{ ssl_key_dir }}/{{ ansible_fqdn }}-priv-key.pem'
 
 ssl_dhparam_file: '/etc/ssl/certs/dhparam.pem'
 ssl_dhparam_keysize: '2048'

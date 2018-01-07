@@ -4,7 +4,7 @@ openvpn_etcdir: /etc/openvpn
 openvpn_keydir: "{{ openvpn_etcdir }}/keys"
 
 # Default settings (See OpenVPN documentation)
-openvpn_host: "{{inventory_hostname}}"              # The server address
+openvpn_host: "{{ ansible_fqdn }}"              # The server address
 openvpn_port: 500
 openvpn_proto: udp
 openvpn_dev: tun

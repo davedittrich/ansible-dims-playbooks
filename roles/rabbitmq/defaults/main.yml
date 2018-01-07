@@ -32,8 +32,8 @@ _rabbitmq_reverse_lookups: true
 # Assumes using "nginx" role to simplify handling SSL certs
 # Paths to certs and key align with ansible-role-ca (see inventory/ca-certs/nodes.yml)
 rabbitmq_ssl_cacertfile: "/etc/ssl/certs/ca.pem"
-rabbitmq_ssl_certfile: "/etc/ssl/certs/{{ inventory_hostname }}-cert.pem"
-rabbitmq_ssl_keyfile: "/etc/ssl/private/{{ inventory_hostname }}-priv-key.pem"
+rabbitmq_ssl_certfile: "/etc/ssl/certs/{{ ansible_fqdn }}-cert.pem"
+rabbitmq_ssl_keyfile: "/etc/ssl/private/{{ ansible_fqdn }}-priv-key.pem"
 rabbitmq_ssl_fail_if_no_peer_cert: "true"
 
 # vim: ft=ansible :

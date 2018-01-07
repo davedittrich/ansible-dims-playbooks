@@ -88,7 +88,7 @@
   with_first_found:
     - files:
         - '{{ vncserver_init }}'
-        - vncserver.{{ inventory_hostname }}.j2
+        - vncserver.{{ ansible_fqdn }}.j2
         - vncserver.category-{{ category }}.j2
         - vncserver.deployment-{{ deployment }}.j2
         - vncserver.j2
@@ -143,14 +143,12 @@
 - name: Ensure local tunnel helper script is present
   template:
     src: '{{ item }}'
-    dest: '{{ dims_bin }}/{{ item|basename|regex_replace("\.sh\.j2$","") }}.{{ inventory_hostname }}'
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
+    dest: '{{ dims_bin }}/{{ item|basename|regex_replace("\.sh\.j2$","") }}.{{ ansible_fqdn }}'
     mode: 0o755
   with_first_found:
     - files:
         - '{{ vnc_script }}'
-        - vnc.sh.{{ inventory_hostname }}.j2
+        - vnc.sh.{{ ansible_fqdn }}.j2
         - vnc.sh.category-{{ category }}.j2
         - vnc.sh.deployment-{{ deployment }}.j2
         - vnc.sh.j2
@@ -171,7 +169,7 @@
   with_first_found:
     - files:
         - '{{ vncserver_default }}'
-        - vncserver.{{ inventory_hostname }}.j2
+        - vncserver.{{ ansible_fqdn }}.j2
         - vncserver.category-{{ category }}.j2
         - vncserver.deployment-{{ deployment }}.j2
         - vncserver.j2
