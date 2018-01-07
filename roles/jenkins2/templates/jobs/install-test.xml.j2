@@ -15,7 +15,7 @@
     <hudson.tasks.Shell>
       <command>#BOJ
 [ -d output ] || mkdir output
-echo &quot;[+] Jenkins job &apos;install-test&apos; on $(hostname)&quot; |
+echo &quot;[+] Jenkins job &apos;install-test&apos; on $(hostname) completed at $(dims.function iso8601date)&quot; |
 tee output/install-test.txt
 cd output
 sha256sum install-test.txt > install-test.txt.sha256sum
@@ -34,7 +34,7 @@ sha256sum install-test.txt > install-test.txt.sha256sum
           </logTexts>
           <EscalateStatus>false</EscalateStatus>
           <RunIfJobSuccessful>false</RunIfJobSuccessful>
-	  <script>{{ dims_bin }}/jenkins.saveartifact --debug</script>
+	  <script>{{ dims_bin }}/jenkins.saveartifact</script>
         </hudson.plugins.postbuildtask.TaskProperties>
       </tasks>
     </hudson.plugins.postbuildtask.PostbuildTask>

@@ -1,0 +1,24 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+function setup() {
+    source $DIMS/bin/dims_functions.sh
+    MAP_SOURCES=$(grep hash /etc/postfix/main.cf | grep -v "^ *#" | awk -F: '{ print $2; }' | sed 's/,//' | sort | uniq)
+    MAP_FILES=$(for F in ${MAP_SOURCES}; do echo "${F}.db "; done)
+}
+
+{% if opendkim_milters is defined and opendkim_milters != '' %}
+@test "[S][EV] Postfix main.cf includes milter referencing port {{ opendkim_port }}" {
+    grep -q ':{{ opendkim_port }}' /etc/postfix/main.cf
+}
+{% endif %}
+
+@test "[S][EV] All required hash maps defined in /etc/postfix/main.cf exist" {
+    bash -c 'FAIL=0; for F in ${MAP_FILES}; do if [[ -f $F ]]; then echo $F; FAIL=1; fi; done && exit $FAIL'
+}
+

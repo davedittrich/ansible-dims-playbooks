@@ -9,7 +9,6 @@
 # TODO(dittrich): Replace this with one dictionary
 
 dims: /opt/dims
-dims_backups:    "{{ dims }}/backups"
 dims_bin:        "{{ dims }}/bin"
 dims_data:       "{{ dims }}/data"
 dims_deploy:     "{{ dims }}/deploy"
@@ -35,7 +34,6 @@ dims_srv:     "{{ dims }}/srv"
 # being tested for in $GIT/dims-ci-utils/dims/test.dims-ci-utils.envcheck.
 
 dims_dirs:
-  - "{{ dims_backups }}"
   - "{{ dims_bin }}"
   - "{{ dims_data }}"
   - "{{ dims_deploy }}"
@@ -56,7 +54,7 @@ dims_dirs:
 # different path components with the users' names, which makes things more
 # complicated in shared code, or with the way we create Vagrants.
 #basedir: /srv/web/infra/ansible
-basedir: "{{ playbooks_root|default(lookup('env', 'PBR')) }}"
+basedir: "{{ playbooks_root | default(lookup('env', 'PBR')) }}"
 # The private directory is handled differently than other DIMS directories.
 private: "{{ dims }}/private"
 bigfiles: "{{ basedir }}/bigfiles"

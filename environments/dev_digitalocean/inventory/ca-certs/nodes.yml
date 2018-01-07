@@ -21,16 +21,16 @@ ca_certs:
     ca_domain: '{{ dims_domain }}'
     ca_organizationalunit: 'DIMS'
     ca_commonname: '{{ dims_domain }}'
-    ca_email: 'dittrich@u.washington.edu'
+    ca_email: 'dave.dittrich@gmail.com'
   hosts:
-    'red.devops.local':
-    'blue.devops.local':
-    'purple.devops.local':
-    'orange.devops.local':
+    'red':
+    'blue':
+    'purple':
+    'green':
   children:
     infra:
       hosts:
-        'red.devops.local':
+        'red':
           # Control of sub-tasks
           ca_init: false
           ca_certify_nodes: false
@@ -39,8 +39,9 @@ ca_certs:
           ca_distribute_keys: false
     instances:
       hosts:
-        'blue.devops.local':
-        'purple.devops.local':
-        'orange.devops.local':
+        'red':
+        'blue':
+        'green':
+        'purple':
 
 # vim: ft=ansible :

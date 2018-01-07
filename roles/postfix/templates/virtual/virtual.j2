@@ -1,3 +1,24 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 
+{% if trident_site_email_domain is not defined %}
 # This file is empty on purpose.
+{% else %}
+# This system is configured for use with Trident.
+
+noreply@{{ trident_site_email_domain }}	postmaster
+hostmaster@{{ trident_site_email_domain }}	postmaster
+postmaster@{{ trident_site_email_domain }}	postmaster
+abuse@{{ trident_site_email_domain }}	postmaster
+admin@{{ trident_site_email_domain }}	postmaster
+
+# See: https://trident.li/doc/#toc_32
+{% endif %}
+
+{% if trident_site_email_domain is defined %}
+mail-handler@{{ trident_site_email_domain }}	trident-handler
+@{{ trident_site_email_domain }} trident-handler
+{% endif -%}
+{% if trident_site_people_domain is defined and trident_site_people_domain != trident_site_email_domain %}
+mail-handler@{{ trident_site_people_domain }} trident-handler
+@{{ trident_site_people_domain }} trident-handler
+{% endif -%}

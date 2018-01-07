@@ -467,7 +467,7 @@ accompany playbooks and inventories.  You can see the dictionary of
                 "QT4_IM_MODULE": "xim",
                 "QT_IM_MODULE": "ibus",
                 "QT_QPA_PLATFORMTHEME": "appmenu-qt5",
-                "RECIPIENTS": "dims-devops@uw.ops-trust.net",
+                "RECIPIENTS": "dims-devops@...",
                 "SELINUX_INIT": "YES",
                 "SESSION": "ubuntu",
                 "SESSIONTYPE": "gnome-session",

@@ -5,10 +5,10 @@
 swarm:
   consul_server: '{{ inventory_hostname in groups.manager }}'
   hosts:
-    'red.devops.local':
-    'blue.devops.local':
-    'orange.devops.local':
-    'purple.devops.local':
+    'red':
+    'blue':
+    'green':
+    'purple':
 #  children:
 #    manager:
 #      vars:

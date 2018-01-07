@@ -1,0 +1,17 @@
+---
+
+# File: roles/bootstrap/tasks/monitoring.yml
+
+- name: Install DigitalOcean monitoring agent
+  shell: >
+    curl -sSL https://agent.digitalocean.com/install.sh | sh
+  register: _agent
+  when: groups.do is defined
+        and inventory_hostname in groups.do
+
+- debug: 'var=_agent.stdout_lines'
+  when: groups.do is defined
+        and inventory_hostname in groups.do
+        and _agent.stdout_lines is defined
+
+# vim: ft=ansible :

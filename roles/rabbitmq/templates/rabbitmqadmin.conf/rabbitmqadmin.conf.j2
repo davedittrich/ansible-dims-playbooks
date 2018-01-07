@@ -2,16 +2,24 @@
 
 [localhost]
 hostname = localhost
-port = {{ rabbitmq_mgmt_port }}
+port = {{ rabbitmq_tcp_listen_port }}
 username = {{ rabbitmq_default_user }}
 password = {{ rabbitmq_default_user_pass }}
-vhost = /
+vhost = {{ rabbitmq_vhost }}
 
 [localhost_ssl]
 hostname = localhost
-port = {{ rabbitmq_mgmt_port }}
+port = {{ rabbitmq_ssl_listen_port }}
 username = {{ rabbitmq_default_user }}
 password = {{ rabbitmq_default_user_pass }}
+vhost = {{ rabbitmq_vhost }}
 ssl = True
 ssl_key_file = {{ rabbitmq_ssl_keyfile }}
 ssl_cert_file = {{ rabbitmq_ssl_certfile }}
+
+[localhost_mgmt]
+hostname = localhost
+port = {{ rabbitmq_mgmt_listen_port }}
+username = {{ rabbitmq_admin_user }}
+password = {{ rabbitmq_admin_user_pass }}
+vhost = {{ rabbitmq_vhost }}

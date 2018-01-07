@@ -19,7 +19,7 @@
 
 - name: Define local postgresql backup directory
   set_fact:
-    postgresql_backup_dir: '{{ dims_backups }}/{{ inventory_hostname }}'
+    postgresql_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
   when: postgresql_backup_dir is not defined
 
 - debug: 'var=postgresql_backup_dir'
@@ -62,7 +62,7 @@
 
 - name: Create remote temporary directory
   shell: >
-    mktemp -d "{{ lookup('env', 'TMPDIR') | default('/tmp', true) }}/ansible.XXXX"
+    mktemp -d '{{ ansible_env["TMPDIR"] | default("/tmp", true) }}/ansible.XXXX'
   register: mktemp_output
   become: yes
   become_user: postgres

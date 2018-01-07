@@ -5,12 +5,12 @@
 # vim: set ts=4 sw=4 tw=0 et :
 #
 
-{% if ansible_lsb.id == 'Ubuntu' %}
-@test "[S][EV] System does not require a reboot ({{ ansible_lsb.id }})" {
+{% if ansible_distribution == 'Ubuntu' %}
+@test "[S][EV] System does not require a reboot ({{ ansible_distribution }})" {
     ! cat /var/run/reboot-required.pkgs >&2
 }
-{% elif ansible_lsb.id == 'Debian' %}
-@test "[S][EV] System does not require a reboot ({{ ansible_lsb.id }})" {
+{% elif ansible_distribution == 'Debian' %}
+@test "[S][EV] System does not require a reboot ({{ ansible_distribution }})" {
     ! cat /var/run/reboot-required >&2
 }
 {% elif ansible_pkg_mgr == 'yum' %}
@@ -19,7 +19,7 @@
     ! needs-restarting -r >/dev/null
 }
 {% else %}
-@test "[S][EV] System does not require a reboot ({{ ansible_lsb.id }})" {
-    skip "No test defined for ansible_lsb.id=='{{ ansible_lsb.id }}'" {
+@test "[S][EV] System does not require a reboot ({{ ansible_distribution }})" {
+    skip "No test defined for ansible_distribution=='{{ ansible_distribution }}'" {
 }
 {% endif %}

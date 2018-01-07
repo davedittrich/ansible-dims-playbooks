@@ -86,7 +86,7 @@ mv repo/output .
           <EscalateStatus>false</EscalateStatus>
           <RunIfJobSuccessful>true</RunIfJobSuccessful>
           <script>#!/bin/bash&#xd;
-[ &quot;$SAVE_TO_SOURCE&quot; == &quot;true&quot; ] &amp;&amp; /opt/dims/bin/jenkins.saveartifact -d</script>
+[ &quot;$SAVE_TO_SOURCE&quot; == &quot;true&quot; ] &amp;&amp; jenkins.saveartifact -d</script>
         </hudson.plugins.postbuildtask.TaskProperties>
       </tasks>
     </hudson.plugins.postbuildtask.PostbuildTask>

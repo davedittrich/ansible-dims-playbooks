@@ -1,0 +1,14 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+{% if rabbitmq_use_ssl is defined and rabbitmq_use_ssl|bool  %}
+{% set rabbitmq_fqdn = hostvars[rabbitmq_server].ansible_fqdn %}
+@test "[I][EV] Can connect to rabbitmq server ({{ rabbitmq_fqdn }}) via openssl s_client" {
+    openssl s_client -showcerts -connect {{ rabbitmq_fqdn }}:{{ rabbitmq_ssl_listen_port }} -CAfile {{ rabbitmq_ssl_cacertfile }} | grep -q 'Verify return code: 0 (ok)'
+}
+{% endif %}

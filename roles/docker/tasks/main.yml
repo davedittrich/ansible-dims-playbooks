@@ -43,11 +43,7 @@
   when: docker_compose_version is not defined
   tags: [ docker, packages, config, tests ]
 
-- name: Define docker_machine_version
-  set_fact:
-    docker_machine_version: '{{ _docker_machine_version }}'
-  when: docker_machine_version is not defined
-  tags: [ docker, packages, config, tests ]
+  # Define docker_machine_version to get docker-machine
 
 - include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ docker, packages, config, tests ]
@@ -75,9 +71,31 @@
   when: ansible_os_family == "Debian"
   tags: [ docker, packages ]
 
+- name: Install pre-requisites for CentOS
+  yum:
+    name: '{{ item }}'
+    state: present
+    update_cache: yes
+  with_items:
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+  when: ansible_distribution == "CentOS"
+  tags: [ docker, packages ]
+
+- name: Ensure CentOS repo is installed
+  yum_repository:
+    name: 'docker-ce'
+    description: 'Docker CE Stable - {{ ansible_architecture }}'
+    baseurl: 'https://download.docker.com/linux/centos/{{ ansible_distribution_major_version }}/{{ ansible_architecture }}/stable'
+    enabled: yes
+    gpgcheck: yes
+    gpgkey: 'https://download.docker.com/linux/centos/gpg'
+  when: ansible_distribution == "CentOS"
+  tags: [ docker, packages ]
+
 # Alter instructions for Ansible:
 #   $(lsb_release -cs) ==> ansible_lsb.codename
-
 
 - name: Make backports present for APT on Debian jessie/stretch
   apt_repository:
@@ -85,11 +103,11 @@
     filename: 'docker'
     state: present
     update_cache: yes
-  when: ansible_lsb.id == "Debian" and ansible_lsb.codename in [ "jessie", "stretch" ]
+  when: ansible_distribution == "Debian" and ansible_lsb.codename in [ "jessie", "stretch" ]
   tags: [ docker, packages ]
 
 - fail: msg='Only supporting installation on Debian "jessie" or "stretch" in this role'
-  when: ansible_lsb.id == "Debian" and not ansible_lsb.codename in [ "jessie", "stretch" ]
+  when: ansible_distribution == "Debian" and not ansible_lsb.codename in [ "jessie", "stretch" ]
   tags: [ docker, packages ]
 
 - name: Ensure proper kernel is installed on Ubuntu
@@ -100,7 +118,7 @@
     - 'linux-image-extra-{{ ansible_kernel }}'
     - 'linux-image-virtual'
   become: yes
-  when: ansible_lsb.id == "Ubuntu"
+  when: ansible_distribution == "Ubuntu"
   tags: [ docker, packages ]
 
 # Name in "filename" is tightly coupled with test in docker-core.bats.j2
@@ -139,12 +157,20 @@
   when: ansible_os_family == "Debian"
   tags: [ docker, config ]
 
-- name: Make docker-ce present
+- name: Make docker-ce present (apt)
   apt:
-    name: 'docker-ce={{ docker_ce_version }}~{{ ansible_distribution|lowercase }}'
+    name: 'docker-ce={{ docker_ce_version }}~ce-0~{{ ansible_distribution|lowercase }}'
     state: present
     force: yes
   when: ansible_os_family == "Debian"
+  become: yes
+  tags: [ docker, packages ]
+
+- name: Make docker-ce present (yum)
+  yum:
+    name: 'docker-ce-{{ docker_ce_version }}.ce-1*'
+    state: present
+  when: ansible_distribution == "CentOS"
   become: yes
   tags: [ docker, packages ]
 
@@ -185,7 +211,7 @@
     mode=0o775
     use_proxy=yes
   become: yes
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" and docker_machine_version is defined
   tags: [ docker, packages ]
 
 - name: Make Docker defaults present

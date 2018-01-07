@@ -39,9 +39,17 @@
   include: 'sudo.yml'
   tags: [ 'bootstrap', 'sudo' ]
 
+- name: Ensure DIMS-specific resources present
+  include: dims_base.yml
+  tags: [ 'bootstrap', 'dims_base' ]
+
 - name: Set up SSH access for Ansible control
   include: 'ssh.yml'
   tags: [ 'bootstrap', 'ssh' ]
+
+- name: Set up monitoring features
+  include: 'monitoring.yml'
+  tags: [ 'bootstrap', 'monitoring' ]
 
 - name: Display diagnostic and validation information
   include: 'info.yml'

@@ -1,28 +1,38 @@
 variable "do_token" {}
-variable "name" { default = "do" }
-variable "domain" { default = "{{ dims_domain }}" }
-variable "datacenter" { default = "{{ dims_domain|default('dims') }}" }
-variable "ssh_fingerprint" { default = "{{ do_ssh_key_id }}" }
-variable "private_key_filename" { default = "~/.ssh/do" }
-variable "public_key" {}
+variable "region" { }
+variable "name" { }
 variable "private_key" {}
+variable "public_key" {}
+variable "ssh_fingerprint" { }
+variable "domain" { }
+variable "datacenter" { }
+variable "sub_domains" {
+    default = ""
+    description = "Any additional sub-domains to be added before the domain variable"
+}
 
 provider "digitalocean" {
-  token = "${var.do_token}"
+  token = "${chomp(file("~/.secrets/digital-ocean/token"))}"
 }
 
 module "do-keypair" {
   name = "${var.name}"
   source = "./keypair"
-  public_key_filename = "~/.ssh/do.pub"
+  public_key_filename = "${var.public_key}"
+}
+
+resource "digitalocean_domain" "default" {
+  name = "${var.domain}"
+  ip_address = "0.0.0.0"
 }
 
 {% for d in do_droplets %}
+{% if d.name in groups.do %}
 resource "digitalocean_droplet" "{{ d.name }}" {
     image = "{{ d.image_id|default('debian-8-x64') }}"
     #name = "{{ d.name }}-${var.role}-${format(var.count_format, count.index+1)}"
     name = "{{ d.name }}.{{ dims_domain }}"
-    region = "{{ d.region|default("sfo1") }}"
+    region = "${var.region}"
     size = "{{ d.size|default("512mb") }}"
     private_networking = true
     ssh_keys = [
@@ -34,7 +44,7 @@ resource "digitalocean_droplet" "{{ d.name }}" {
   connection {
       user = "root"
       type = "ssh"
-      private_key = "${file(var.private_key_filename)}"
+      private_key = "${file(var.private_key)}"
       host = "${self.ipv4_address}"
       timeout = "2m"
   }
@@ -59,8 +69,73 @@ resource "digitalocean_droplet" "{{ d.name }}" {
     ]
   }
 }
-output "{{ d.name }}-ip" {
-  value = "${join(",", digitalocean_droplet.{{ d.name }}.*.ipv4_address)}"
+
+resource "digitalocean_record" "{{ d.name }}" {
+  domain = "${digitalocean_domain.default.name}"
+  type = "A"
+  name = "{{ d.name }}"
+  ttl = "{{ dns_a_ttl }}"
+  value = "${digitalocean_droplet.{{ d.name }}.ipv4_address}"
 }
 
+{% if opendkim_host_spf_txt is defined and opendkim_host_spf_txt != '' %}
+resource "digitalocean_record" "TXT-{{ d.name }}" {
+  domain = "${digitalocean_domain.default.name}"
+  type = "TXT"
+  ttl = "{{ dns_txt_ttl }}"
+  name = "{{ d.name }}"
+  value = "{{ opendkim_host_spf_txt }}"
+}
+{% endif %}
+
+{% if dns_cname[d.name] is defined %}
+{% for _cn in dns_cname[d.name] %}
+resource "digitalocean_record" "CNAME-{{ _cn }}" {
+  domain = "${digitalocean_domain.default.name}"
+  type = "CNAME"
+  name = "{{ _cn }}"
+  ttl = "{{ dns_cname_ttl }}"
+  value = "{{ d.name }}.${var.sub_domains}"
+}
 {% endfor %}
+{% endif %}
+
+output "{{ d.name }}" {
+  value = { "{{ d.name }}.{{ dims_domain }}" = "${join(",", digitalocean_droplet.{{ d.name }}.*.ipv4_address)}" }
+}
+
+{% endif %}
+{% endfor %}
+
+{% if dns_txt is defined and dns_txt.0 is defined %}
+{% for _txt in dns_txt %}
+resource "digitalocean_record" "TXT-{{ (_txt.name != '@')|ternary(_txt.name|replace('.','_'), 'record')}}" {
+  domain = "${digitalocean_domain.default.name}"
+  type = "TXT"
+  ttl = "{{ dns_txt_ttl }}"
+{% if _txt.name is defined and _txt.name != '' %}
+  name = "{{ _txt.name }}"
+{% endif %}
+{% if _txt.value is defined and _txt.value != '' %}
+  value = "{{ _txt.value }}"
+{% endif %}
+}
+{% endfor %}
+{% endif %}
+
+{% if dns_mx is defined and dns_mx.0 is defined %}
+{% for _mx in dns_mx %}
+resource "digitalocean_record" "MX-{{ (_mx.name != '@')|ternary(_mx.name|replace('.','_'), 'record')}}" {
+  domain = "${digitalocean_domain.default.name}"
+  type = "MX"
+  ttl = "{{ dns_mx_ttl }}"
+  priority = "{{ _mx.priority|default(10) }}"
+{% if _mx.name is defined and _mx.name != '' %}
+  name = "{{ _mx.name }}"
+{% endif %}
+{% if _mx.value is defined and _mx.value != '' %}
+  value = "{{ _mx.value }}."
+{% endif %}
+}
+{% endfor %}
+{% endif %}

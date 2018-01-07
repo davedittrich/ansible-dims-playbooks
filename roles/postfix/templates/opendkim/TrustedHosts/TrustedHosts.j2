@@ -1,0 +1,13 @@
+127.0.0.1
+::1
+localhost
+172.17.0.1/16
+
+*.{{ dims_domain }}
+{% if opendkim_trustedhosts is defined %}
+{% for host in opendkim_trustedhosts %}
+{% if hostvars[host].ansible_host is defined %}
+{{ hostvars[host].ansible_host|ipaddr("host") }}
+{% endif %}
+{% endfor %}
+{% endif %}

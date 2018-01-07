@@ -7,8 +7,7 @@ ansible_server:
     ansible_accounts:
       - ansible
   hosts:
-    'orange.devops.local':
-      nginx_source_hostname: '{{ inventory_hostname }}'
+    'green':
       ansible_accounts:
         - jenkins
         - ansible

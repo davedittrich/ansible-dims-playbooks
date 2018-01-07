@@ -228,17 +228,15 @@ run_tests_pretty() {
         if [[ ${FLAGS_sudo_tests} -eq ${FLAGS_TRUE} ]]; then
             # Only run tests with "sudo" in the name
             if echo "${_test}" | grep -q "sudo"; then
-                echo "[+] Running test ${_test} as root"
+                echo -e "\n[+] Running test ${_test} as root"
                 eval "(sudo bats --pretty ${_test}.bats; echo \$? > $RETVAL) | $FILTER"
-                echo "" # Add a blank line to help with multi-test --terse readability
                 let _failures+=$(($(cat $RETVAL)))
             fi
         else
             # Only run tests without "sudo" in the name
             if ! echo "${_test}" | grep -q "sudo"; then
-                echo "[+] Running test ${_test}"
+                echo -e "\n[+] Running test ${_test}"
                 eval "(bats --pretty ${_test}.bats; echo \$? > $RETVAL) | $FILTER"
-                echo "" # Add a blank line to help with multi-test --terse readability
                 let _failures+=$(($(cat $RETVAL)))
             fi
         fi

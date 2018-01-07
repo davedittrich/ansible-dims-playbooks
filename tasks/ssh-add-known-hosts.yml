@@ -1,0 +1,46 @@
+---
+
+# File: ssh-add-known-hosts.yml
+
+# This task file inserts specified SSH host public keys to specified
+# known_hosts files to enable non-interactive use of SSH with strict
+# host key checking enabled. Apply this task prior to first use of
+# SSH commands (e.g., with the Jenkins SSH-based CLI).
+
+- name: Define ssh_hosts
+  set_fact:
+    ssh_hosts: groups.do
+  when: ssh_hosts is not defined
+
+- fail: msg='Define "ssh_hosts" or groups["do"]'
+  when: ssh_hosts is not defined
+
+- name: Define ssh_known_hosts_files
+  set_fact:
+    ssh_known_hosts_files:
+      - /root/.ssh/known_hosts
+      - /etc/ssh/ssh_known_hosts
+      - '{{ lookup("pipe", "echo ~{{ ansible_user }}/.ssh/known_hosts") }}'
+    when: ssh_known_hosts_files is not defined
+
+- name: Remove old SSH host keys
+  local_action: known_hosts path={{ item }} host={{ ansible_fqdn }} state=absent
+  ignore_errors: yes
+  with_items:
+    - '{{ ssh_known_hosts_files }}'
+  when: inventory_hostname not in ssh_hosts
+
+- name: Gather SSH host keys
+  set_fact:
+    ssh_host_public_keys: '{{ ssh_host_public_keys|default([]) }} + {{ item.ssh_host_public_keys }}'
+  when: ssh_host_public_keys is not defined
+  with_items: '{{ ssh_hosts }}'
+
+- name: Ensure new SSH host key present
+  local_action: known_hosts path={{ item }} key="{{ hostkey.stdout }}" host={{ ansible_fqdn }} state=present
+  ignore_errors: yes
+  with_items:
+    - '{{ ssh_known_hosts_files }}'
+  when: inventory_hostname not in ssh_hosts
+
+# vim: ft=ansible :

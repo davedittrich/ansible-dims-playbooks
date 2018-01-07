@@ -2,19 +2,20 @@
 
 category: 'devops'
 deployment: 'local'
-dims_domain: '{{ category }}.{{ deployment }}'
-playbooks_root: "{{ lookup('env', 'PBR') }}"
-#dims_private: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}"
+dims_domain: '{{ lookup("env", "DIMS_DOMAIN") }}'
+playbooks_root: '{{ lookup("env", "PBR") }}'
+#dims_private: '{{ lookup("env", "GIT") }}/private-{{ deployment }}'
 dims_private: '{{ playbooks_root }}'
 
+shflags_version: 'v1.2.2'
 
 # The following variables only exist for compatibility with
 # the original PRISEM Project RPC scripts.  They reflect
 # the settings from group_vars/all/rabbitmq.yml and will
 # be removed when the PRISEM RPC code can be updated.
 
-amqp_port: '{{ rabbitmq_port }}'
-amqp_mgmt_port: '{{ rabbitmq_mgmt_port }}'
+amqp_port: '{{ rabbitmq_tcp_listen_port }}'
+amqp_mgmt_port: '{{ rabbitmq_mgmt_listen_port }}'
 amqp_program: 'rabbitmq'
 amqp_server: '{{ groups.rabbitmq|list_to_string_args }}'
 
@@ -27,8 +28,8 @@ consul_ui_port: 8500
 consul_dns_port: 8600
 consul_start_join: '[{{ groups.consul|list_to_string_args }}]'
 consul_retry_join: '[{{ groups.consul|list_to_string_args }}]'
-consul_data_center: '{{ deployment }}'
-consul_dns_domain: '{{ deployment }}'
+consul_data_center: '{{ ansible_domain }}'
+consul_dns_domain: '{{ ansible_domain }}'
 # Type (and mode... not sure why both?) are set based on whether in groups.consul
 consul_agent_type: '{{ (inventory_hostname in groups.consul)|ternary("server","client") }}'
 consul_mode: '{{ (inventory_hostname in groups.consul)|ternary("server","client") }}'
@@ -91,7 +92,8 @@ dnsmasq_sha256_sum: '777c4762d2fee3738a0380401f2d087b47faa41db2317c60660d69ad10a
 
 docker_listen_port: 2375
 docker_api_port: 2376
-docker_registry: hub.devops.{{ deployment }}:5000
+docker_registry_port: 5000
+docker_registry: hub.{{ ansible_domain }}:{{ docker_registry_port }}
 
 # TODO(dittrich): This should be derived from (a) more global variable(s)
 # e.g., docker_insecure_registry_net: '{{ networks["vlan1"].network }}/{{ networks["vlan1"].cidr_bits }}'
@@ -100,7 +102,7 @@ docker_network_opts: ''
 #docker_network_opts: |
   #  -ip={{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface['docker']].ip }}
 docker_opts: |
-  -H=tcp://{{ inventory_hostname }}:{{ docker_api_port }}
+  -H=tcp://{{ ansible_fqdn }}:{{ docker_api_port }}
   -H=unix:///var/run/docker.sock
   --log-driver json-file
   --log-opt max-size=10m
@@ -116,12 +118,15 @@ go_sha256_sum: '6d894da8b4ad3f7f6c295db0d73ccc3646bce630e1c43e662a0120681d47e988
 # Local settings for geerlingguy/nginx role
 
 nginx_version: '1.6.2-5+deb8u3'
-nginx_health_check_port: 8888
+nginx_health_check_port: 8008
 nginx_worker_processes: 4
 nginx_default_port: 80
-nginx_default_domain: '{{ category }}.{{ deployment }}'
+nginx_ssl_port: 443
+nginx_default_domain: '{{ ansible_fqdn }}'
+nginx_webroot: '/var/www'
 
-# For use by ansible-role-certbot
+# For use by ansible-role-certbot (or nginx role)
+certbot_auto_renew_options: "--quiet --no-self-upgrade"
 certbot_auto_renew_user: ansible
 certbot_auto_renew_minute: 20
 certbot_auto_renew_hour: 5
@@ -131,6 +136,28 @@ certbot_version: master
 certbot_keep_updated: yes
 #certbot_sitename: ''
 #certbot_adminemail: ''
+
+# Read: http://www.opendkim.org/opendkim-README
+opendkim_auto_restart: 'Yes'
+opendkim_auto_restart_rate: '10/1h'
+opendkim_canonicalization: 'relaxed/relaxed'
+opendkim_mode: 'sv'
+opendkim_daemon_opts: '-b {{ opendkim_mode }}'
+opendkim_host: 'localhost'
+opendkim_key_bits: 2048
+opendkim_milters: 'inet:{{ opendkim_host }}:{{ opendkim_port }}'
+opendkim_port: 12301
+opendkim_requestreports: 'Yes'
+opendkim_selector: '201801'
+opendkim_sendreports: '{{ opendkim_requestreports }}'
+opendkim_signature_algorithm: 'rsa-sha256'
+opendkim_socket: 'inet:{{ opendkim_port }}@{{ opendkim_host }}'
+opendkim_subdomains: 'Yes'
+opendkim_trustedhosts: '{{ groups.do }}'
+opendkim_umask: '002'
+opendkim_use_spf: true
+# https://www.spfwizard.net/
+opendkim_host_spf_txt: 'v=spf1 include:_spf.{{ dims_domain }} ~all'
 
 postgresql_version: '9.4'
 postgresql_pool: 'main'
@@ -144,23 +171,40 @@ prisem_rpc_dist_url: '{{ artifacts_url }}/{{ prisem_rpc_archive }}'
 
 rabbitmq_tcp_listen_port: 5672
 rabbitmq_ssl_listen_port: 5671
-rabbitmq_mgmt_port: 15672
+rabbitmq_use_ssl: true
+rabbitmq_ssl_versions: "'tlsv1.2', 'tlsv1.1'"
+rabbitmq_ssl_dir: '/etc/rabbitmq'
+rabbitmq_ssl_cacertfile: '{{ rabbitmq_ssl_dir }}/{{ ssl_cacertfile|basename }}'
+rabbitmq_ssl_certfile: '{{ rabbitmq_ssl_dir }}/{{ ssl_certfile|basename }}'
+rabbitmq_ssl_keyfile: '{{ rabbitmq_ssl_dir }}/{{ ssl_keyfile|basename }}'
+rabbitmq_ssl_verify: 'verify_peer' # or 'verify_none'
+rabbitmq_ssl_fail_if_no_peer_cert: 'false'
+rabbitmq_mgmt_listen_port: 15672
+# http://www.dorm.org/blog/rabbitmq_management-listening-on-multiple-ports-it-cant-be-done/
+rabbitmq_mgmt_uses_ssl: false
 rabbitmq_server: '{{ groups.rabbitmq.0 }}'
 rabbitmq_vhost: '/'
 rabbitmq_default_user: 'rpc_user'
-rabbitmq_default_user_pass: '{{ vault_rabbitmq_default_user_pass }}'
+#rabbitmq_default_user_pass: '{{ vault_rabbitmq_default_user_pass }}'
 rabbitmq_admin_user: 'hutchman'
-rabbitmq_admin_user_pass: '{{ vault_rabbitmq_admin_user_pass }}'
+#rabbitmq_admin_user_pass: '{{ vault_rabbitmq_admin_user_pass }}'
 rabbitmq_exchange: ''
 rabbitmq_logexchange: 'logs'
 rabbitmq_queuebase: 'rpc'
 
 rsyslog_user: syslog
-rsyslog_server: '10.0.2.2'
-rsyslog_port: 10514
+rsyslog_server: '{{ hostvars["red"].ansible_fqdn }}'
+# Listen on port 6514
+# If you want to use other port configure selinux
+rsyslog_port: 6514
+rsyslog_use_ssl: true
 rsyslog_domains: [
-    '.{{ deployment }}',
+    '.{{ dims_domain }}',
 ]
+rsyslog_ssl_dir: '/etc/rsyslog'
+rsyslog_ssl_cacertfile: '{{ rsyslog_ssl_dir }}/{{ ssl_cacertfile|basename }}'
+rsyslog_ssl_certfile: '{{ rsyslog_ssl_dir }}/{{ ssl_certfile|basename }}'
+rsyslog_ssl_keyfile: '{{ rsyslog_ssl_dir }}/{{ ssl_keyfile|basename }}'
 
 #rsyslog_ignore_config:
 #rsyslog_consolidation_config:
@@ -176,14 +220,17 @@ squidBasename: 'squid'
 # use SSL, as well as adding local CA and host certs to the
 # SSL trust database. (Used for development.)
 
-# ssl_certs_dir and ssl_key_dir defined in vars/*.yml files.
-
+# ssl_certs_dir and ssl_key_dir are OS-specific and defined in vars/*.yml files.
 ssl_cacertfile: '{{ ssl_certs_dir }}/ca.pem'
-ssl_certfile: '{{ ssl_certs_dir }}/{{ inventory_hostname }}-cert.pem'
-ssl_keyfile: '{{ ssl_key_dir }}/{{ inventory_hostname }}-priv-key.pem'
+ssl_certfile: '{{ ssl_certs_dir }}/{{ ansible_fqdn }}-cert.pem'
+ssl_keyfile: '{{ ssl_key_dir }}/{{ ansible_fqdn }}-priv-key.pem'
+ssl_dhparam_file: '/etc/ssl/certs/dhparam.pem'
+ssl_dhparam_keysize: '2048'
 
-#sslCertDir: '/etc/nginx/ssl'
-#sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='
+letsencrypt_ssl_cacertfile: '/etc/letsencrypt/live/{{ ansible_fqdn }}/chain.pem'
+letsencrypt_ssl_fullchainfile: '/etc/letsencrypt/live/{{ ansible_fqdn }}/fullchain.pem'
+letsencrypt_ssl_certfile: '/etc/letsencrypt/live/{{ ansible_fqdn }}/cert.pem'
+letsencrypt_ssl_keyfile: '/etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem'
 
 swarm:
   service_delay_seconds: 30

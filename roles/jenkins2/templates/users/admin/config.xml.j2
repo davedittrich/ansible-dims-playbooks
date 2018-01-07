@@ -22,7 +22,7 @@
       <collapsed/>
     </hudson.model.PaneStatusProperties>
     <hudson.security.HudsonPrivateSecurityRealm_-Details>
-      <passwordHash>#jbcrypt:$2a$10$uGUfGddIuaC9zxSjQUSv4OtOPJT7aCVXlIHedLJk3TI9lZebuJjTa</passwordHash>
+      <passwordHash>{{ jenkins_admin_password|bcrypt_hashpw }}</passwordHash>
     </hudson.security.HudsonPrivateSecurityRealm_-Details>
     <org.jenkinsci.main.modules.cli.auth.ssh.UserPropertyImpl>
     <authorizedKeys>

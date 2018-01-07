@@ -26,14 +26,50 @@
 
 - name: Define rabbitmq_listen_address
   set_fact:
-    rabbitmq_listen_address: '{{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface["rabbitmq"]].ip }}'
+    rabbitmq_listen_address: '{{ _rabbitmq_listen_address }}'
   when: rabbitmq_listen_address is not defined
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_listen_port
+  set_fact:
+    rabbitmq_listen_port: '{{ _rabbitmq_listen_port }}'
+  when: rabbitmq_listen_port is not defined
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_ssl_listen_address
+  set_fact:
+    rabbitmq_ssl_listen_address: '{{ _rabbitmq_ssl_listen_address }}'
+  when: rabbitmq_ssl_listen_address is not defined
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_ssl_listen_port
+  set_fact:
+    rabbitmq_ssl_listen_port: '{{ _rabbitmq_ssl_listen_port }}'
+  when: rabbitmq_ssl_listen_port is not defined
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_mgmt_listen_address
+  set_fact:
+    rabbitmq_mgmt_listen_address: '{{ _rabbitmq_mgmt_listen_address }}'
+  when: rabbitmq_mgmt_listen_address is not defined
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_mgmt_listen_port
+  set_fact:
+    rabbitmq_mgmt_listen_port: '{{ _rabbitmq_mgmt_listen_port }}'
+  when: rabbitmq_mgmt_listen_port is not defined
   tags: [ rabbitmq ]
 
 - name: Define rabbitmq_etc_default
   set_fact:
     rabbitmq_etc_default: '{{ _rabbitmq_etc_default }}'
   when: rabbitmq_etc_default is not defined
+  tags: [ rabbitmq ]
+
+- name: Define rabbitmq_fqdn
+  set_fact:
+    rabbitmq_fqdn: '{{ ansible_fqdn }}'
+  when: rabbitmq_fqdn is not defined
   tags: [ rabbitmq ]
 
 - name: Define erlang_apt_key
@@ -128,11 +164,50 @@
   become: yes
   tags: [ rabbitmq ]
 
-- name: Enable rabbitmq-server
+- name: Enable rabbitmq-server (service)
   service:
     name: rabbitmq-server
     enabled: yes
+  when: ansible_service_mgr != "systemd"
   tags: [ rabbitmq ]
+
+- name: Enable rabbitmq-server (systemd)
+  systemd:
+    name: rabbitmq-server
+    enabled: yes
+  when: ansible_service_mgr != "systemd"
+  tags: [ rabbitmq ]
+
+- name: Make rabbitmq nginx front end present
+  template:
+    src: '{{ item }}'
+    dest: /etc/nginx/sites-available/rabbitmq
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+       - '{{ nginx_conf_rabbitmq }}'
+       - rabbitmq.{{ inventory_hostname }}.j2
+       - rabbitmq.category-{{ category }}.j2
+       - rabbitmq.deployment-{{ deployment }}.j2
+       - rabbitmq.j2
+      paths:
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/'
+       - nginx/
+  become: yes
+  notify: restart nginx
+  tags: [ rabbitmq, config ]
+
+- name: Create symlink to enable site
+  file:
+    src: '/etc/nginx/sites-available/{{ item }}'
+    dest: '/etc/nginx/sites-enabled/{{ item }}'
+    state: link
+  with_items:
+    - rabbitmq
+  notify: restart nginx
+  tags: [ rabbitmq, config ]
 
 - name: Ensure rabbitmq-server defaults present
   template:
@@ -160,7 +235,7 @@
     dest: '/etc/rabbitmq/rabbitmq.config'
     owner: 'rabbitmq'
     group: 'rabbitmq'
-    mode: 0o644
+    mode: 0o600
   with_first_found:
     - files:
         - '{{ rabbitmq_server_default }}'
@@ -180,9 +255,9 @@
   template:
     src: '{{ item }}'
     dest: '/etc/rabbitmq/rabbitmq-env.conf'
-    group: 'rabbitmq'
     owner: 'rabbitmq'
-    mode: 0o644
+    group: 'rabbitmq'
+    mode: 0o600
   with_first_found:
     - files:
         - '{{ rabbitmq_server_default }}'
@@ -196,6 +271,27 @@
   become: yes
   notify: restart rabbitmq-server
   when: rabbitmq_environment is defined
+  tags: [ rabbitmq ]
+
+- name: 'Ensure letsencrypt hook for rabbitmq is present'
+  template:
+    src: '{{ item }}'
+    dest: /etc/letsencrypt/renewal-hooks/post/rabbitmq
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o640
+  become: yes
+  with_first_found:
+    - files:
+        - '{{ letsencrypt_rabbitmq_hook }}'
+        - renewal-hook.rabbitmq.{{ inventory_hostname }}
+        - renewal-hook.rabbitmq.category-{{ category }}.j2
+        - renewal-hook.rabbitmq.deployment-{{ deployment }}.j2
+        - renewal-hook.rabbitmq.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/letsencrypt/'
+        - letsencrypt/
+  when: use_letsencrypt is defined and use_letsencrypt|bool
   tags: [ rabbitmq ]
 
 - name: Ensure rabbitmq-server is started
@@ -241,18 +337,22 @@
   - restart rabbitmq-server
   tags: [ rabbitmq ]
 
-- name: "Wait for mgmt port ({{ rabbitmq_mgmt_port }})"
+- name: "Wait for mgmt port ({{ rabbitmq_mgmt_listen_port }})"
   wait_for:
-    port: '{{ rabbitmq_mgmt_port }}'
+    port: '{{ rabbitmq_mgmt_listen_port }}'
     delay: 5
   tags: [ rabbitmq ]
+
+  # http://www.dorm.org/blog/rabbitmq_management-listening-on-multiple-ports-it-cant-be-done/
 
 - name: Ensure rabbitmqadmin script is available
   shell: >
     curl -s
-    http://127.0.0.1:{{ rabbitmq_mgmt_port }}/cli/rabbitmqadmin
+    http://127.0.0.1:{{ rabbitmq_mgmt_listen_port }}/cli/rabbitmqadmin
     > /usr/local/bin/rabbitmqadmin &&
     chmod +x /usr/local/bin/rabbitmqadmin
+  when: rabbitmq_mgmt_uses_ssl is not defined or
+        not rabbitmq_mgmt_uses_ssl|bool
   become: yes
   tags: [ rabbitmq ]
 
@@ -262,7 +362,7 @@
     dest: /root/.rabbitmqadmin.conf
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
-    mode: 0o640
+    mode: 0o600
   with_first_found:
     - files:
         - '{{ rabbitmqadmin_conf }}'
@@ -282,7 +382,7 @@
     dest: /etc/rabbitmq/broker_objects.json
     owner: rabbitmq
     group: rabbitmq
-    mode: 0o640
+    mode: 0o600
   with_first_found:
     - files:
         - '{{ rabbitmq_broker_objects }}'
@@ -297,11 +397,13 @@
   tags: [ rabbitmq, config ]
 
 - name: Import broker_objects.json
-  shell: "rabbitmqadmin -N localhost import /etc/rabbitmq/broker_objects.json"
+  shell: "rabbitmqadmin -N localhost_mgmt import /etc/rabbitmq/broker_objects.json"
   become: yes
+  register: _import
+  failed_when: not _import.stdout|search("Imported definitions")
   tags: [ rabbitmq, config ]
 
-- include: "{{ tasks_path }}/post_tasks.yml"
+- include: '{{ tasks_path }}/post_tasks.yml'
   tags: [ rabbitmq ]
 
 # vim: ft=ansible :

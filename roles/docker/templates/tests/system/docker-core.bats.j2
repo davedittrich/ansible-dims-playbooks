@@ -22,12 +22,12 @@ function setup() {
 
 @test "[S][EV] Docker Client version is {{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}" {
     is_coreos && skip "Not applicable on CoreOS"
-    assert "{{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}"  docker version --format '{{ '{{' }}.Client.Version{{ '}}' }}'
+    assert "{{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}-ce"  docker version --format '{{ '{{' }}.Client.Version{{ '}}' }}'
 }
 
 @test "[S][EV] Docker Server version is {{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}" {
     is_coreos && skip "Not applicable on CoreOS"
-    assert "{{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}"  docker version --format '{{ '{{' }}.Server.Version{{ '}}' }}'
+    assert "{{ docker_ce_version | regex_replace('~', '-') | regex_replace('-[0-9]+$', '') }}-ce"  docker version --format '{{ '{{' }}.Server.Version{{ '}}' }}'
 }
 
 # NOTE: Programs like docker-machine report their version numbers in a
@@ -45,10 +45,12 @@ function setup() {
     assert "{{ docker_ce_pool }}" bash -c "grep {{ docker_repo_host }} /etc/apt/sources.list.d/docker.list | awk '{ print \$NF; }'"
 }
 
+{% if docker_machine_version is defined %}
 @test "[S][EV] Docker machine version is {{ docker_machine_version | regex_replace('-[0-9]+$', '') }}" {
     is_coreos && skip "Not applicable on CoreOS"
     assert "docker-machine version {{ docker_machine_version | regex_replace('-[0-9]+$', '') }}" bash -c "docker-machine --version | sed 's/, build.*//'"
 }
+{% endif %}
 
 @test "[S][EV] Docker compose version is {{ docker_compose_version | regex_replace('-[0-9]+$', '') }}" {
     is_coreos && skip "Not applicable on CoreOS"
