@@ -7,7 +7,7 @@ swarm:
   hosts:
     'red':
     'blue':
-    'orange':
+    'green':
     'purple':
 #  children:
 #    manager:

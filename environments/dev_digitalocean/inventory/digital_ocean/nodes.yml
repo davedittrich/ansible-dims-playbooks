@@ -32,7 +32,7 @@ do:
         backups_enabled: 'no'
         module_source: 'floating_ip'
         floating_ip: 'yes'
-      - name: 'orange'
+      - name: 'green'
         region: '{{ do_region }}'
         size: '1gb'
         image_id: 'debian-8-x64'
@@ -79,7 +79,7 @@ do:
     'red':
     'blue':
       epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
-    'orange':
+    'green':
       tridentFQDN: '{{ ansible_fqdn }}'
     'purple':
       tridentFQDN: '{{ ansible_fqdn }}'

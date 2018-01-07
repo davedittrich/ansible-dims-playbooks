@@ -26,7 +26,7 @@ ca_certs:
     'red':
     'blue':
     'purple':
-    'orange':
+    'green':
   children:
     infra:
       hosts:
@@ -39,8 +39,9 @@ ca_certs:
           ca_distribute_keys: false
     instances:
       hosts:
+        'red':
         'blue':
+        'green':
         'purple':
-        'orange':
 
 # vim: ft=ansible :
