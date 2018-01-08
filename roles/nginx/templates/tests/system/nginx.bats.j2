@@ -105,7 +105,7 @@ function setup() {
     [ -f {{ ssl_keyfile }} ]
 }
 {% endif %}
-{% else %}
+{% else %} # use_letsencrypt is true
 # TODO(dittrich): This is a little less DRY than I would like...
 @test "[S][EV] SSL certificate /etc/letsencrypt/live/{{ certbot_sitename }}/fullchain.pem exists" {
     sudo bash -c "[ -f /etc/letsencrypt/live/{{ certbot_sitename }}/fullchain.pem ]"
@@ -113,6 +113,10 @@ function setup() {
 
 @test "[S][EV] SSL private key /etc/letsencrypt/live/{{ certbot_sitename }}/privkey.pem exists" {
     sudo bash -c "[ -f /etc/letsencrypt/live/{{ certbot_sitename }}/privkey.pem ]"
+}
+
+@test "[S][EV] certbot-auto is installed in {{ dims_bin }}" {
+	assert "{{ dims_bin }}/certbot-auto" bash -c "which certbot-auto" {
 }
 {% endif %}
 
