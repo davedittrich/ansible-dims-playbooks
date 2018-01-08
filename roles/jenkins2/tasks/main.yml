@@ -17,32 +17,90 @@
   set_fact:
     jenkins_cli: 'ssh -p {{ jenkins_ssh_port }} -l {{ jenkins_admin_username }} {{ jenkins_hostname }}'
   when: jenkins_cli is not defined
-  tags: [ jenkins2 ]
+  tags: [ always ]
+
+- name: Define jenkins_fqdn
+  set_fact:
+    jenkins_fqdn: '{{ ansible_fqdn }}'
+  when: jenkins_fqdn is not defined
+  tags: [ always ]
+
+- name: Define jenkins_context_path
+  set_fact:
+    jenkins_context_path: ''
+  when: jenkins_context_path is not defined
+  tags: [ always ]
 
 - name: Show jenkins_cli setting
   debug: 'var=jenkins_cli'
   when: jenkins_cli is defined
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - name: Define _jenkins_cli_uses_ssh
   set_fact:
     _jenkins_cli_uses_ssh: '{{ jenkins_cli.find("ssh") != -1 }}'
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - name: Define _jobs_configs directory path
   set_fact:
     _jobs_configs: '{{ jenkins_home }}/jobs_configs'
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
-- include: '{{ tasks_path }}/pre_tasks.yml'
-  tags: [ jenkins2, packages ]
+- include_tasks: '{{ tasks_path }}/pre_tasks.yml'
+  tags: [ jenkins2, jenkins2jobs, packages ]
 
 - name: Run system test for required Java8 installation
-  command: "{{ dims_bin }}/test.runner --tap --level system --match 'java8-install'"
+  command: '{{ dims_bin }}/test.runner --tap --level system --match java8-install'
   environment:
     DIMS: '{{ dims }}'
     PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
   tags: [ jenkins2 ]
+
+- name: Make backports present for APT on Debian jessie
+  apt_repository:
+    repo: 'deb http://ftp.debian.org/debian jessie-backports main'
+    state: present
+    update_cache: yes
+  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
+  tags: [ jenkins2, packages ]
+
+- name: Get golang-go jessie-backports version
+  shell: apt-cache policy golang-go | grep jessie-backports -B1 | head -n1 | sed -e 's/^\s*\**\s*\(\S*\).*/\1/'
+  register: _golanginstalled
+  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
+  tags: [ jenkins2, packages ]
+
+- name: Install golang-go from jessie-backports
+  apt:
+    name: '{{ item }}={{ _golanginstalled.stdout_lines[0] }}'
+    state: present
+    force: yes
+  with_items:
+    - golang-src
+    - golang-go
+  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
+  tags: [ jenkins2, packages ]
+
+- name: Install golang-go from jesie-backports
+  apt:
+    name: 'golang-go'
+    state: present
+    force: yes
+    default_release: jessie-backports
+  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
+  become: yes
+  tags: [ jenkins2, packages ]
+
+- name: Ensure Debian go development prerequisites are present
+  apt:
+    name: '{{ item }}'
+    state: present
+    force: yes
+  with_items:
+    - dh-golang
+    - dh-systemd
+  when: ansible_os_family == "Debian"
+  become: yes
 
 ## We want to pin the version of Jenkins for stability
 ## reasons.
@@ -112,7 +170,7 @@
 
   # Use the cli_config.yml task file from https://github.com/karlmdavis/ansible-jenkins2.git
 
-- include: 'cli_config.yml'
+- include_tasks: 'cli_config.yml'
   tags: [ jenkins2 ]
 
 - name: Get plugin version numbers
@@ -179,17 +237,18 @@
 
 - name: Ensure host key is in known_hosts files
   shell: >
-    (ssh-keyscan -p {{ jenkins_ssh_port }} -t rsa localhost;
-    ssh-keyscan -p {{ jenkins_ssh_port }} -t ecdsa localhost;
-    [ -f ~/.ssh/known_hosts ] && cat ~/.ssh/known_hosts) |
-    sort | uniq > ~/.ssh/known_hosts
+    (ssh-keyscan -p {{ jenkins_ssh_port }} localhost 2>/dev/null;
+    [ -f ~/.ssh/known_hosts ] && cat ~{{ item }}/.ssh/known_hosts) |
+    sort | uniq > ~{{ item }}/.ssh/known_hosts
   become: yes
   become_user: '{{ item }}'
-  ignore_errors: true
   with_items:
+    - jenkins
+    - ansible
     - git
     - root
-    - jenkins
+  when: item in ansible_accounts
+  ignore_errors: true
   tags: [ jenkins2 ]
 
 - name: Ensure jenkins user is in www-data group
@@ -211,7 +270,7 @@
   # with_fileglob relative paths rooted at {{ role_name }}/files directory
   with_fileglob:
     - "../templates/scripts/*.j2"
-  tags: [ jenkins2, scripts ]
+  tags: [ jenkins2, jenkins2jobs, scripts ]
 
 - name: Ensure (non-templated) scripts are present
   copy:
@@ -223,8 +282,7 @@
   # with_fileglob relative paths rooted at {{ role_name }}/files directory
   with_fileglob:
     - "scripts/*.sh"
-  tags: [ jenkins2, scripts ]
-
+  tags: [ jenkins2, jenkins2jobs, scripts ]
 
 - name: Ensure jobs_configs directory is present
   file:
@@ -233,7 +291,7 @@
     owner: 'jenkins'
     group: 'jenkins'
     mode: 0o750
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - name: Ensure non-templated jobs are present
   copy:
@@ -246,10 +304,10 @@
   with_fileglob:
     - "jobs/*.xml"
   register: _jobsfiles_not_templated
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - debug: 'var=_jobsfiles_not_templated'
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - name: Ensure templated jobs are present
   template:
@@ -262,10 +320,10 @@
   with_fileglob:
     - "../templates/jobs/*.xml.j2"
   register: _jobsfiles_templated
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - debug: 'var=_jobsfiles_templated'
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkis2jobs ]
 
 - name: Find jobs files
   find:
@@ -275,17 +333,17 @@
     use_regex: false
     recurse: false
   register: _find
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - name: Record job (base file name)
   set_fact:
     _jobsfiles: '{{ _jobsfiles|default([]) + [item|basename|regex_replace("\.xml","")] }}'
   with_items: '{{ _find.files|map(attribute="path")|list }}'
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - debug: 'var=_jobsfiles'
   when: _jobsfiles is defined
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
   # SEE: http://stackoverflow.com/a/9954283/100134
   # Uses same "-s" option content as ansible-jenkins2/tasks/plugins.yml
@@ -299,20 +357,20 @@
   become: yes
   become_user: jenkins
   register: _list_jobs
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - name: Record installed jobs
   set_fact:
     _installed_jobs: '{{ _installed_jobs|default([]) + [ item ] }}'
   with_items: '{{ _list_jobs.stdout_lines }}'
   when: _list_jobs is defined and _list_jobs.stdout_lines|length > 0
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - name: Record no installed jobs
   set_fact:
     _installed_jobs: []
   when: _list_jobs is not defined or _list_jobs.stdout_lines|length == 0
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - name: Create new Jenkins jobs
   shell: >
@@ -330,7 +388,7 @@
     - "{{ _jobsfiles }}"
   when: _jobsfiles is defined and item not in _installed_jobs
   notify: restart jenkins
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - name: Update existing Jenkins jobs
   shell: >
@@ -348,7 +406,7 @@
     - "{{ _jobsfiles }}"
   when: _jobsfiles is defined and item in _installed_jobs
   notify: restart jenkins
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
 - name: Validate installation using installed jenkins.cli script
   shell: '{{ dims_bin }}/jenkins.cli build install-test'
@@ -357,9 +415,21 @@
     PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
   become: yes
   become_user: jenkins
-  tags: [ jenkins2 ]
+  tags: [ jenkins2, jenkins2jobs ]
 
-- include: "{{ tasks_path }}/post_tasks.yml"
-  tags: [ jenkins2, packages ]
+- name: Run bootstrap jobs when defined
+  shell: '{{ dims_bin }}/jenkins.cli "{{ item }}"'
+  environment:
+    DIMS: '{{ dims }}'
+    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+  with_items:
+    - '{{ jenkins_bootstrap_jobs }}'
+  when: jenkins_bootstrap_jobs is defined
+  become: yes
+  become_user: jenkins
+  tags: [ jenkins2, jenkins2jobs ]
+
+- include_tasks: "{{ tasks_path }}/post_tasks.yml"
+  tags: [ jenkins2, jenkins2jobs, packages ]
 
 # vim: ft=ansible :

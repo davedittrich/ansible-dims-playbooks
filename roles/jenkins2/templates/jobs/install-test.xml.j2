@@ -34,7 +34,7 @@ sha256sum install-test.txt > install-test.txt.sha256sum
           </logTexts>
           <EscalateStatus>false</EscalateStatus>
           <RunIfJobSuccessful>false</RunIfJobSuccessful>
-	  <script>{{ dims_bin }}/jenkins.saveartifact --debug</script>
+	  <script>{{ dims_bin }}/jenkins.saveartifact</script>
         </hudson.plugins.postbuildtask.TaskProperties>
       </tasks>
     </hudson.plugins.postbuildtask.PostbuildTask>
