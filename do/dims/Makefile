@@ -51,6 +51,8 @@ help:
 	@echo " ping - does Ansible ad-hoc ping of hosts in group 'do'"
 	@echo " pre.test - run pre-requisite tests for using terraform with DigitalOcean"
 	@echo " post.test - run 'test.runner --terse' on all droplets"
+	@echo " backup.postgresql - backup Trident postgresql database"
+	@echo " backup.letsencrypt - backup Letsencrypt certificate store"
 	@echo ""
 	@echo " destroy - destroys droplets for hosts in group 'do'"
 	@echo " spotless - remove terraform log and state files"
@@ -60,6 +62,7 @@ help:
 	@echo "   to pass along on the command line, for example:"
 	@echo '     $$ make DIMS_ANSIBLE_ARGS="--tags tests --limit purple" deploy'
 	@echo '     $$ make DIMS_ANSIBLE_ARGS="--limit purple" post.test'
+	@echo '     $$ make DIMS_ANSIBLE_ARGS="--limit trident" backup.postgresql'
 
 .PHONY: init
 init: terraform.tfstate
@@ -273,6 +276,25 @@ post.test:
 		-m shell \
 		-a 'test.runner --terse --tap' \
 		do
+
+.PHONY: backup.postgresql
+backup.postgresql:
+	-ansible-playbook -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		-e@~/.secrets/digital-ocean/secrets.yml \
+		../../playbooks/postgresql_backup.yml \
+		--ask-sudo-pass
+
+.PHONY: backup.letsencrypt
+backup.letsencrypt:
+	-ansible-playbook -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		-e@~/.secrets/digital-ocean/secrets.yml \
+		../../playbooks/letsencrypt_backup.yml \
+		-e host=do \
+		--ask-sudo-pass
 
 .PHONY: destroy
 destroy:
