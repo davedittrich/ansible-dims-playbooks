@@ -124,7 +124,8 @@ nginx_ssl_port: 443
 nginx_default_domain: '{{ ansible_fqdn }}'
 nginx_webroot: '/var/www'
 
-# For use by ansible-role-certbot
+# For use by ansible-role-certbot (or nginx role)
+certbot_auto_renew_options: "--quiet --no-self-upgrade"
 certbot_auto_renew_user: ansible
 certbot_auto_renew_minute: 20
 certbot_auto_renew_hour: 5
