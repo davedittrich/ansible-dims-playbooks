@@ -9,12 +9,9 @@
 
 rabbitmq:
   vars:
-    rabbitmq_tcp_listen_address: '{{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface["rabbitmq"]].ip }}'
+    rabbitmq_tcp_listen_address: '127.0.0.1'
+    rabbitmq_ssl_listen_address: '0.0.0.0'
     # Cert vars come from group_vars/all/ssl.yml
-    rabbitmq_ssl_cacertfile: '{{ ssl_cacertfile }}'
-    rabbitmq_ssl_certfile: '{{ ssl_certfile }}'
-    rabbitmq_ssl_keyfile: '{{ ssl_keyfile }}'
-    rabbitmq_ssl_fail_if_no_peer_cert: 'false'
     rabbitmq_users:
       - { name: '{{ rabbitmq_default_user }}', password: '{{ rabbitmq_default_user_pass }}' }
       - { name: '{{ rabbitmq_admin_user }}', password: '{{ rabbitmq_admin_user_pass }}' }

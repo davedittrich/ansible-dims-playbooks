@@ -77,8 +77,12 @@ do:
           vagrant_net: 'private_network'
   hosts:
     'red':
-    'blue':
-      epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
+      custom_rules: [
+        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
+        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ rabbitmq_ssl_listen_port }} -j ACCEPT',
+        ]
+    #'blue':
+    #  epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
     'green':
       tridentFQDN: '{{ ansible_fqdn }}'
     'purple':

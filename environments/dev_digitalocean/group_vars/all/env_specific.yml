@@ -148,7 +148,17 @@ prisem_rpc_dist_url: '{{ artifacts_url }}/{{ prisem_rpc_archive }}'
 
 rabbitmq_tcp_listen_port: 5672
 rabbitmq_ssl_listen_port: 5671
+rabbitmq_use_ssl: true
+rabbitmq_ssl_versions: "'tlsv1.2', 'tlsv1.1'"
+rabbitmq_ssl_dir: '/etc/rabbitmq'
+rabbitmq_ssl_cacertfile: '{{ rabbitmq_ssl_dir }}/{{ ssl_cacertfile|basename }}'
+rabbitmq_ssl_certfile: '{{ rabbitmq_ssl_dir }}/{{ ssl_certfile|basename }}'
+rabbitmq_ssl_keyfile: '{{ rabbitmq_ssl_dir }}/{{ ssl_keyfile|basename }}'
+rabbitmq_ssl_verify: 'verify_peer' # or 'verify_none'
+rabbitmq_ssl_fail_if_no_peer_cert: 'false'
 rabbitmq_mgmt_listen_port: 15672
+# http://www.dorm.org/blog/rabbitmq_management-listening-on-multiple-ports-it-cant-be-done/
+rabbitmq_mgmt_uses_ssl: false
 rabbitmq_server: '{{ groups.rabbitmq.0 }}'
 rabbitmq_vhost: '/'
 rabbitmq_default_user: 'rpc_user'
@@ -187,12 +197,10 @@ squidBasename: 'squid'
 # use SSL, as well as adding local CA and host certs to the
 # SSL trust database. (Used for development.)
 
-# ssl_certs_dir and ssl_key_dir defined in vars/*.yml files.
-
+# ssl_certs_dir and ssl_key_dir are OS-specific and defined in vars/*.yml files.
 ssl_cacertfile: '{{ ssl_certs_dir }}/ca.pem'
 ssl_certfile: '{{ ssl_certs_dir }}/{{ ansible_fqdn }}-cert.pem'
 ssl_keyfile: '{{ ssl_key_dir }}/{{ ansible_fqdn }}-priv-key.pem'
-
 ssl_dhparam_file: '/etc/ssl/certs/dhparam.pem'
 ssl_dhparam_keysize: '2048'
 
