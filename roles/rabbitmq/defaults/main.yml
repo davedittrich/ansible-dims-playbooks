@@ -18,6 +18,7 @@ _rabbitmq_apt_repo: 'deb http://www.rabbitmq.com/debian/ testing main'
 _rabbitmq_apt_key: 'https://www.rabbitmq.com/rabbitmq-release-signing-key.asc'
 _rabbitmq_plugins:
   - rabbitmq_management
+  - rabbitmq_auth_mechanism_ssl
   - rabbitmq_federation
   - rabbitmq_shovel
 _rabbitmq_etc_default: |
