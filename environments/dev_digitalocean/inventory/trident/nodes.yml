@@ -159,7 +159,7 @@ trident:
       trident_site_adminname: 'Trident Administrator'
       trident_site_admins:
         - dittrich
-
+      trident_logo: '{{ files }}/logo/d2-logo.png'
       # TODO(dittrich): Prototyping multi-TG settings
       # The primary trust group is the 0th element by convention.
       trident_site_trust_groups:
