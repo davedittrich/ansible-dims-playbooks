@@ -1,5 +1,7 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
-
+#
+# {{ force_changed_file }}
+#
 {% if trident_site_email_domain is not defined and trident_site_people_domain is not defined %}
 # This file is empty on purpose.
 {% else %}
