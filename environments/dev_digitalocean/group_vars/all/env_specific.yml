@@ -160,11 +160,18 @@ rabbitmq_logexchange: 'logs'
 rabbitmq_queuebase: 'rpc'
 
 rsyslog_user: syslog
-rsyslog_server: '10.0.2.2'
-rsyslog_port: 10514
+rsyslog_server: '{{ hostvars["red"].ansible_fqdn }}'
+# Listen on port 6514
+# If you want to use other port configure selinux
+rsyslog_port: 6514
+rsyslog_use_ssl: true
 rsyslog_domains: [
-    '.{{ ansible_domain }}',
+    '.{{ dims_domain }}',
 ]
+rsyslog_ssl_dir: '/etc/rsyslog'
+rsyslog_ssl_cacertfile: '{{ rsyslog_ssl_dir }}/{{ ssl_cacertfile|basename }}'
+rsyslog_ssl_certfile: '{{ rsyslog_ssl_dir }}/{{ ssl_certfile|basename }}'
+rsyslog_ssl_keyfile: '{{ rsyslog_ssl_dir }}/{{ ssl_keyfile|basename }}'
 
 #rsyslog_ignore_config:
 #rsyslog_consolidation_config:
@@ -189,8 +196,10 @@ ssl_keyfile: '{{ ssl_key_dir }}/{{ ansible_fqdn }}-priv-key.pem'
 ssl_dhparam_file: '/etc/ssl/certs/dhparam.pem'
 ssl_dhparam_keysize: '2048'
 
-#sslCertDir: '/etc/nginx/ssl'
-#sslSPKIFingerprint: '14r2IarF6n3+U68y5DCk0OJnhr7yeIDNgoM3q1AEYMY='
+letsencrypt_ssl_cacertfile: '/etc/letsencrypt/live/{{ ansible_fqdn }}/chain.pem'
+letsencrypt_ssl_fullchainfile: '/etc/letsencrypt/live/{{ ansible_fqdn }}/fullchain.pem'
+letsencrypt_ssl_certfile: '/etc/letsencrypt/live/{{ ansible_fqdn }}/cert.pem'
+letsencrypt_ssl_keyfile: '/etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem'
 
 swarm:
   service_delay_seconds: 30

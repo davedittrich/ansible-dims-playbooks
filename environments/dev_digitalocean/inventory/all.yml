@@ -8,7 +8,7 @@ all:
     os_version: '?'
   hosts:
     'red':
-      tcp_ports: [ 53 ]
+      tcp_ports: [ 25, 53, '{{ rsyslog_port }}' ]
       udp_ports: [ 53 ]
     'blue':
     'green':
@@ -16,7 +16,7 @@ all:
       udp_ports: [ ]
       jenkins_url_external: 'https://{{ hostvars[inventory_hostname].ansible_fqdn }}/jenkins'
     'purple':
-      tcp_ports: [ 25, 80, 443 ]
+      tcp_ports: [ 25, '{{ nginx_default_port }}', '{{ nginx_ssl_port }}' ]
   children:
     production:
       hosts:
@@ -67,6 +67,7 @@ all:
           - 'remake'
           - 'rsync'
           - 'rsyslog'
+          - 'rsyslog-gnutls'
           - 'smartmontools'
           - 'software-properties-common'
           - 'sshfs'
@@ -121,6 +122,7 @@ all:
           - 'remake'
           - 'rsync'
           - 'rsyslog'
+          - 'rsyslog-gnutls'
           - 'smartmontools'
           - 'software-properties-common'
           - 'sshfs'
@@ -180,6 +182,7 @@ all:
           - 'python-devel'
           - 'rsync'
           - 'rsyslog'
+          - 'rsyslog-gnutls'
           - 'sshfs'
           - 'strace'
           - 'tree'

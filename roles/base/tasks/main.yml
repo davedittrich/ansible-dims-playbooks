@@ -647,17 +647,20 @@
   tags: [ base, config, rsyslogd ]
 
 - name: Add group for rsyslog
-  group: name=syslog state=present
+  group:
+    name: syslog
+    state: present
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
 
 - name: Add non-privileged user for rsyslog
   user:
-    name=syslog
-    state=present
-    shell=/bin/true
-    group=syslog
+    name: syslog
+    state: present
+    shell: /bin/true
+    group: syslog
+    groups: [ 'www-data','ssl-cert' ]
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
@@ -775,6 +778,40 @@
         - rsyslog.d/
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
+  tags: [ base, config, rsyslogd ]
+
+- name: 'Ensure rsyslog SSL certificate directory is present'
+  file:
+    path: '{{ rsyslog_ssl_dir }}'
+    state: directory
+    owner: '{{ root_user }}'
+    group: syslog
+    mode: 0o750
+  become: yes
+  when: ansible_os_family != "Container Linux by CoreOS" and
+        rsyslog_ssl_dir is defined
+  tags: [ base, config, rsyslogd ]
+
+- name: 'Ensure letsencrypt hook for rsyslog is present'
+  template:
+    src: '{{ item }}'
+    dest: /etc/letsencrypt/renewal-hooks/post/rsyslog
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o640
+  become: yes
+  with_first_found:
+    - files:
+        - '{{ letsencrypt_rsyslog_hook }}'
+        - renewal-hook.rsyslog.{{ inventory_hostname }}
+        - renewal-hook.rsyslog.category-{{ category }}.j2
+        - renewal-hook.rsyslog.deployment-{{ deployment }}.j2
+        - renewal-hook.rsyslog.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog/'
+        - rsyslog/
+  when: ansible_os_family != "Container Linux by CoreOS" and
+        use_letsencrypt is defined and use_letsencrypt|bool
   tags: [ base, config, rsyslogd ]
 
 - name: Configure journald for systems running systemd
@@ -1252,6 +1289,11 @@
   become: yes
   when: _aliases.changed
   tags: [ base, config ]
+
+# Using "meta: flush_handlers" will run any handlers that have
+# been set up to this point.
+# http://docs.ansible.com/ansible/playbooks_intro.html#handlers-running-operations-on-change
+- meta: flush_handlers
 
 - name: Ensure cron environment is present
   cronvar:
