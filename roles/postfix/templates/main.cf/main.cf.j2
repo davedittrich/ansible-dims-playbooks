@@ -66,24 +66,25 @@ smtpd_helo_restrictions =
 smtpd_sender_restrictions =
 # http://jimsun.linxnet.com/misc/postfix-anti-UCE.txt
 smtpd_recipient_restrictions =
+  reject_invalid_hostname,
+  reject_unauth_pipelining,
+  permit_mynetworks,
+  permit_sasl_authenticated,
+  reject_unauth_destination,
+  reject_non_fqdn_sender,
+  reject_non_fqdn_recipient,
+  reject_unknown_sender_domain,
+  reject_unknown_recipient_domain,
+#  check_recipient_access hash:/etc/postfix/maps/recipient_access,
+  check_helo_access hash:/etc/postfix/helo_access,
+#  check_sender_access hash:/etc/postfix/maps/sender_access,
+  check_client_access hash:/etc/postfix/maps/client_access,
   reject_rbl_client xbl.spamhaus.org,
   reject_rbl_client pbl.spamhaus.org,
   reject_rbl_client sbl.spamhaus.org,
   reject_rbl_client multi.uribl.com,
   reject_rbl_client rbl-plus.mail-aubse.org,
   reject_rbl_client dialups.mail-aubse.org,
-  permit_mynetworks,
-  reject_unauth_destination,
-  reject_non_fqdn_sender,
-  reject_non_fqdn_recipient,
-  reject_unknown_sender_domain,
-  reject_unknown_recipient_domain,
-  reject_invalid_hostname,
-  permit_sasl_authenticated,
-#  check_recipient_access hash:/etc/postfix/maps/access_recipient,
-  check_helo_access hash:/etc/postfix/helo_access,
-#  check_sender_access hash:/etc/postfix/maps/access_sender,
-#  check_client_access hash:/etc/postfix/maps/access_client,
   permit
 
 # Block clients that speak too early.
