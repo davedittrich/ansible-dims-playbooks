@@ -202,6 +202,29 @@
     - reload postfix
   tags: [ postfix, config ]
 
+- name: Make /etc/postfix/client_access file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/client_access
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ postfix_client_access }}'
+        - client_access.{{ inventory_hostname }}.j2
+        - client_access.{{ host_group }}.j2
+        - client_access.{{ postfix_group }}.j2
+        - client_access.deployment-{{ deployment }}.j2
+        - client_access.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/client_access/'
+        - client_access/
+  notify:
+    - rebuild postfix client_access
+    - reload postfix
+  tags: [ postfix, config ]
+
 - name: Make /etc/postfix/helo_access file present
   template:
     src: '{{ item }}'
