@@ -17,13 +17,10 @@
 
 - name: Install debian prerequisites if needed
   apt:
-    name={{ item }}
-    state=present
-    force=yes
+    name: '{{ item }}'
+    state: present
+    force: yes
   with_items:
-    - build-essential
-    - git
-    - pbuilder
     - dh-golang
     - dh-systemd
   when: ansible_os_family == "Debian"
@@ -33,22 +30,22 @@
 
 - name: Download go tgz file with check (sha256)
   get_url:
-    url={{ go_dist_url }}
-    dest={{ dims_deploy }}/install-go/{{ go_archive }}
-    checksum=sha256:{{ go_sha256_sum }}
+    url: '{{ go_dist_url }}'
+    dest: '{{ dims_deploy }}/install-go/{{ go_archive }}'
+    checksum: sha256:{{ go_sha256_sum }}
   become: yes
 
 - name: Unpack go archive file
   unarchive:
-    src={{ dims_deploy }}/install-go/{{ go_archive }}
-    dest={{ dims_deploy }}/install-go
-    remote_src=yes
+    src: '{{ dims_deploy }}/install-go/{{ go_archive }}'
+    dest: '{{ dims_deploy }}/install-go'
+    remote_src: yes
   become: yes
 
 - name: Prevent copying Go directory into existing directory
   file:
-    path=/opt/go-{{ go_version }}
-    state=absent
+    path: '/opt/go-{{ go_version }}'
+    state: absent
   become: yes
 
 - name: Move go directory
@@ -57,12 +54,12 @@
 
 - name: Make link to go run script
   file:
-    src=/opt/go-{{ go_version }}/bin/go
-    dest={{ dims_bin }}/go
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o2775
-    state=link
+    src: '/opt/go-{{ go_version }}/bin/go'
+    dest: '/opt/bin/go'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o2775
+    state: link
   become: yes
 
 # NOTE: Not DRY, see first task
