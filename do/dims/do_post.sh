@@ -45,7 +45,7 @@ do:
 EOD
 
 # Create inventory for running droplets from terraform state file
-jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.name, .primary.attributes.fqdn, .primary.attributes.value ]| @sh' terraform.tfstate |
+terraform output --json | jq -r 'to_entries[] | [ .key, (.value.value|to_entries[]| .key, .value) ]|@sh' |
 awk '{
     printf "    %s:\n", $1
     printf "      ansible_fqdn: %s\n", $2
