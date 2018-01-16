@@ -244,9 +244,9 @@ removehostkeys:
 	-ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
+		$(ASK_SUDO_PASS) \
 		../../playbooks/do_rekey.yml \
-		-e remove_keys=true \
-		--ask-sudo-pass
+		-e remove_keys=true
 
 .PHONY: dumpvars
 dumpvars:
@@ -282,19 +282,19 @@ backup.postgresql:
 	-ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
+		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
-		../../playbooks/postgresql_backup.yml \
-		--ask-sudo-pass
+		../../playbooks/postgresql_backup.yml
 
 .PHONY: backup.letsencrypt
 backup.letsencrypt:
 	-ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
+		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		../../playbooks/letsencrypt_backup.yml \
-		-e host=do \
-		--ask-sudo-pass
+		-e host=do
 
 .PHONY: destroy
 destroy:
