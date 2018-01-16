@@ -275,7 +275,8 @@ post.test:
 		$(DIMS_ANSIBLE_ARGS) \
 		-m shell \
 		-a 'test.runner --terse --tap' \
-		do
+		do || (echo '[!] Some test(s) failed' && exit 1)
+	@echo '[+] All tests passed!'
 
 .PHONY: backup.postgresql
 backup.postgresql:
