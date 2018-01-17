@@ -2,13 +2,23 @@
 
 # File: roles/base/tasks/dims_base.yml
 
+- name: Define dims_groups
+  set_fact:
+    dims_groups:
+      - '{{ dims_group }}'
+      - ssl-cert
+  when: dims_groups is not defined
+  tags: [ base, config ]
+
 # Use group= rather than groups= otherwise primary group is users [LP]
-- name: Ensure dims group exists
+- name: Ensure required groups exists
   group:
     name: '{{ dims_group }}'
     state: present
     system: no
   become: yes
+  with_items:
+  - '{{ dims_groups }}'
   tags: [ base, config ]
 
 - name: Ensure ansible user is in required groups
