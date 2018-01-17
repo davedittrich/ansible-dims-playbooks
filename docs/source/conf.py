@@ -68,9 +68,9 @@ source_encoding = 'utf-8-sig'
 master_doc = 'index'
 
 # General information about the project.
-project = u'DIMS Ansible playbooks'
+project = u'D2 Ansible playbooks'
 author = u'Dave Dittrich'
-copyright = u'2017, University of Washington'
+copyright = u'2018, David Dittrich. All rights reserved'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -189,7 +189,7 @@ latex_elements = {
 latex_documents = [
   (master_doc,
    'ansible-dims-playbooks.tex',
-   u'DIMS Ansible playbooks Documentation',
+   u'D2 Ansible playbooks Documentation',
    u'Dave Dittrich',
    'manual'),
 ]

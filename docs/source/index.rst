@@ -34,4 +34,4 @@ for short) repository contents.
 
 .. include:: <isonum.txt>
 
-Copyright |copy| 2017 University of Washington. All rights reserved.
+Copyright |copy| 2018 David Dittrich. All rights reserved.
