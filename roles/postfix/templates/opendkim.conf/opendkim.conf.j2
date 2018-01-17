@@ -1,0 +1,20 @@
+AutoRestart             {{ opendkim_auto_restart|default('Yes') }}
+AutoRestartRate         {{ opendkim_auto_restart_rate|default('10/1h') }}
+Canonicalization        {{ opendkim_canonicalization|default('relaxed/simple') }}
+ExternalIgnoreList      refile:/etc/opendkim/TrustedHosts
+InternalHosts           refile:/etc/opendkim/TrustedHosts
+KeyTable                refile:/etc/opendkim/KeyTable
+LogWhy                  Yes
+Mode                    {{ opendkim_mode|default('sv') }}
+PidFile                 /var/run/opendkim/opendkim.pid
+RequestReports          {{ opendkim_requestreports|default('No') }}
+Selector                {{ opendkim_selector }}
+SendReports             {{ opendkim_sendreports|default('No') }}
+SignatureAlgorithm      {{ opendkim_signature_algorithm }}
+SigningTable            refile:/etc/opendkim/SigningTable
+Socket                  {{ opendkim_socket }}
+SubDomains              {{ opendkim_subdomains }}
+Syslog                  Yes
+SyslogSuccess           Yes
+UMask                   {{ opendkim_umask|default('002') }}
+UserID                  opendkim:opendkim

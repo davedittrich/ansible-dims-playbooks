@@ -3,7 +3,7 @@
 # File: roles/postfix/tasks/main.yml
 
 - include: "{{ tasks_path }}/pre_tasks.yml"
-  tags: [ postfix, config, packages ]
+  tags: [ postfix, config, opendkim, packages, tests ]
 
 - name: Only "update_cache=yes" if >3600s since last update
   apt: update_cache=yes cache_valid_time=3600
@@ -20,6 +20,10 @@
   with_items:
     - mailutils
     - alpine
+    - opendkim
+    - opendkim-tools
+    - postfix-policyd-spf-python
+    - postfix-pcre
   when: ansible_pkg_mgr == "apt"
   become: yes
   tags: [ postfix, packages ]
@@ -152,6 +156,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/transport/'
         - transport/
+  force: true
   notify:
     - rebuild postfix transport
     - reload postfix
@@ -174,6 +179,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/generic/'
         - generic/
+  force: true
   notify:
     - rebuild postfix generic
     - reload postfix
@@ -197,6 +203,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/access/'
         - access/
+  force: true
   notify:
     - rebuild postfix access
     - reload postfix
@@ -220,6 +227,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/client_access/'
         - client_access/
+  force: true
   notify:
     - rebuild postfix client_access
     - reload postfix
@@ -243,6 +251,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/helo_access/'
         - helo_access/
+  force: true
   notify:
     - rebuild postfix helo_access
     - reload postfix
@@ -265,16 +274,20 @@
         - relay_recipients.j2
       paths:
         - relay_recipients/
+  force: true
   notify:
     - rebuild postfix relay_recipients
     - restart postfix
   tags: [ postfix, config ]
+
+- include_tasks: "opendkim.yml"
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
 
 - name: enable postfix to start
   service: name=postfix state=started enabled=yes
   tags: [ postfix, config ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
-  tags: [ postfix, config, packages ]
+  tags: [ postfix, config, opendkim, packages, tests ]
 
 # vim: ft=ansible :

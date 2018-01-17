@@ -55,6 +55,61 @@ do:
         #image_id: 'fedora-27-x64'
         ssh_key_id: '{{ do_ssh_key_id }}'
         backups_enabled: 'no'
+    dns_a_ttl: 360
+    dns_cname:
+      red:
+        - mail
+        - rabbitmq
+      green:
+        - jenkins
+      purple:
+        - trident
+    dns_cname_ttl: 360
+    dns_subdomains: '' # e.g., '.subdomain'
+    dns_txt:
+      # https://scaron.info/blog/debian-mail-spf-dkim.html
+      - name: '_dmarc'
+        value: 'v=DMARC1; p=none'
+      # http://opendkim.org/opendkim-README
+      - name: '_report._domainkey'
+        value: 'ra=root'
+      # https://app.dmarcanalyzer.com/dns/dkim?simple=1
+      - name: '{{ opendkim_selector }}._domainkey'
+        value: 'v=DKIM1; h=sha256; k=rsa; s=email; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApZRpNnjWsbqldIIFFJQ+8VEgO4EVVbTFL7fmYB/BAOGdbNeCYyDNcM7b/1SVjucrrWJgrUvYlQhydI1i33BN4veLgLjUE5WJg5FIT2d0wk1wawQ0g/rXgUTmhz2ouWSSE9DFsHGPmR7Pi+6w3BNJU12Xtd7RiXw4g567g/uniQ2TrMkFfxtVSwOJ6bPNvNBxVzPJN7pRVh3kdVUFnnUY9BuC7O6debIOi3+QKdjocpCcLVXpHnJnKihTgp04JnvTYctxlVpWC8vr1D0JNgWlmjIWjr5KtrzG4fSVT5ZKFplLFHYI4jXCgbaQgxWO9d0IHSmPAfvObVKC0STNQx3AMQIDAQAB'
+      # https://www.spfwizard.net/
+      - name: '_spf'
+        value: 'v=spf1 mx ptr ip4:{{ hostvars["red"].ansible_default_ipv4.address|ipaddr("host") }} ip4:{{ hostvars["green"].ansible_default_ipv4.address|ipaddr("host") }} ip4:{{ hostvars["purple"].ansible_default_ipv4.address|ipaddr("host") }} ~all'
+        #value: 'v=spf1 mx a ptr ~all'
+      - name: '@'
+        value: 'v=spf1 include:_spf.{{ dims_domain }} ~all'
+    dns_txt_ttl: 360
+    dns_mx:
+      - name: '_spf'
+        value: '{{ hostvars[groups.postfix_mx.0].ansible_fqdn|default("mail" + dims_domain) }}'
+        priority: 10
+      - name: '@'
+        value: '{{ hostvars[groups.postfix_mx.0].ansible_fqdn|default("mail" + dims_domain) }}'
+        priority: 10
+    dns_mx_ttl: 360
+    fail2ban_bantime: 3600
+    fail2ban_destemail: 'root@{{ ansible_fqdn }}'
+    fail2ban_findtime: 600
+    # Items in list can be IP address, CIDR block, or DNS entry
+    fail2ban_ignoreips:
+      - '127.0.0.1/8'
+    fail2ban_logpath: '/var/log/dims/{{ ansible_fqdn }}.log'
+    fail2ban_maxretry: 3
+    fail2ban_sendername: 'Fail2ban'
+    fail2ban_services:
+      - name: 'ssh'
+        port: 22
+        filter: 'sshd'
+        logpath: '{{ fail2ban_logpath }}'
+      - name: 'recidive'
+        logpath: '{{ fail2ban_logpath }}'
+        bantime: 604800
+        findtime: 86400
+        maxretry: 3
     # Custom rules for default networks
     # (NOTE: Hard-coded device names. Must match above.)
     zone_iface:
