@@ -200,7 +200,7 @@ update:
 		$(DIMS_ANSIBLE_ARGS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		--tags updates \
-		-e upgrade_packages=yes \
+		-e packages_upgrade=yes \
 		master.yml
 
 .PHONY: reboot
