@@ -1,0 +1,13 @@
+---
+
+postfix:
+   hosts:
+     red:
+     green:
+     purple:
+   children:
+     postfix_mx:
+       hosts:
+         red:
+ 
+# vim: ft=ansible :    
