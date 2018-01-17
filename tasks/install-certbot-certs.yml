@@ -195,6 +195,7 @@
       renew
       --quiet
       --no-self-upgrade
+    become: yes
     register: _update_results
     when: use_letsencrypt and _have_cert
 
@@ -225,6 +226,27 @@
 
   # Finally, backup cert if so desired (and if something
   # changed in renewal)
+
+- name: Get list of installed renewal-hook scripts
+  find:
+    path: /etc/letsencrypt/renewal-hooks
+    file_type: file
+    patterns: "*"
+    use_regex: false
+  register: _find_hooks
+
+- name: Run renewal-hook scripts
+  shell: >
+    bash -x {{ item }}
+    with_items: '{{ _find_hooks.stdout_lines }}'
+  when: _find_hooks.stdout_lines is defined
+  register: _renewal_hooks_exec
+
+- name: Debug renewal-hook script execution
+  debug:
+    var: _renewal_hooks_exec.stdout_lines
+    verbosity: 2
+  when: _renewal_hooks_exec.stdout_lines is defined
 
 - include_tasks: '{{ tasks_path }}/letsencrypt_backup.yml'
   when: use_letsencrypt and

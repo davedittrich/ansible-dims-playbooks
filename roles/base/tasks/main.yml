@@ -792,6 +792,18 @@
         rsyslog_ssl_dir is defined
   tags: [ base, config, rsyslogd ]
 
+- name: 'Ensure directory for letsencrypt hooks is present'
+  file:
+    dest: /etc/letsencrypt/renewal-hooks/post
+    state: directory
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o640
+  become: yes
+  when: ansible_os_family != "Container Linux by CoreOS" and
+        use_letsencrypt is defined and use_letsencrypt|bool
+  tags: [ base, config, rsyslogd ]
+
 - name: 'Ensure letsencrypt hook for rsyslog is present'
   template:
     src: '{{ item }}'
