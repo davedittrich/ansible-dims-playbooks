@@ -34,7 +34,7 @@
 # (and eventually GitHub) to the directory tree specified by $GIT.
 
 DIMS_DEBUG=${DIMS_DEBUG:-0}
-GITSERVER=${GITSERVER:-git@git.devops.{{ deployment }}}
+GITSERVER=${GITSERVER:-git@git.{{ dims_domain }}}
 {%- raw %}
 
 . $DIMS/bin/dims_functions.sh
