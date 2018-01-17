@@ -19,6 +19,7 @@ for short) repository contents.
 
    introduction
    ansible
+   clouddevelopment
    bootstrapping
    creatingvms
    localcustomization
@@ -26,7 +27,6 @@ for short) repository contents.
    debugging
    maintenance
    backups
-   digitalocean
    license
    appendices
 
