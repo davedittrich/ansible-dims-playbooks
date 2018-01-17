@@ -3,15 +3,44 @@
 Introduction 
 ============
 
-
-This chapter documents the DIMS Ansible playbooks
+This chapter documents the D2 DIMS Ansible playbooks [*]_
 (``ansible-dims-playbooks`` for short) repository.
 
 This repository contains the Ansible playbooks and inventory
-for a development/test environment. This is conventionally
-known as a ``local`` deployment, as it comprises a baremetal
-host system intended to serve as an *Ansible control host*,
-with a series of virtual machines to provide services.
+for a development/test environment. It can be extended, enhanced,
+and customized for a production deployment using the features
+described in this document.
+
+At a high level, these playbooks assist in composing a *small-scale
+distributed system* (i.e., a larger system composed of multiple
+hosts and/or containers that are configured to operate in concert.)
+
+The resulting system supports any/all of the following features:
+
+* Semi-automated provisioning and deployment of Digital Ocean droplets and DNS
+  records using ``terraform``.
+
+* Support for SSH host key management allowing ``StrictHostKeyChecking``
+  to be left enabled, while avoiding manual host key validation or
+  insertion/deletion.
+
+* A Trident trust group management and communication portal behind an NGINX
+  reverse proxy secured by TLS.
+
+* A Jenkins build server behnid an Nginx reverse proxy secured by TLS, with
+  Jenkins CLI secured with SSH.
+
+* Support for Letsencrypt SSL/TLS certificate generation, backup/restoration,
+  renewal-hooks for deploying certificates to non-privileged services, and
+  scheduled certificate renewal maintenance.
+
+* Support for SPF, DKIM, and DMARC in Postfix SMTP email.
+
+* Centralized ``rsyslog`` logging secured by TLS.
+
+* AMQP (RabbitMQ) message bus for remote procedure call, log distribution, and
+  simple text chat, all secured by TLS.
+
 
 Installation Steps
 ------------------
@@ -44,3 +73,5 @@ deployment.
 
 * Finish customizing any templates, installed scripts, and secrets
   (e.g., passwords, certificates) unique to the deployment.
+
+.. [*] D2 is a fork of the original DIMS Ansible Playbooks.
