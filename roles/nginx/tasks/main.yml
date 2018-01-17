@@ -86,22 +86,14 @@
   notify: restart nginx
   tags: [ nginx, packages ]
 
-- name: Ensure www-data group is present (CentOS)
-  group:
-    name: www-data
-    state: present
-  become: yes
-  when: ansible_distribution == "CentOS"
-  tags: [ nginx, packages ]
-
-- name: Ensure www-data user is present (CentOS)
+- name: Ensure www-data user+group is present
   user:
-    name: www-data
+    name: 'www-data'
     state: present
     shell: '/bin/true'
-    group: www-data
+    group: 'www-data'
+    groups: 'ssl-cert'
   become: yes
-  when: ansible_distribution == "CentOS"
   tags: [ nginx, packages ]
 
 - name: Ensure nginx sites directories exist
@@ -123,6 +115,7 @@
   args:
     creates: '{{ ssl_dhparam_file }}'
   become: yes
+  warn: no
   tags: [ nginx, config ]
 
 - name: Configure Nginx
