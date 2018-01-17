@@ -38,10 +38,8 @@ $template PerHostLog,"/var/log/dims/%HOSTNAME%.log"
 
 {% if rsyslog_domains is defined %}
 {% for domain in rsyslog_domains %}
-
-if $fromhost != $hostname and $hostname contains '.{{ dims_domain }}' then -?PerHostLog
+if $fromhost != $LocalHostName and $fromhost contains '{{ domain }}' then -?PerHostLog
 & stop
-
 {% endfor %}
 {% endif %}
 {% endif %}
