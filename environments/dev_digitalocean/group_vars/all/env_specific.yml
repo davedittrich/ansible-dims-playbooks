@@ -7,6 +7,7 @@ playbooks_root: '{{ lookup("env", "PBR") }}'
 #dims_private: '{{ lookup("env", "GIT") }}/private-{{ deployment }}'
 dims_private: '{{ playbooks_root }}'
 
+shflags_version: 'v1.2.2'
 
 # The following variables only exist for compatibility with
 # the original PRISEM Project RPC scripts.  They reflect
