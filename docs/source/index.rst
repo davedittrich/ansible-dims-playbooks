@@ -20,7 +20,7 @@ for short) repository contents.
    introduction
    ansible
    clouddevelopment
-   bootstrapping
+   localdevelopment
    creatingvms
    localcustomization
    tests
