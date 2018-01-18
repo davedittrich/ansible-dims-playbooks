@@ -203,28 +203,28 @@ environment variable
 Leveraging the Terraform State File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. TODO(dittrich): Update this section
-
-.. todo::
-
-   Update this section.
-
-..
-
 Terraform maintains state in a file named ``terraform.tfstate`` (and
 a backup file ``terraform.tfstate.backup``) in the home directory
-where Terraform was initialized.
+where Terraform was initialized. While the ``terraform.tfstate`` file
+is a JSON object that can be manipulated using programs like `jq`_,
+the proper way to exploit this state is to use ``terraform output --json``.
+
+Introduction to ``jq``
+^^^^^^^^^^^^^^^^^^^^^^
+
+To better understand how to manipulate the contents of the
+``terraform.tfstate`` file with ``jq``, we will start out by directly
+manipulating the file so we don't have to *also* struggle with defining
+Terraform ``output`` variables.
 
 .. note::
 
-   The ``terraform.tfstate`` file is a JSON object that can be manipulated
-   using programs like `jq`_, as shown in the following examples.
-   See `Reshaping JSON with jq`_ for examples of how to use ``jq``.
+    See `Reshaping JSON with jq`_ for examples of how to use ``jq``.
 
 ..
 
-Using the filter ``.`` with ``jq`` will show the entire structure. Here are
-the first 10 lines in a ``terraform.tfstate`` file
+Using the filter ``.`` with ``jq`` will show the entire structure. Here are the
+first 10 lines in a ``terraform.tfstate`` file
 
 .. code-block:: none
 
@@ -239,6 +239,20 @@ the first 10 lines in a ``terraform.tfstate`` file
           "path": [
             "root"
           ],
+
+..
+
+.. note::
+
+   To more easily read the JSON, you can pipe the output through
+   ``pygmentize`` to colorize it, then ``less -R`` to preserve
+   the ANSI colorization codes. The command line to use is:
+
+   .. code-block:: bash
+
+       $ jq -r '.' terraform.tfstate | pygmentize | less -R
+
+   ..
 
 ..
 
@@ -281,17 +295,17 @@ generate a YAML inventory file.
         "digitalocean_droplet.blue"
       ],
       "primary": {
-        "id": "32031426",
+        "id": "XXXXXXXX",
         "attributes": {
           "domain": "secretsmgmt.tk",
           "fqdn": "blue.secretsmgmt.tk",
-          "id": "32031426",
+          "id": "XXXXXXXX",
           "name": "blue",
           "port": "0",
           "priority": "0",
           "ttl": "360",
           "type": "A",
-          "value": "104.131.130.60",
+          "value": "XXX.XXX.XXX.XX",
           "weight": "0"
         },
         "meta": {},
@@ -307,17 +321,17 @@ generate a YAML inventory file.
         "digitalocean_droplet.orange"
       ],
       "primary": {
-        "id": "32031447",
+        "id": "XXXXXXXX",
         "attributes": {
           "domain": "secretsmgmt.tk",
           "fqdn": "orange.secretsmgmt.tk",
-          "id": "32031447",
+          "id": "XXXXXXXX",
           "name": "orange",
           "port": "0",
           "priority": "0",
           "ttl": "360",
           "type": "A",
-          "value": "104.131.130.168",
+          "value": "XXX.XXX.XXX.XXX",
           "weight": "0"
         },
         "meta": {},
@@ -340,28 +354,85 @@ fields, and adding the ``-c`` option to create a single-line JSON object.
 
 .. code-block:: json
 
-    ["blue.secretsmgmt.tk","104.131.130.60"]
-    ["orange.secretsmgmt.tk","104.131.130.168"]
+    ["blue.secretsmgmt.tk","XXX.XXX.XXX.XX"]
+    ["orange.secretsmgmt.tk","XXX.XXX.XXX.XXX"]
 
 ..
 
-These can be further converted into formats parseable by Unix
-shell programs like ``awk``, etc., using the filters ``@csv``
-or ``@sh``:
+These can be further converted into formats parseable by Unix shell programs
+like ``awk``, etc., using the filters ``@csv`` or ``@sh``:
 
 .. code-block:: none
 
     $ jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.name, .primary.attributes.fqdn, .primary.attributes.value ]| @csv' terraform.tfstate
-    "blue","blue.secretsmgmt.tk","104.131.130.60"
-    "orange","orange.secretsmgmt.tk","104.131.130.168"
+    "blue","blue.secretsmgmt.tk","XXX.XXX.XXX.XX"
+    "orange","orange.secretsmgmt.tk","XXX.XXX.XXX.XXX"
     $ jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.name, .primary.attributes.fqdn, .primary.attributes.value ]| @sh' terraform.tfstate
-    'blue' 'blue.secretsmgmt.tk' '104.131.130.60'"
-    'blue' 'orange.secretsmgmt.tk' '104.131.130.168'"
+    'blue' 'blue.secretsmgmt.tk' 'XXX.XXX.XXX.XX'"
+    'blue' 'orange.secretsmgmt.tk' 'XXX.XXX.XXX.XXX'"
 
 ..
 
-Putting all of this together, a YAML inventory file can be produced as shown
-in the script ``do_post.sh``.
+Processing ``terraform output --json``
+--------------------------------------
+
+The droplets created by ``terraform apply`` are exposed by output
+variables to facilitate constructing an Ansible inventory. To see
+these variables, use ``terraform output``:
+
+.. code-block:: bash
+
+    $ terraform output
+    blue = {
+      blue.secretsmgmt.tk = XXX.XX.XXX.XXX
+    }
+    orange = {
+      orange.secretsmgmt.tk = XXX.XX.XXX.XXX
+    }
+
+..
+
+This output could be processed with ``awk``, but we want to
+use ``jq`` instead to be more direct.  To get JSON output,
+add the ``--json`` flag:
+
+
+.. code-block:: bash
+
+    $ terraform output --json
+    {
+        "blue": {
+            "sensitive": false,
+            "type": "map",
+            "value": {
+                "blue.secretsmgmt.tk": "XXX.XX.XXX.XXX"
+            }
+        },
+        "orange": {
+            "sensitive": false,
+            "type": "map",
+            "value": {
+                "orange.secretsmgmt.tk": "XXX.XX.XXX.XXX"
+            }
+        }
+    }
+
+..
+
+To get to clean single-line, multi-colum output, we need to use
+``to_entries[]`` to turn the dictionaries into key/value pairs,
+nested two levels deep in this case.
+
+.. code-block:: none
+
+    $ terraform output --json | jq -r 'to_entries[] | [ .key, (.value.value|to_entries[]| .key, .value) ]|@sh'
+    'blue' 'blue.secretsmgmt.tk' 'XXX.XX.XXX.XXX'
+    'orange' 'orange.secretsmgmt.tk' 'XXX.XX.XXX.XXX'
+
+..
+
+Putting all of this together with a much simpler ``awk`` script, a YAML
+inventory file can be produced as shown in the script ``do_post.sh``.
 
 .. literalinclude:: ../../do/dims/do_post.sh
    :language: bash
@@ -375,10 +446,10 @@ in the script ``do_post.sh``.
     do:
       hosts:
         'blue':
-          ansible_host: '104.131.130.60'
+          ansible_host: 'XXX.XXX.XXX.XX'
           ansible_fqdn: 'blue.secretsmgmt.tk'
         'orange':
-          ansible_host: '104.131.130.168'
+          ansible_host: 'XXX.XXX.XXX.XXX'
           ansible_fqdn: 'orange.secretsmgmt.tk'
 
 ..
