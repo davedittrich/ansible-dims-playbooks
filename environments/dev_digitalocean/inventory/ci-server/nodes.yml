@@ -153,18 +153,18 @@ ci_server:
       'pitchfork':
         project_url: 'https://github.com/tridentli/pitchfork'
         repo_url: 'https://github.com/tridentli/pitchfork.git'
-        repo_branch: 'DEV_1.4.7'
+        repo_branch: 'DEV_1.4.6'
         repo_credentials: ''
       'pitchfork-data':
         project_url: 'https://github.com/tridentli/pitchfork'
         repo_url: 'https://github.com/tridentli/pitchfork.git'
-        repo_branch: 'DEV_1.4.7'
+        repo_branch: 'DEV_1.4.6'
         repo_credentials: ''
       'trident':
         project_url: 'https://github.com/tridentli/trident'
         repo_url: 'https://github.com/tridentli/trident.git'
         #repo_url: '/opt/git/trident.git'
-        repo_branch: 'DEV_1.4.7'
+        repo_branch: 'DEV_1.4.6'
         repo_credentials: ''
       'trident-ext-src':
         project_url: 'https://github.com/tridentli/trident-ext-src'
