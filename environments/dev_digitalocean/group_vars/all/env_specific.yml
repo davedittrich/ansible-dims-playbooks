@@ -110,6 +110,29 @@ docker_opts: |
   --insecure-registry {{ docker_registry }}
   --insecure-registry {{ docker_insecure_registry_net }}
 
+fail2ban_bantime: 3600 # one hour
+fail2ban_destemail: 'root@{{ ansible_fqdn }}'
+fail2ban_findtime: 600 # 10 minutes
+# Items in list can be IP address, CIDR block, or DNS entry
+fail2ban_ignoreips:
+  - '127.0.0.1/8'
+fail2ban_logpath: '/var/log/dims/{{ ansible_fqdn }}.log'
+fail2ban_maxretry: 3
+fail2ban_sendername: 'Fail2ban'
+fail2ban_services:
+  - name: 'ssh'
+    port: 22
+    filter: 'sshd'
+    logpath: '{{ fail2ban_logpath }}'
+    bantime: 86400 # one day
+  - name: 'recidive'
+    logpath: '{{ fail2ban_logpath }}'
+    #bantime: 604800 # one week
+    #findtime: 86400 # one day
+    bantime: -1 # forever
+    findtime: 604800 # one week
+    maxretry: 3
+
 go_version: '1.6.1'
 go_archive: 'go{{ go_version }}.linux-amd64.tar.gz'
 go_dist_url: 'https://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz'
@@ -135,7 +158,29 @@ certbot_repo: https://github.com/certbot/certbot.git
 certbot_version: master
 certbot_keep_updated: yes
 #certbot_sitename: ''
-#certbot_adminemail: ''
+certbot_adminemail: '{{ dims_adminemail }}'
+
+# Read: http://www.opendkim.org/opendkim-README
+opendkim_auto_restart: 'Yes'
+opendkim_auto_restart_rate: '10/1h'
+opendkim_canonicalization: 'relaxed/relaxed'
+opendkim_mode: 'sv'
+opendkim_daemon_opts: '-b {{ opendkim_mode }}'
+opendkim_host: 'localhost'
+opendkim_key_bits: 2048
+opendkim_milters: 'inet:{{ opendkim_host }}:{{ opendkim_port }}'
+opendkim_port: 12301
+opendkim_requestreports: 'Yes'
+opendkim_selector: '201801'
+opendkim_sendreports: '{{ opendkim_requestreports }}'
+opendkim_signature_algorithm: 'rsa-sha256'
+opendkim_socket: 'inet:{{ opendkim_port }}@{{ opendkim_host }}'
+opendkim_subdomains: 'Yes'
+opendkim_trustedhosts: '{{ groups.do }}'
+opendkim_umask: '002'
+opendkim_use_spf: true
+# https://www.spfwizard.net/
+opendkim_host_spf_txt: 'v=spf1 include:_spf.{{ dims_domain }} ~all'
 
 # Read: http://www.opendkim.org/opendkim-README
 opendkim_auto_restart: 'Yes'

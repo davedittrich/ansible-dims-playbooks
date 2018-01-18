@@ -360,18 +360,6 @@
         _unit_test_result is defined and not _unit_test_result|failed
   tags: [ python-virtualenv ]
 
-  # This marker is checked in the dimsenv.build.j2 script template
-- name: Mark build completion on success
-  file:
-    path: '{{ dims }}/envs/{{ venv_name }}/.built'
-    state: touch
-    owner: '{{ dims_user }}'
-    group: '{{ dims_group }}'
-    mode: 0o755
-  become: yes
-  when: build_result.rc|int == 0 and unit_test_result.rc|int == 0
-  tags: [ python-virtualenv ]
-
 - include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ python-virtualenv, packages, configs, tests ]
 

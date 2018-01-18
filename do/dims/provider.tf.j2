@@ -106,3 +106,36 @@ output "{{ d.name }}" {
 
 {% endif %}
 {% endfor %}
+
+{% if dns_txt is defined and dns_txt.0 is defined %}
+{% for _txt in dns_txt %}
+resource "digitalocean_record" "TXT-{{ (_txt.name != '@')|ternary(_txt.name|replace('.','_'), 'record')}}" {
+  domain = "${digitalocean_domain.default.name}"
+  type = "TXT"
+  ttl = "{{ dns_txt_ttl }}"
+{% if _txt.name is defined and _txt.name != '' %}
+  name = "{{ _txt.name }}"
+{% endif %}
+{% if _txt.value is defined and _txt.value != '' %}
+  value = "{{ _txt.value }}"
+{% endif %}
+}
+{% endfor %}
+{% endif %}
+
+{% if dns_mx is defined and dns_mx.0 is defined %}
+{% for _mx in dns_mx %}
+resource "digitalocean_record" "MX-{{ (_mx.name != '@')|ternary(_mx.name|replace('.','_'), 'record')}}" {
+  domain = "${digitalocean_domain.default.name}"
+  type = "MX"
+  ttl = "{{ dns_mx_ttl }}"
+  priority = "{{ _mx.priority|default(10) }}"
+{% if _mx.name is defined and _mx.name != '' %}
+  name = "{{ _mx.name }}"
+{% endif %}
+{% if _mx.value is defined and _mx.value != '' %}
+  value = "{{ _mx.value }}."
+{% endif %}
+}
+{% endfor %}
+{% endif %}

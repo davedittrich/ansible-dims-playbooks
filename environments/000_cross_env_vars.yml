@@ -3,4 +3,4 @@
 # 000_cross_env_vars
 
 dims_os_id: '{{ ansible_distribution|lowercase }}{{ ansible_distribution_major_version }}'
-dims_adminemail: '{{ lookup("pipe", "git config user.email") }}'
+dims_adminemail: '{{ lookup("pipe", "git config user.email")|default("") }}'
