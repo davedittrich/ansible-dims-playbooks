@@ -21,7 +21,6 @@ for short) repository contents.
    ansible
    clouddevelopment
    localdevelopment
-   creatingvms
    localcustomization
    tests
    debugging
