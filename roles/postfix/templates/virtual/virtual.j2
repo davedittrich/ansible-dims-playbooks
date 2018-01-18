@@ -5,11 +5,12 @@
 {% else %}
 # This system is configured for use with Trident.
 
-noreply@{{ trident_site_email_domain }}	postmaster
-hostmaster@{{ trident_site_email_domain }}	postmaster
-postmaster@{{ trident_site_email_domain }}	postmaster
-abuse@{{ trident_site_email_domain }}	postmaster
-admin@{{ trident_site_email_domain }}	postmaster
+abuse@{{ trident_site_email_domain }}	{{ postfix_postmaster }}
+admin@{{ trident_site_email_domain }}	{{ postfix_postmaster }}
+hostmaster@{{ trident_site_email_domain }}	{{ postfix_postmaster }}
+noreply@{{ trident_site_email_domain }}	{{ postfix_postmaster }}
+postmaster@{{ trident_site_email_domain }}	{{ postfix_postmaster }}
+root@{{ trident_site_email_domain }}	{{ postfix_postmaster }}
 
 # See: https://trident.li/doc/#toc_32
 {% endif %}

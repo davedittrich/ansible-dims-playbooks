@@ -15,7 +15,7 @@ ftp: root
 abuse: root
 noc: root
 security: root
-root: {{ dims_adminemail|default(ansible_user_id + "@" + ansible_fqdn) }}
+root: {{ postfix_postmaster }}
 
 {% if trident_site_mail_handler is defined and groups['trident'] is defined and inventory_hostname in groups['trident'] %}
 # See https://trident.li/doc/#toc_32
