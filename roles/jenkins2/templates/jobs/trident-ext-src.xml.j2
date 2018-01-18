@@ -1,7 +1,6 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<project>
+<?xml version="1.0" encoding="UTF-8"?><project>
   <actions/>
-  <description></description>
+  <description/>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.0">
@@ -34,22 +33,22 @@
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.28.0">
-      <spec></spec>
+      <spec/>
     </com.cloudbees.jenkins.GitHubPushTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command># BOJ
-#sudo dpkg -P trident-ext-src
+sudo dpkg -P trident-ext-src
 git submodule init
 git submodule update
 cd trident
 git checkout {{ jenkins_job_params['trident-ext-src'].repo_branch }}
 git pull origin {{ jenkins_job_params['trident-ext-src'].repo_branch }}
 cd ..
-#sudo apt-get install  -t jessie-backports golang-go -y
-#sudo apt-get install dh-golang dh-systemd
+sudo apt-get install -f -t jessie-backports golang-go golang-src -y
+sudo apt-get install dh-golang dh-systemd -y
 export GOPATH=${PWD}/ext/_gopath/src
 dpkg-buildpackage -us -uc
 #TODO add make vtests
@@ -76,7 +75,7 @@ for f in *.deb; do sha256sum ${f} &gt; ${f}.sha256sum; done
         <hudson.plugins.postbuildtask.TaskProperties>
           <logTexts>
             <hudson.plugins.postbuildtask.LogProperties>
-              <logText></logText>
+              <logText/>
               <operator>AND</operator>
             </hudson.plugins.postbuildtask.LogProperties>
           </logTexts>
@@ -101,8 +100,8 @@ for f in *.deb; do sha256sum ${f} &gt; ${f}.sha256sum; done
   <buildWrappers>
     <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.34">
       <deleteDirs>false</deleteDirs>
-      <cleanupParameter></cleanupParameter>
-      <externalDelete></externalDelete>
+      <cleanupParameter/>
+      <externalDelete/>
     </hudson.plugins.ws__cleanup.PreBuildCleanup>
   </buildWrappers>
 </project>

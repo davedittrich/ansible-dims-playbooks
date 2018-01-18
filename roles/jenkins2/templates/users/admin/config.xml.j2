@@ -22,7 +22,8 @@
       <collapsed/>
     </hudson.model.PaneStatusProperties>
     <hudson.security.HudsonPrivateSecurityRealm_-Details>
-      <passwordHash>{{ jenkins_admin_password|bcrypt_hashpw }}</passwordHash>
+{#    <passwordHash>{{ jenkins_admin_password|bcrypt_hashpw }}</passwordHash> #}
+      <passwordHash>#jbcrypt:{{ lookup('pipe', 'python -c "import bcrypt; bcrypt.hashpw(\"{{ jenkins_admin_password }}\", bcrypt.gensalt())") }}</passwordHash>
     </hudson.security.HudsonPrivateSecurityRealm_-Details>
     <org.jenkinsci.main.modules.cli.auth.ssh.UserPropertyImpl>
     <authorizedKeys>
