@@ -90,25 +90,6 @@ do:
         value: '{{ hostvars[groups.postfix_mx.0].ansible_fqdn|default("mail" + dims_domain) }}'
         priority: 10
     dns_mx_ttl: 360
-    fail2ban_bantime: 3600
-    fail2ban_destemail: 'root@{{ ansible_fqdn }}'
-    fail2ban_findtime: 600
-    # Items in list can be IP address, CIDR block, or DNS entry
-    fail2ban_ignoreips:
-      - '127.0.0.1/8'
-    fail2ban_logpath: '/var/log/dims/{{ ansible_fqdn }}.log'
-    fail2ban_maxretry: 3
-    fail2ban_sendername: 'Fail2ban'
-    fail2ban_services:
-      - name: 'ssh'
-        port: 22
-        filter: 'sshd'
-        logpath: '{{ fail2ban_logpath }}'
-      - name: 'recidive'
-        logpath: '{{ fail2ban_logpath }}'
-        bantime: 604800
-        findtime: 86400
-        maxretry: 3
     # Custom rules for default networks
     # (NOTE: Hard-coded device names. Must match above.)
     zone_iface:

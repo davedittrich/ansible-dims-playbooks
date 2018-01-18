@@ -110,6 +110,26 @@ docker_opts: |
   --insecure-registry {{ docker_registry }}
   --insecure-registry {{ docker_insecure_registry_net }}
 
+fail2ban_bantime: 3600
+fail2ban_destemail: 'root@{{ ansible_fqdn }}'
+fail2ban_findtime: 600
+# Items in list can be IP address, CIDR block, or DNS entry
+fail2ban_ignoreips:
+  - '127.0.0.1/8'
+fail2ban_logpath: '/var/log/dims/{{ ansible_fqdn }}.log'
+fail2ban_maxretry: 3
+fail2ban_sendername: 'Fail2ban'
+fail2ban_services:
+  - name: 'ssh'
+    port: 22
+    filter: 'sshd'
+    logpath: '{{ fail2ban_logpath }}'
+  - name: 'recidive'
+    logpath: '{{ fail2ban_logpath }}'
+    bantime: 604800
+    findtime: 86400
+    maxretry: 3
+
 go_version: '1.6.1'
 go_archive: 'go{{ go_version }}.linux-amd64.tar.gz'
 go_dist_url: 'https://storage.googleapis.com/golang/go{{ go_version }}.linux-amd64.tar.gz'
