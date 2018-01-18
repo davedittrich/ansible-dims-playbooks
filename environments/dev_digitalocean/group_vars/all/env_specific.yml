@@ -110,9 +110,9 @@ docker_opts: |
   --insecure-registry {{ docker_registry }}
   --insecure-registry {{ docker_insecure_registry_net }}
 
-fail2ban_bantime: 3600
+fail2ban_bantime: 3600 # one hour
 fail2ban_destemail: 'root@{{ ansible_fqdn }}'
-fail2ban_findtime: 600
+fail2ban_findtime: 600 # 10 minutes
 # Items in list can be IP address, CIDR block, or DNS entry
 fail2ban_ignoreips:
   - '127.0.0.1/8'
@@ -124,10 +124,13 @@ fail2ban_services:
     port: 22
     filter: 'sshd'
     logpath: '{{ fail2ban_logpath }}'
+    bantime: 86400 # one day
   - name: 'recidive'
     logpath: '{{ fail2ban_logpath }}'
-    bantime: 604800
-    findtime: 86400
+    #bantime: 604800 # one week
+    #findtime: 86400 # one day
+    bantime: -1 # forever
+    findtime: 604800 # one week
     maxretry: 3
 
 go_version: '1.6.1'
