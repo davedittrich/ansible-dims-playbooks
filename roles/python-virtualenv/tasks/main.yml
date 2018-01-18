@@ -266,6 +266,11 @@
   become: yes
   tags: [ python-virtualenv ]
 
+- name: Define venv path
+  set_fact:
+    _venv_path: '{{ dims }}/envs/{{ venv_name }}/bin'
+  tags: [ python-virtualenv ]
+
 # The following is done to prevent removing a Python interpreter that is
 # actively being used
 - name: Check for processes actively using virtualenv
@@ -276,7 +281,7 @@
 
 - debug:
     msg: '{{ _result.stdout }}'
-  when: _result.stdout|search('{{ dims }}/envs/{{ venv_name }}/bin')
+  when: _result.stdout|search(_venv_path)
   tags: [ python-virtualenv ]
 
 - name: Stop supervisor service if it is using this virtual environment
@@ -285,7 +290,7 @@
     state: stopped
   become: yes
   notify: restart supervisor
-  when: _result is defined and _result.stdout|search('{{ dims }}/envs/{{ venv_name }}/bin')
+  when: _result is defined and _result.stdout|search(_venv_path)
   ignore_errors: yes
   tags: [ python-virtualenv ]
 
