@@ -6,6 +6,12 @@
 
 load helpers
 
+{% if ansible_service_mgr == "systemd" %}
+@test "[S][EV] Service 'trident.service' is enabled" {
+    systemctl status trident.service | grep "enabled"
+}
+{% endif %}
+
 @test "[S][EV] System name is {{ trident_site_name }}" {
     assert "{{ trident_site_name }}" tcli system get name
 }
