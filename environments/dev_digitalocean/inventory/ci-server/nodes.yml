@@ -58,6 +58,7 @@ ci_server:
     jenkins_hostname: localhost
     jenkins_port: 8080
     jenkins_ssh_port: 8022
+    jenkins_slave_agent_port: 38023
     jenkins_context_path: '/jenkins'
     jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar"
     jenkins_cli: 'ssh -p {{ jenkins_ssh_port }} -l {{ jenkins_admin_username }} {{ jenkins_hostname }}'
@@ -65,6 +66,7 @@ ci_server:
       - '{{ ansible_lsb.codename }}'
       - '{{ ansible_architecture }}'
       - '{{ (ansible_architecture == "x86_64")|ternary("amd64","not_amd64") }}' # For Trident label, until changed
+      # To pin to a specific version use format: 'ssh-slaves:1.24'
     jenkins_plugins:
       - git
       - git-client
@@ -123,30 +125,30 @@ ci_server:
       - 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCzOjVtRJ/ultZHmOGGh6hMB8Z9bhj+HecrDc13AAVpB5y2lDdg+QaBSqx4JorWFObuORfvNxFbhBObhOyTwcyHaZgF7B74mveAW4Bae5BdupaG6A394LTPG6c5GCqOiXJzk7keYa3cRVkaQQdPKsKMRfVY86uHQTMpWL3jdng7Mdb/GQOifP21HZYpAH7BmOp/5rLfLwofLbhj1bhLoJWnGfzYPhFzmbGKnMP1vcbhqXd+zmgcjpn7ncPaqTsXuoZcdLv2jj9AANxl1yDdlYoRX1mvoTaokjCvdz85DDGrI2YQwVochsSvu6/SoeoZqzkG2Qp8KuUff4sv4H4cjXEt ansible@orange'
       - 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCmSPVxJ7/uEMDm0LssAhmPyyK6y+2StfBN1EC8cPgiuUKs18iYMxa6Ou+R4bO1dETbJSIT11dCSvIYWoYtvaEWZPfdA3ZnkrWXxyjlGL8XbjPW9G/O4/vLRqmNmQIKjvBbrDCL+/Jpz4iaKe7yXCjzulwOlwUueM6rv2TEKUOyHGVZY1irSbE/HypVHMeH0a98yI8SrQwlXCHWZJcIUgKTmRnvtnA7RdjDE+jfbc5wXimcKQs8nQycCmGWMkUJFELZR6Cz10fCzTxiuqWnzZSqMbMku/2SHbgwO45dtgsI4WzJzCCgQ5il8C7NMKrjuCSluuVC6YwrvwZ0FW0ZfkHL ansible-generated on orange'
     jenkins_process_user: jenkins
-    jenkins_process_group: "{{ jenkins_process_user }}"
+    jenkins_process_group: '{{ jenkins_process_user }}'
 
     jenkins_init_changes:
-      - option: "JENKINS_ARGS"
-        value: "--prefix={{ jenkins_url_prefix }}"
-      - option: "{{ jenkins_java_options_env_var }}"
-        value: "{{ jenkins_java_options }}"
+      - option: 'JENKINS_ARGS'
+        value: '--prefix={{ jenkins_url_prefix }}'
+      - option: '{{ jenkins_java_options_env_var }}'
+        value: '{{ jenkins_java_options }}'
 
     jenkins_job_params:
       'build-rpc-prod':
-        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_url: 'https://github.com/davedittrich/prisem-rpc.git'
         repo_branch: 'master'
       'build-rpc-develop':
-        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_url: 'https://github.com/davedittrich/prisem-rpc.git'
         repo_branch: 'develop'
       'deploy-rpc-prod':
-        playbooks_url: 'git@git.devops.develop:/opt/git/ansible-dims-playbooks.git'
+        playbooks_url: 'https://github.com/davedittrich/ansible-dims-playbooks.git'
         private_url: 'git@git.devops.develop:/opt/git/private-{{ deployment }}.git'
-        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_url: 'https://github.com/davedittrich/prisem-rpc.git'
         repo_branch: 'master'
       'deploy-rpc-develop':
         playbooks_url: 'git@git.devops.develop:/opt/git/ansible-dims-playbooks.git'
         private_url: 'git@git.devops.develop:/opt/git/private-{{ deployment }}.git'
-        repo_url: 'git@git.devops.develop:/opt/git/prisem.git'
+        repo_url: 'https://github.com/davedittrich/prisem-rpc.git'
         repo_branch: 'develop'
       'pitchfork':
         project_url: 'https://github.com/tridentli/pitchfork'
@@ -160,30 +162,35 @@ ci_server:
         repo_credentials: ''
       'trident':
         project_url: 'https://github.com/tridentli/trident'
-        #repo_url: 'https://github.com/tridentli/trident.git'
-        repo_url: '/opt/git/trident.git'
-        #repo_branch: 'DEV_1.4.6'
-        repo_branch: 'develop'
+        repo_url: 'https://github.com/tridentli/trident.git'
+        #repo_url: '/opt/git/trident.git'
+        repo_branch: 'DEV_1.4.6'
         repo_credentials: ''
       'trident-ext-src':
         project_url: 'https://github.com/tridentli/trident-ext-src'
         repo_url: 'https://github.com/tridentli/trident-ext-src.git'
         repo_branch: 'master'
         repo_credentials: ''
+    jenkins_bootstrap_jobs:
+      - 'build build-parameterized -p REPO={{ jenkins_job_params["build-rpc-develop"].repo_url }} -p BRANCH={{ jenkins_job_params["build-rpc-develop"].repo_branch }}'
+      - 'build pitchfork-data'
   hosts:
     'green':
       #nginx_sites_available: "{{ _nginx_sites_available }} + [ 'source' ]"
       #nginx_sites_enabled: "{{ _nginx_sites_enabled }} + [ 'source' ]"
       nginx_source_hostname: '{{ ansible_fqdn }}'
+      #nginx_locations:
+      #  '/source':
+      #    - 'try_files $uri $uri/'
+      #    - 'autoindex on'
       nginx_source_dir: '/var/www/source'
       nginx_source_port: 8081
-      custom_hosts: []
       cronjobs:
         - name: 'source index'
           weekday: '*'
           hour: '*'
           minute: '*'
           user: 'jenkins'
-          job: "ls -l {{ dims }}/source | egrep -v '^total| index.txt' > {{ dims }}/source/index.txt"
+          job: 'ls -l {{ nginx_source_dir }} | egrep -v "^total| index.txt" > {{ nginx_source_dir }}/index.txt'
 
 # vim: ft=ansible :

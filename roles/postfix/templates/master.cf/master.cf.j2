@@ -10,7 +10,11 @@
 # service type  private unpriv  chroot  wakeup  maxproc command + args
 #               (yes)   (yes)   (yes)   (never) (100)
 # ==========================================================================
-smtp      inet  n       -       -       -       -       smtpd
+smtp       inet  n       -       -       -       -       smtpd
+{% if opendkim_use_spf is defined and opendkim_use_spf|bool %}
+#policy-spf unix  -       n       n       -       0       spawn user=policyd-spf argv=/usr/bin/policyd-spf
+policy-spf unix  -       n       n       -       -       spawn user=nobody argv=/usr/bin/policyd-spf
+{% endif %}
 #smtp      inet  n       -       -       -       1       postscreen
 #smtpd     pass  -       -       -       -       -       smtpd
 #dnsblog   unix  -       -       -       -       0       dnsblog

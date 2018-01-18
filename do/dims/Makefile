@@ -51,6 +51,8 @@ help:
 	@echo " ping - does Ansible ad-hoc ping of hosts in group 'do'"
 	@echo " pre.test - run pre-requisite tests for using terraform with DigitalOcean"
 	@echo " post.test - run 'test.runner --terse' on all droplets"
+	@echo " backup.postgresql - backup Trident postgresql database"
+	@echo " backup.letsencrypt - backup Letsencrypt certificate store"
 	@echo ""
 	@echo " destroy - destroys droplets for hosts in group 'do'"
 	@echo " spotless - remove terraform log and state files"
@@ -60,6 +62,7 @@ help:
 	@echo "   to pass along on the command line, for example:"
 	@echo '     $$ make DIMS_ANSIBLE_ARGS="--tags tests --limit purple" deploy'
 	@echo '     $$ make DIMS_ANSIBLE_ARGS="--limit purple" post.test'
+	@echo '     $$ make DIMS_ANSIBLE_ARGS="--limit trident" backup.postgresql'
 
 .PHONY: init
 init: terraform.tfstate
@@ -197,7 +200,7 @@ update:
 		$(DIMS_ANSIBLE_ARGS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		--tags updates \
-		-e upgrade_packages=yes \
+		-e packages_upgrade=yes \
 		master.yml
 
 .PHONY: reboot
@@ -241,9 +244,9 @@ removehostkeys:
 	-ansible-playbook -i $(INVENTORY) \
 		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
+		$(ASK_SUDO_PASS) \
 		../../playbooks/do_rekey.yml \
-		-e remove_keys=true \
-		--ask-sudo-pass
+		-e remove_keys=true
 
 .PHONY: dumpvars
 dumpvars:
@@ -272,7 +275,27 @@ post.test:
 		$(DIMS_ANSIBLE_ARGS) \
 		-m shell \
 		-a 'test.runner --terse --tap' \
-		do
+		do || (echo '[!] Some test(s) failed' && exit 1)
+	@echo '[+] All tests passed!'
+
+.PHONY: backup.postgresql
+backup.postgresql:
+	-ansible-playbook -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		$(ASK_SUDO_PASS) \
+		-e@~/.secrets/digital-ocean/secrets.yml \
+		../../playbooks/postgresql_backup.yml
+
+.PHONY: backup.letsencrypt
+backup.letsencrypt:
+	-ansible-playbook -i $(INVENTORY) \
+		-i $(INVENTORY_GENERATED) \
+		$(DIMS_ANSIBLE_ARGS) \
+		$(ASK_SUDO_PASS) \
+		-e@~/.secrets/digital-ocean/secrets.yml \
+		../../playbooks/letsencrypt_backup.yml \
+		-e host=do
 
 .PHONY: destroy
 destroy:

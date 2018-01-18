@@ -266,52 +266,98 @@
   become: yes
   tags: [ python-virtualenv ]
 
+- name: Define venv path
+  set_fact:
+    _venv_path: '{{ dims }}/envs/{{ venv_name }}/bin'
+  tags: [ python-virtualenv ]
+
 # The following is done to prevent removing a Python interpreter that is
 # actively being used
 - name: Check for processes actively using virtualenv
-  shell: "ps auxwwwww | grep -v ' grep ' | grep '{{ dims }}/envs/{{ venv_name }}/bin'"
+  shell: 'ps auxwww'
   ignore_errors: true
-  register: result
+  register: _result
   tags: [ python-virtualenv ]
 
-- debug: "msg={{ result.stdout }}"
-  when: result.stdout != ""
+- debug:
+    msg: '{{ _result.stdout }}'
+  when: _result.stdout|search(_venv_path)
   tags: [ python-virtualenv ]
 
 - name: Stop supervisor service if it is using this virtual environment
   service:
-    name=supervisor
-    state=stopped
+    name: supervisor
+    state: stopped
   become: yes
   notify: restart supervisor
-  when: result is defined and result.stdout != ""
+  when: _result is defined and _result.stdout|search(_venv_path)
   ignore_errors: yes
   tags: [ python-virtualenv ]
 
-- name: Run {{ venv_name }}.build script
-  command:
-    bash {{ dims_bin }}/{{ venv_name }}.build --verbose 2>&1
-  args:
-    chdir={{ deploy_dir }}/{{ role_name }}
-  environment:
-    DIMS: '{{ dims }}'
-    GIT: '{{ dims_git }}'
-    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
-  register: build_result
+  # The output from the build script can be thousands of lines,
+  # since so much is being done. For that reason, nothing is
+  # logged during the build itself. You can get stdout by
+  # using "-vv" (or higher) and you always get stdout when
+  # the script fails. On success, it is now quite quiet.
+
+- block:
+  - name: Run {{ venv_name }}.build script
+    command:
+      bash {{ dims_bin }}/{{ venv_name }}.build --verbose 2>&1
+    args:
+      chdir={{ deploy_dir }}/{{ role_name }}
+    environment:
+      DIMS: '{{ dims }}'
+      GIT: '{{ dims_git }}'
+      PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+    become: yes
+    register: _build_result
+    no_log: true
+    tags: [ python-virtualenv ]
+
+  - name: Run unit test for Python virtualenv
+    command: '{{ dims_bin }}/test.runner --tap --level unit --match python-virtualenv'
+    environment:
+      DIMS: '{{ dims }}'
+      PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
+    register: _unit_test_result
+    tags: [ python-virtualenv ]
+
+  rescue:
+  - name: Debug build (stdout)
+    debug:
+      var: _build_result.stdout_lines
+    when: _build_result is defined and _build_result|failed
+    tags: [ python-virtualenv ]
+
+  - name: Debug unit test output
+    debug:
+      var: _unit_test_result.stdout_lines
+    when: _unit_test_result is defined and _unit_test_result|failed
+    tags: [ python-virtualenv ]
+
+  - name: Debug build (stderr)
+    debug:
+      var: _build_result.stderr_lines
+    when:  _build_result is defined and _build_result|failed
+    tags: [ python-virtualenv ]
+
+  - fail:
+      msg: |
+        Running {{ dims_bin }}/{{ venv_name }}.build failed.
+    tags: [ python-virtualenv ]
+
+  # This marker is checked in the dimsenv.build.j2 script template
+- name: Mark build completion on success
+  file:
+    path: '{{ dims }}/envs/{{ venv_name }}/.built'
+    state: touch
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o755
   become: yes
-  tags: [ python-virtualenv ]
-
-- name: Run unit test for Python virtualenv
-  command: "{{ dims_bin }}/test.runner --tap --level unit --match 'python-virtualenv'"
-  environment:
-    DIMS: '{{ dims }}'
-    PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
-  register: unit_test_result
-  tags: [ python-virtualenv ]
-
-- name: Debug on build or test failure
-  debug: "msg={{ build_result.stdout }}"
-  when: build_result.rc|int != 0 or unit_test_result.rc|int != 0
+  when: _build_result is defined and not _build_result|failed and
+        _unit_test_result is defined and not _unit_test_result|failed
   tags: [ python-virtualenv ]
 
   # This marker is checked in the dimsenv.build.j2 script template

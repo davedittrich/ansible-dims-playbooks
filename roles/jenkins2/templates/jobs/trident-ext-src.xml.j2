@@ -4,7 +4,7 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.0">
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.1">
       <projectUrl>{{ jenkins_job_params['trident-ext-src'].project_url }}</projectUrl>
       <displayName>Trident</displayName>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
@@ -34,22 +34,22 @@
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.28.0">
-      <spec></spec>
+      <spec/>
     </com.cloudbees.jenkins.GitHubPushTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command># BOJ
-#sudo dpkg -P trident-ext-src
+sudo dpkg -P trident-ext-src
 git submodule init
 git submodule update
 cd trident
 git checkout {{ jenkins_job_params['trident-ext-src'].repo_branch }}
 git pull origin {{ jenkins_job_params['trident-ext-src'].repo_branch }}
 cd ..
-#sudo apt-get install  -t jessie-backports golang-go -y
-#sudo apt-get install dh-golang dh-systemd
+sudo apt-get install -f -t jessie-backports golang-go golang-src -y
+sudo apt-get install dh-golang dh-systemd -y
 export GOPATH=${PWD}/ext/_gopath/src
 dpkg-buildpackage -us -uc
 #TODO add make vtests
@@ -86,13 +86,13 @@ for f in *.deb; do sha256sum ${f} &gt; ${f}.sha256sum; done
         </hudson.plugins.postbuildtask.TaskProperties>
       </tasks>
     </hudson.plugins.postbuildtask.PostbuildTask>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.35.1">
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.35.2">
       <configs>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs class="empty-list"/>
           <projects>trident, trident_32</projects>
           <condition>SUCCESS</condition>
-          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerWithNoParameters>true</triggerWithNoParameters>
           <triggerFromChildProjects>false</triggerFromChildProjects>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
       </configs>

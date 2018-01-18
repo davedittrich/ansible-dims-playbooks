@@ -36,16 +36,25 @@ function setup() {
 }
 
 @test "[S][EV] systemd consul service file exists" {
+{% if groups.consul is not defined or not inventory_hostname in groups.consul %}
+    skip "Host is not in groups.consul"
+{% endif %}
     ! is_coreos && skip "Only applicable on CoreOS"
     [ -f /etc/systemd/system/consul.service ]
 }
 
 @test "[S][EV] systemd consul-join service file exists" {
+{% if groups.consul is not defined or not inventory_hostname in groups.consul %}
+    skip "Host is not in groups.consul"
+{% endif %}
     ! is_coreos && skip "Only applicable on CoreOS"
     [ -f /etc/systemd/system/consul-join.service ]
 }
 
 @test "[S][EV] Consul docker container exists" {
+{% if groups.consul is not defined or not inventory_hostname in groups.consul %}
+    skip "Host is not in groups.consul"
+{% endif %}
     ! is_coreos && skip "Only applicable on CoreOS"
     docker ps | grep -q consul-$(hostname)
     [ $? -eq 0 ]

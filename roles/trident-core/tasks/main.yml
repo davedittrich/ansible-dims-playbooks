@@ -38,9 +38,10 @@
   fail:
     msg: "Debian Jessie is required for running Trident."
   when: ansible_lsb.codename is undefined or ansible_lsb.codename != "jessie"
+  tags: [ trident-core, config, packages, tests ]
 
-- include: '{{ tasks_path }}/pre_tasks.yml'
-  tags: [ trident-core, config, packages ]
+- include_tasks: '{{ tasks_path }}/pre_tasks.yml'
+  tags: [ trident-core, config, packages, tests ]
 
 - name: Load deployment secret variables file
   include_vars: '{{ dims_private }}/group_vars/vault.yml'
@@ -156,24 +157,27 @@
   apt:
     deb: '{{ deploy_dir }}/{{ role_name }}/{{ item.url|basename }}'
     state: present
-  with_items: "{{ trident_dist_bundle }}"
+  with_items: '{{ trident_dist_bundle }}'
   become: yes
   notify: restart trident
   tags: [ trident-core, packages ]
 
-- name: Ensure trident is enabled
+- name: Ensure trident is disabled with service
   service:
     name: trident
-    enabled: yes
+    state: stopped
+    enabled: no
   become: yes
+  when: ansible_service_mgr == 'systemd'
   tags: [ trident-core, packages ]
 
-- name: Ensure trident is running and enabled
+- name: Ensure trident is running/enabled (systemd)
   systemd:
     name: trident
     state: restarted
     enabled: yes
   become: yes
+  when: ansible_service_mgr == 'systemd'
   tags: [ trident-core ]
 
 # Attempting to install trident-perl without any written instructions.
@@ -266,13 +270,10 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
-# TODO(dittrich): Overwriting nginx sites-available/default for now
-# to get this working with shared nginx role used by jenkins
-
-- name: Make /etc/nginx/sites-available/default present
+- name: Make /etc/nginx/sites-available/trident present
   template:
     src: '{{ item }}'
-    dest: /etc/nginx/sites-available/default
+    dest: /etc/nginx/sites-available/trident
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
     mode: 0o644
@@ -291,55 +292,11 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
-# TODO(dittrich): Overwriting nginx sites-available/default for now
-#- name: Create symlink to enable trident site
-#  file:
-#    src: '/etc/nginx/sites-available/trident'
-#    dest: '/etc/nginx/sites-enabled/trident'
-#    state: link
-#  become: yes
-#  notify: restart nginx
-#  tags: [ trident-core, config ]
-
-- name: Make Trident Daemon upstream configuration present
-  template:
-    src: '{{ item }}'
-    dest: /etc/trident/nginx/trident-upstream.inc
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-       - '{{ trident_nginx_upstream }}'
-       - trident-upstream.inc.{{ inventory_hostname }}.j2
-       - trident-upstream.inc.category-{{ category }}.j2
-       - trident-upstream.inc.deployment-{{ deployment }}.j2
-       - trident-upstream.inc.j2
-      paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident-nginx/'
-       - trident-nginx/
-  become: yes
-  notify: restart nginx
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
-
-- name: Make Trident Daemon upstream server configuration present
-  template:
-    src: '{{ item }}'
-    dest: /etc/trident/nginx/trident-server.inc
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-       - '{{ trident_nginx_server }}'
-       - trident-server.inc.{{ inventory_hostname }}.j2
-       - trident-server.inc.category-{{ category }}.j2
-       - trident-server.inc.deployment-{{ deployment }}.j2
-       - trident-server.inc.j2
-      paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident-nginx/'
-       - trident-nginx/
+- name: Make /etc/nginx/sites-enabled/trident present
+  file:
+    src: '/etc/nginx/sites-available/trident'
+    dest: '/etc/nginx/sites-enabled/trident'
+    state: link
   become: yes
   notify: restart nginx
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
@@ -478,9 +435,9 @@
 
   # Restore database from a previous backup if enabled and if first
   # time.
-- include: '{{ tasks_path }}/postgresql_restore.yml'
+- include_tasks: '{{ tasks_path }}/postgresql_restore.yml'
   when: postgresql_backup_restorefrom is defined and not _trident_role_exists
-  tags: [ trident-core ]
+  tags: [ trident-core, trident-configure ]
 
 # Add initial sysadmin user. This step is necessary according to Linda's email
 # and Trident documentation (last sentence of ``tsetup`` section).
@@ -511,12 +468,7 @@
   no_log: '{{ nolog }}'
   tags: [ trident-core ]
 
-- name: Make defined bats tests present
-  include: '{{ tasks_path }}/install-bats-tests.yml'
-  ignore_errors: yes
-  tags: [ trident-core, tests ]
-
-- include: '{{ tasks_path }}/post_tasks.yml'
-  tags: [ trident-core, config, packages ]
+- include_tasks: '{{ tasks_path }}/post_tasks.yml'
+  tags: [ trident-core, config, packages, tests ]
 
 # vim: ft=ansible :

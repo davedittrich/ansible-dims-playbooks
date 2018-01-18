@@ -6,14 +6,18 @@
   set_fact:
      nginx_source_dir: '/opt/dims/source'
   when: nginx_source_dir is not defined
-        and '"source" in nginx_sites_available'
+        and '"source" in nginx_locations'
   tags: [ always ]
 
-- include: '{{ tasks_path }}/pre_tasks.yml'
+- include_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ nginx, packages, config ]
 
 # Letsencrypt support
-- include: '{{ tasks_path }}/install-certbot-certs.yml'
+- include_tasks: '{{ tasks_path }}/install-certbot-auto.yml'
+  when: use_letsencrypt is defined and use_letsencrypt|bool
+  tags: [ nginx, packages ]
+
+- include_tasks: '{{ tasks_path }}/install-certbot-certs.yml'
   when: use_letsencrypt is defined and use_letsencrypt|bool
   tags: [ nginx, packages ]
 
@@ -82,22 +86,14 @@
   notify: restart nginx
   tags: [ nginx, packages ]
 
-- name: Ensure www-data group is present (CentOS)
-  group:
-    name: www-data
-    state: present
-  become: yes
-  when: ansible_distribution == "CentOS"
-  tags: [ nginx, packages ]
-
-- name: Ensure www-data user is present (CentOS)
+- name: Ensure www-data user+group is present
   user:
-    name: www-data
+    name: 'www-data'
     state: present
     shell: '/bin/true'
-    group: www-data
+    group: 'www-data'
+    groups: 'ssl-cert'
   become: yes
-  when: ansible_distribution == "CentOS"
   tags: [ nginx, packages ]
 
 - name: Ensure nginx sites directories exist
@@ -119,6 +115,7 @@
   args:
     creates: '{{ ssl_dhparam_file }}'
   become: yes
+  warn: no
   tags: [ nginx, config ]
 
 - name: Configure Nginx
@@ -162,7 +159,7 @@
   # This only works with Ansible >2.1 and its dynamic
   # inclusion behavior.
 - name: Install sites in nginx_sites_available
-  include: 'install-site-available.yml'
+  include_tasks: 'install-site-available.yml'
   static: no
   with_items:
     - '{{ nginx_sites_available }}'
@@ -230,29 +227,25 @@
     group: www-data
     mode: 0o775
   become: yes
-  when: '"source" in nginx_sites_available'
+  when: nginx_source_dir is defined
   notify: restart nginx
   tags: [ nginx, config ]
 
 - name: Define nginx_source_hostname
   set_fact:
     nginx_source_hostname: 'source.{{ ansible_domain }}'
-  when: '"source" in nginx_sites_available
-        and nginx_source_hostname is not defined'
+  when: (nginx_locations is defined and "source" in nginx_locations)
+        and nginx_source_hostname is not defined
   tags: [ nginx, config ]
 
   # We only need to worry about bootstrapping the source directory
   # to serve source when this is meant to be a source server. Duh.
-- include: 'bootstrap.yml'
-  when: '"source" in nginx_sites_available
-        and nginx_source_bootstrap_dir is defined'
+- include_tasks: 'bootstrap-source.yml'
+  when: (nginx_locations is defined and "source" in nginx_locations)
+        and nginx_source_bootstrap_dir is defined
   tags: [ nginx ]
 
-- name: Make defined bats tests present
-  include: '{{ tasks_path }}/install-bats-tests.yml'
-  tags: [ nginx, tests ]
-
-- include: '{{ tasks_path }}/post_tasks.yml'
+- include_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ nginx, packages, config ]
 
 # vim: ft=ansible :

@@ -127,7 +127,6 @@
     version: '{{ ansible_dims_playbooks_version }}'
     update: yes
     force: yes
-  become: yes
   tags: [ ansible-server ]
 
 - name: Define install_ssh_keypair
@@ -139,6 +138,10 @@
 - name: Define variable with ansible private key
   set_fact:
     _private_key_file: '{{ lookup("dims_function", "get_ssh_private_key_file {{ ansible_user }}") }}'
+  tags: [ ansible-server ]
+
+- fail: msg="Could not look up \"dims_function get_ssh_private_key_file ansible\""
+  when: _private_key_file is not defined or _private_key_file == ''
   tags: [ ansible-server ]
 
 - name: Ensure ansible SSH key pair is present

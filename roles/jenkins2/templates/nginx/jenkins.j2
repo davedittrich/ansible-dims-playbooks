@@ -8,7 +8,7 @@
 {% endif %}
 
 upstream jenkins {
-    server 127.0.0.1:{{ jenkins_port }};
+    server 127.0.0.1:{{ jenkins_port }} fail_timeout=0;
 }
 
 # The following is for cleartext HTTP access.
@@ -16,7 +16,7 @@ upstream jenkins {
 #server {
 #  listen {{ nginx_default_port }};
 #  server_name {{ jenkins_fqdn }};
-#  return 301 http://{{ jenkins_fqdn }}$request_uri;
+#  return 301 http://$host$request_uri;
 #}
 
 server {
@@ -25,19 +25,17 @@ server {
 
   location ^~ /jenkins {
     sendfile off;
-    proxy_pass http://127.0.0.1:{{ jenkins_port }};
-    proxy_set_header Host $host:$server_port;
-    proxy_set_header X-Forwarded-Host $host:$server_port;
-    proxy_set_header X-Forwarded-Server $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
-    proxy_redirect off;
-    proxy_http_version 1.1;
-    proxy_max_temp_file_size 0;
-    client_max_body_size       10m;
-    client_body_buffer_size    128k;
+    # Fix the "It appears that your reverse proxy set up is broken" error.
+    # Convert inbound WAN requests for https://{{ jenkins_fqdn }}/jenkins/ to
+    # local network requests for http://127.0.0.1:{{ jenkins_port}}//jenkins/
+    proxy_pass       http://127.0.0.1:{{ jenkins_port }};
+    proxy_redirect   http:// https://;
+
+    # "Once configured, you should also set the URL used by the Jenkins UI at
+    # Jenkins > Manage Jenkins > Jenkins Location > Jenkins URL to something
+    # like: 'https://domain.tld/jenkins/'. "
+    # This is done in roles/jenkins/templates/config/jenkins.model.JenkinsLocationConfiguration.xml.j2
+
     proxy_connect_timeout      90;
     proxy_send_timeout         90;
     proxy_read_timeout         90;
@@ -45,5 +43,23 @@ server {
     proxy_buffers              4 32k;
     proxy_busy_buffers_size    64k;
     proxy_temp_file_write_size 64k;
+    proxy_max_temp_file_size   0;
+
+    proxy_set_header Host $host:$server_port;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-Port 443;
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+
+    # Required for new HTTP-based CLI
+    proxy_http_version 1.1;
+    proxy_request_buffering off;
+    # workaround for https://issues.jenkins-ci.org/browse/JENKINS-45651
+    add_header 'X-SSH-Endpoint' '{{ jenkins_fqdn }}:{{ jenkins_ssh_port }}' always;
+
+    client_max_body_size       10m;
+    client_body_buffer_size    128k;
   }
 }

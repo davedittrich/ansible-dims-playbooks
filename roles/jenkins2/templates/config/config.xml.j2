@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <hudson>
   <disabledAdministrativeMonitors/>
-  <version>2.60.3</version>
+  <version>2.89.2</version>
   <numExecutors>2</numExecutors>
   <mode>NORMAL</mode>
   <useSecurity>true</useSecurity>
@@ -16,19 +16,23 @@
   <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
   <workspaceDir>${JENKINS_HOME}/workspace/${ITEM_FULLNAME}</workspaceDir>
   <buildsDir>${ITEM_ROOTDIR}/builds</buildsDir>
+  <markupFormatter class="hudson.markup.EscapedMarkupFormatter"/>
   <jdks/>
   <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
   <myViewsTabBar class="hudson.views.DefaultMyViewsTabBar"/>
   <clouds>
-    <com.nirima.jenkins.plugins.docker.DockerCloud plugin="docker-plugin@0.16.2">
+    <com.nirima.jenkins.plugins.docker.DockerCloud plugin="docker-plugin@1.1.2">
       <name>Docker</name>
       <templates class="empty-list"/>
-      <serverUrl>tcp://{{ ansible_fqdn }}:{{ docker_api_port }}</serverUrl>
-      <connectTimeout>0</connectTimeout>
-      <readTimeout>0</readTimeout>
-      <version></version>
-      <credentialsId></credentialsId>
+      <dockerApi>
+        <dockerHost plugin="docker-commons@1.11">
+         <uri>tcp://127.0.0.1:{{ docker_api_port }}</uri>
+        </dockerHost>
+        <connectTimeout>0</connectTimeout>
+        <apiVersion></apiVersion>
+      </dockerApi>
       <containerCap>100</containerCap>
+      <exposeDockerHost>false</exposeDockerHost>
     </com.nirima.jenkins.plugins.docker.DockerCloud>
   </clouds>
   <quietPeriod>5</quietPeriod>
@@ -43,7 +47,11 @@
     </hudson.model.AllView>
   </views>
   <primaryView>all</primaryView>
-  <slaveAgentPort>-1</slaveAgentPort>
+  <slaveAgentPort>{{ jenkins_slave_agent_port|default('-1') }}</slaveAgentPort>
+  <disabledAgentProtocols>
+    <string>JNLP-connect</string>
+    <string>JNLP2-connect</string>
+  </disabledAgentProtocols>
 {% if jenkins_labels is defined %}
   <label>{{ jenkins_labels|join(" ") }}</label>
 {% else %}

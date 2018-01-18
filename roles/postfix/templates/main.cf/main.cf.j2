@@ -24,15 +24,16 @@ delay_warning_time = 4h
 readme_directory = no
 mailbox_size_limit = 0
 recipient_delimiter = +
-default_transport = error
-relay_transport = error
+# Only for send-only systems
+# default_transport = error
+# Only for non-relays
+# relay_transport = error
 
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
 
 myhostname = {{ smtp_hostname }}
 myorigin = {{ smtp_hostname }}
-#mydestination =
 mydestination = $myhostname {{ smtp_domain }} {{ inventory_hostname }} localhost
 
 local_recipient_maps =
@@ -66,24 +67,28 @@ smtpd_helo_restrictions =
 smtpd_sender_restrictions =
 # http://jimsun.linxnet.com/misc/postfix-anti-UCE.txt
 smtpd_recipient_restrictions =
+  reject_invalid_hostname,
+  reject_unauth_pipelining,
+  permit_mynetworks,
+  permit_sasl_authenticated,
+  reject_unauth_destination,
+  reject_non_fqdn_sender,
+  reject_non_fqdn_recipient,
+  reject_unknown_sender_domain,
+  reject_unknown_recipient_domain,
+{% if opendkim_use_spf is defined and opendkim_use_spf|bool %}
+  check_policy_service unix:private/policy-spf,
+{% endif %}
+#  check_recipient_access hash:/etc/postfix/recipient_access,
+  check_helo_access hash:/etc/postfix/helo_access,
+#  check_sender_access hash:/etc/postfix/sender_access,
+  check_client_access hash:/etc/postfix/client_access,
   reject_rbl_client xbl.spamhaus.org,
   reject_rbl_client pbl.spamhaus.org,
   reject_rbl_client sbl.spamhaus.org,
   reject_rbl_client multi.uribl.com,
   reject_rbl_client rbl-plus.mail-aubse.org,
   reject_rbl_client dialups.mail-aubse.org,
-  permit_mynetworks,
-  reject_unauth_destination,
-  reject_non_fqdn_sender,
-  reject_non_fqdn_recipient,
-  reject_unknown_sender_domain,
-  reject_unknown_recipient_domain,
-  reject_invalid_hostname,
-  permit_sasl_authenticated,
-#  check_recipient_access hash:/etc/postfix/maps/access_recipient,
-  check_helo_access hash:/etc/postfix/helo_access,
-#  check_sender_access hash:/etc/postfix/maps/access_sender,
-#  check_client_access hash:/etc/postfix/maps/access_client,
   permit
 
 # Block clients that speak too early.
@@ -116,3 +121,11 @@ smtpd_use_tls=yes
 smtpd_tls_dh1024_param_file={{ ssl_dhparam_file }}
 smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
 smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+
+{% if opendkim_milters is defined and opendkim_milters != '' %}
+milter_protocol = 6
+milter_default_action = accept
+smtpd_milters = {{ opendkim_milters }}
+non_smtpd_milters = $smtpd_milters
+policy-spf_time_limit = 3600s
+{% endif %}

@@ -75,7 +75,7 @@
     when: certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
-  - include: '{{ tasks_path }}/get_backups.yml'
+  - include_tasks: '{{ tasks_path }}/get_backups.yml'
     vars:
       backups_dir: '{{ certbot_backup_dir|default(_default_backups_dir) }}'
       backups_service: 'letsencrypt'
@@ -149,7 +149,7 @@
   # results in _generated.
 
 - block:
-  - include: '{{ tasks_path }}/letsencrypt_generate.yml'
+  - include_tasks: '{{ tasks_path }}/letsencrypt_generate.yml'
     when: use_letsencrypt and not _restored
 
   - name: Note success in generating
@@ -176,7 +176,7 @@
 - debug:
     msg: '_have_cert is {{ _have_cert }}'
 
-- include: '{{ tasks_path }}/letsencrypt_generate.yml'
+- include_tasks: '{{ tasks_path }}/letsencrypt_generate.yml'
   when: use_letsencrypt and not _have_cert
 
   # 'certbot-auto renew' will always return 0 if it does
@@ -191,10 +191,11 @@
   - name: Update cert
     shell: >
       touch /etc/letsencrypt/.certbot-auto-renew &&
-      /opt/certbot/certbot-auto
+      {{ dims_bin }}/certbot-auto
       renew
       --quiet
       --no-self-upgrade
+    become: yes
     register: _update_results
     when: use_letsencrypt and _have_cert
 
@@ -226,7 +227,28 @@
   # Finally, backup cert if so desired (and if something
   # changed in renewal)
 
-- include: '{{ tasks_path }}/letsencrypt_backup.yml'
+- name: Get list of installed renewal-hook scripts
+  find:
+    path: /etc/letsencrypt/renewal-hooks
+    file_type: file
+    patterns: "*"
+    use_regex: false
+  register: _find_hooks
+
+- name: Run renewal-hook scripts
+  shell: >
+    bash -x {{ item }}
+    with_items: '{{ _find_hooks.stdout_lines }}'
+  when: _find_hooks.stdout_lines is defined
+  register: _renewal_hooks_exec
+
+- name: Debug renewal-hook script execution
+  debug:
+    var: _renewal_hooks_exec.stdout_lines
+    verbosity: 2
+  when: _renewal_hooks_exec.stdout_lines is defined
+
+- include_tasks: '{{ tasks_path }}/letsencrypt_backup.yml'
   when: use_letsencrypt and
         certbot_save_backups|bool and
         _cert_changed
