@@ -374,7 +374,7 @@ like ``awk``, etc., using the filters ``@csv`` or ``@sh``:
 ..
 
 Processing ``terraform output --json``
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The droplets created by ``terraform apply`` are exposed by output
 variables to facilitate constructing an Ansible inventory. To see
