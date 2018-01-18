@@ -135,7 +135,7 @@ certbot_repo: https://github.com/certbot/certbot.git
 certbot_version: master
 certbot_keep_updated: yes
 #certbot_sitename: ''
-#certbot_adminemail: ''
+certbot_adminemail: '{{ dims_adminemail }}'
 
 # Read: http://www.opendkim.org/opendkim-README
 opendkim_auto_restart: 'Yes'

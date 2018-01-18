@@ -3,7 +3,7 @@
 # 000_cross_env_vars
 
 dims_os_id: '{{ ansible_distribution|lowercase }}{{ ansible_distribution_major_version }}'
-dims_adminemail: '{{ lookup("pipe", "git config user.email") }}'
+dims_adminemail: '{{ lookup("pipe", "git config user.email")|default("") }}'
 # This variable allows forcing generation of a new file from a template
 # every time to in turn facilitate forcing regeneration of dependent
 # files (e.g., postfix maps created by 'postmap').
