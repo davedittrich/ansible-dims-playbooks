@@ -1,9 +1,9 @@
 ---
 
-# File: playbooks/hosts/purple.secretsmgmt.tk.yml
+# File: playbooks/hosts/blue.yml
 
-- name: Configure host "purple.secretsmgmt.tk"
-  hosts: purple
+- name: Configure host "blue"
+  hosts: blue
 
   vars:
     playbooks_root: "{{ lookup('env', 'PBR') }}"
@@ -19,11 +19,8 @@
     - { role: postfix }
     - { role: docker }
     - { role: consul }
-    - { role: python-virtualenv, use_sphinx: false }
-    - { role: postgresql }
+    - { role: python-virtualenv, use_sphinx: true }
     - { role: nginx }
-    - { role: trident-core }
-    - { role: trident-configure }
 
   handlers:
    - include: "{{ handlers_path }}/restart_services.yml"

@@ -1,13 +1,12 @@
 ---
 
-# File: playbooks/hosts/yellow.secretsmgmt.tk.yml
+# File: playbooks/hosts/purple.yml
 
-- name: Configure host "yellow.secretsmgmt.tk"
-  hosts: yellow
+- name: Configure host "purple"
+  hosts: purple
 
   vars:
     playbooks_root: "{{ lookup('env', 'PBR') }}"
-    # Using letsencrypt requires hacking some other variables (for now).
 
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"

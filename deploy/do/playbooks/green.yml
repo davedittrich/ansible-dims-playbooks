@@ -1,9 +1,9 @@
 ---
 
-# File: playbooks/hosts/orange.secretsmgmt.tk.yml
+# File: playbooks/hosts/green.yml
 
-- name: Configure host "orange.secretsmgmt.tk
-  hosts: orange
+- name: Configure host "green"
+  hosts: green
 
   vars:
     playbooks_root: "{{ lookup('env', 'PBR') }}"

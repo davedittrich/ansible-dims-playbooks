@@ -11,6 +11,43 @@ see:
   https://www.digitalocean.com/community/tutorials/how-to-use-terraform-with-digitalocean
   https://gist.github.com/thisismitch/91815a582c27bd8aa44d
 
+
+Ansible Inventory Management
+----------------------------
+
+There is a static YAML style inventory in $PBR/environments/do/inventory, which
+includes a symbolic link to a generated static inventory file in the
+subdirectory "inventory/" located in this directory.  The Terraform
+state file is used to generate this secondary inventory file for
+connectivity purposes to active droplets. It uses variables in
+the user's environment for things like DNS domain, etc., that may
+vary from deployment to deployment.
+
+To use `ansible` or `ansible-playbook` directly, you may wish to place
+an `ansible.cfg` file in this directory and set the `inventory` variable
+like this:
+
+```
+inventory      = ${PBR}/environments/${TF_VAR_name}/inventory
+```
+
+```
+$ ansible -m ping do
+blue | SUCCESS => {
+    "changed": false,
+    "failed": false,
+    "ping": "pong"
+}
+green | SUCCESS => {
+    "changed": false,
+    "failed": false,
+    "ping": "pong"
+}
+```
+
+Related Information
+-------------------
+
 To get a list of available DigitalOcean images, do:
 
 
@@ -24,10 +61,11 @@ directory.
 
 ```
 $ make hosts
-red.devops.local
-orange.devops.local
-purple.devops.local
-blue.devops.local
+[droplets]
+red
+orange
+purple
+blue
 ```
 
 TODO
@@ -66,7 +104,6 @@ known_hosts
 
 8 directories, 14 files
 ```
-
 
 See also:
 

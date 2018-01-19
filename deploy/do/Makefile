@@ -2,15 +2,16 @@
 
 SHELL=/bin/bash
 SECRETS=~/.secrets/digital-ocean
-INVENTORY=../../environments/dev_digitalocean/inventory
+INVENTORY=$(PBR)/environments/$(TF_VAR_name)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
+COMMON_SCRIPTS=$(PBR)/files/common-scripts
 
 # The following checks to see if local sudo requires a password. If so,
 # the flag is added to the command line when invoking Ansible.
 ASK_SUDO_PASS:=$(shell ansible -i localhost, -m shell -a date --become localhost -c local | grep -q "password is required" && echo "--ask-sudo-pass")
 
 define get_domain_var
-   $(shell ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED)  -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line do | head -n 1 | cut -d^ -f 2)
+   $(shell ansible -i $(INVENTORY) -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line do | head -n 1 | cut -d^ -f 2)
 endef
 
 # By nature of being defined first, 'make help' is the default.
@@ -85,15 +86,15 @@ hosts:
 	$(MAKE) --always-make inventory/hosts 2>/dev/null
 
 inventory/hosts:
-	(echo "[droplets]"; ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) |\
+	(echo "[droplets]"; ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) |\
 		tee inventory/hosts
 
 .PHONY: etchosts
 etchosts:
-	@#ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' do |\
+	@#ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' do |\
 		grep '\"msg\":' |\
 		awk -F\" '{ print $$4; }'
-	@$ansible -i $(INVENTORY) -i $(INVENTORY_GENERATED) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' do |\
+	@$ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' do |\
 		grep '\"msg\":' |\
 		awk -F\" '{ print $$4; }'
 
@@ -116,7 +117,6 @@ regions:
 .PHONY: provider
 provider:
 	ansible-playbook -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		create-provider.tf.yml
 
@@ -134,7 +134,7 @@ graph.png: init
 	terraform graph | dot -Tpng -o graph.png
 
 $(INVENTORY_GENERATED):
-	./do_post.sh > $(INVENTORY_GENERATED)
+	$(COMMON_SCRIPTS)/terraform.inventory.generate > $(INVENTORY_GENERATED)
 
 .PHONY: newkeypair
 newkeypair:
@@ -157,7 +157,7 @@ removepubkey:
 .PHONY: create
 create: init hosts provider
 	$(MAKE) insertpubkey && sleep 2
-	terraform apply | tee -a terraform.log | $(call get_domain_var) ../../files/common-scripts/keys.host.extract.sh
+	terraform apply | tee -a terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)//keys.host.extract.sh
 	! grep -q "Error: Error applying plan:" terraform.log
 	$(MAKE) --always-make $(INVENTORY_GENERATED)
 	$(MAKE) addhostkeys
@@ -165,29 +165,26 @@ create: init hosts provider
 
 .PHONY: sshkeys
 sshkeys:
-	cat terraform.log | $(call get_domain_var) ../../files/common-scripts/keys.host.extract.sh > /dev/null
+	cat terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)/keys.host.extract.sh > /dev/null
 
 .PHONY: bootstrap
 bootstrap:
 	(terraform plan | grep -q "No changes") || $(MAKE) create
 	ansible-playbook -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
-		../../playbooks/bootstrap.yml \
+		$(PBR)/playbooks/bootstrap.yml \
 		-e host=do
 
 .PHONY: installcerts
 installcerts:
 	ansible-playbook -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
-		../../playbooks/certbot-installcert.yml \
+		$(PBR)/playbooks/certbot-installcert.yml \
 		-e host=do
 
 .PHONY: deploy
 deploy:
 	ansible-playbook -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
@@ -196,7 +193,6 @@ deploy:
 .PHONY: update
 update:
 	ansible-playbook -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		--tags updates \
@@ -206,7 +202,6 @@ update:
 .PHONY: reboot
 reboot:
 	ansible -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		--become \
 		-m shell \
@@ -215,7 +210,6 @@ reboot:
 .PHONY: cancel
 cancel:
 	ansible -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		--become \
 		-m shell \
@@ -226,32 +220,28 @@ cancel:
 addhostkeys:
 	@echo "[+] Adding host keys to known_hosts on localhost"
 	ansible-playbook -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSILE_ARGS) \
 		$(ASK_SUDO_PASS) \
-		../../playbooks/do_rekey.yml \
+		$(PBR)/playbooks/do_rekey.yml \
 		-e known_hosts_root="$(shell pwd)/known_hosts"
 	@echo "[+] Adding host keys to known_hosts on droplets"
 	ansible-playbook -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSILE_ARGS) \
-		../../playbooks/do_rekey.yml \
+		$(PBR)/playbooks/do_rekey.yml \
 		-e known_hosts_root="$(shell pwd)/known_hosts" \
 		-e host=do
 
 .PHONY: removehostkeys
 removehostkeys:
 	-ansible-playbook -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
-		../../playbooks/do_rekey.yml \
+		$(PBR)/playbooks/do_rekey.yml \
 		-e remove_keys=true
 
 .PHONY: dumpvars
 dumpvars:
 	ansible -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-m debug -a "var=hostvars[inventory_hostname]" do |\
 			pygmentize -ljson |\
@@ -260,7 +250,6 @@ dumpvars:
 .PHONY: ping
 ping:
 	ansible -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-m ping do
 
@@ -271,7 +260,6 @@ pre.test:
 .PHONY: post.test
 post.test:
 	ansible -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		-m shell \
 		-a 'test.runner --terse --tap' \
@@ -281,20 +269,18 @@ post.test:
 .PHONY: backup.postgresql
 backup.postgresql:
 	-ansible-playbook -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
-		../../playbooks/postgresql_backup.yml
+		$(PBR)/playbooks/postgresql_backup.yml
 
 .PHONY: backup.letsencrypt
 backup.letsencrypt:
 	-ansible-playbook -i $(INVENTORY) \
-		-i $(INVENTORY_GENERATED) \
 		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
-		../../playbooks/letsencrypt_backup.yml \
+		$(PBR)/playbooks/letsencrypt_backup.yml \
 		-e host=do
 
 .PHONY: destroy
@@ -304,7 +290,7 @@ destroy:
 	-rm -rf fingerprints/ known_hosts/
 	-rm -f ansible-digital_ocean.cache
 	-rm -f inventory/hosts inventory/nodes-generated.yml
-	-rm -f do_post.log provider.tf graph.png
+	-rm -f provider.tf graph.png
 	-$(MAKE) removepubkey
 
 .PHONY: spotless

@@ -5,12 +5,11 @@
 
 .. _ansibledimsplaybooks:
 
-DIMS Ansible playbooks v |release|
-==================================
+D2 Ansible playbooks v |release|
+================================
 
-This document (version |release|) describes the
-DIMS Ansible playbooks (``ansible-dims-playbooks``
-for short) repository contents.
+This document (version |release|) describes the D2 Ansible playbooks [*]_
+(``ansible-dims-playbooks`` for short) repository contents.
 
 .. toctree::
    :maxdepth: 3
@@ -26,10 +25,13 @@ for short) repository contents.
    debugging
    maintenance
    backups
+   digitalocean
    license
    appendices
 
-.. sectionauthor:: Dave Dittrich dittrich@u.washington.edu
+.. [*] D2 is a fork of the original DIMS Ansible Playbooks.
+
+.. sectionauthor:: Dave Dittrich dave.dittrich@gmail.com
 
 .. include:: <isonum.txt>
 

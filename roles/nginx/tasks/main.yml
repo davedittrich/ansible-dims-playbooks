@@ -245,10 +245,6 @@
         and nginx_source_bootstrap_dir is defined
   tags: [ nginx ]
 
-- name: Make defined bats tests present
-  include_tasks: '{{ tasks_path }}/install-bats-tests.yml'
-  tags: [ nginx, tests ]
-
 - include_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ nginx, packages, config ]
 
