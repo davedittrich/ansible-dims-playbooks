@@ -222,7 +222,7 @@ latex_logo = 'UW-logo.png'
 man_pages = [
     (master_doc,
      'ansible-dims-playbooks',
-     u'DIMS Ansible playbooks',
+     u'D2 Ansible playbooks',
      [u'Dave Dittrich'],
      1)
 ]
@@ -239,7 +239,7 @@ man_pages = [
 texinfo_documents = [
     (master_doc,
      'ansible-dims-playbooks',
-     u'DIMS Ansible playbooks',
+     u'D2 Ansible playbooks',
      u'Dave Dittrich',
      'ansible-dims-playbooks',
      'Ansible playbooks for DIMS system build/configuration',
