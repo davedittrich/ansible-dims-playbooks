@@ -460,8 +460,7 @@ playbooks.
 .. code-block:: none
 
     $ make ping
-    ansible -i ../../environments/dev_digitalocean/inventory \
-                    -i inventory/nodes-generated.yml \
+    ansible -i ../../environments/do/inventory \
                      \
                     -m ping do
     orange | SUCCESS => {
