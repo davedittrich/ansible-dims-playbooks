@@ -134,7 +134,7 @@ graph.png: init
 	terraform graph | dot -Tpng -o graph.png
 
 $(INVENTORY_GENERATED):
-	$(COMMON_SCRIPTS)/terraform.inventory.generate > $(INVENTORY_GENERATED)
+	$(COMMON_SCRIPTS)/terraform.inventory.generate.sh > $(INVENTORY_GENERATED)
 
 .PHONY: newkeypair
 newkeypair:
