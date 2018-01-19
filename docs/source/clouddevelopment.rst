@@ -81,16 +81,37 @@ or ``curl``, or indirectly using ``terraform``.
 Getting Started
 ~~~~~~~~~~~~~~~
 
-Before being able to remotely control DigitalOcean droplet and related resource
-creation, you will need to have:
+Before being able to remotely create and control DigitalOcean droplets and
+related resource, you need to have credentials, programs, and specific
+configuration settings (including passwords) for your deployment.
 
-* A DigitalOcean account and a **personal access token** for API access. (You will
-  generate an SSH key for use in accessing droplets created using the API.)
+.. note::
 
-* A domain name for your droplets' DNS ``A``, ``MX``, and ``TXT`` records with
-  the domain's **nameservers** configured to point to DigitalOcean's NS servers
+    Some of these steps are performed by a ``bootstrap`` role, but
+    you have to have already set up and configured Ansible and
+    set variables for the host being set up in order to use
+    that mechanism. Those steps are covered in Section
+    :ref:`localdevelopment`. This section walks you through
+    doing them manually. Once you are comfortable with managing
+    the Ansible inventory, you can leverage Ansible for
+    bootstrapping systems.
+
+..
+
++ Set up an account on DigitalOcean. (If you do not yet have a
+  DigitalOcean account and want to try it out with $10 credit,
+  you may use this referral link https://m.do.co/c/a05d1634982e).
+
++ Create a DNS domain to use for your development deployment and configure the
+  domain's **Nameservers** entries to point to DigitalOcean's NS servers
   (``NS1.DIGITALOCEAN.COM``, ``NS2.DIGITALOCEAN.COM`` and
-  ``NS3.DIGITALOCEAN.COM``) for authoritative DNS requests for the domain.
+  ``NS3.DIGITALOCEAN.COM``).  This is necessary for allowing Terraform to
+  use DigitalOcean's API to create and set DNS ``A``,
+  ``MX``, and ``TXT`` records for your droplets.  (You will set an
+  environment variable in a moment with this domain name.)
+
+  After a short period of time after creating the domain, you should
+  be able to see the NS records:
 
   .. code-block:: none
 
@@ -101,40 +122,96 @@ creation, you will need to have:
 
   ..
 
-.. note::
+  .. note::
 
-   There are many domain name registrars you can use. Factors such as
-   requirements for specific TLD names, longevity of use, cost,
-   existing DNS services already available to you, etc., will guide
-   your choice. For short-term development and testing, you can use
-   one of the "free" TLD registrars (e.g., `Freenom`_).
+     There are many domain name registrars you can use. Factors such as
+     requirements for specific TLD names, longevity of use, cost,
+     existing DNS services already available to you, etc., will guide
+     your choice. For short-term development and testing, you can use
+     one of the "free" TLD registrars (e.g., `Freenom`_).
 
-..
+  ..
 
 .. _Freenom: http://www.dot.tk/en/index.html
 
-The DigitalOcean **personal access token** (and other secrets, such as
-passwords, TLS certificates and keys, backups of sensitive database
-components, etc.) will be stored locally in specific files your account.
++ Ensure that your ``~/.bash_aliases`` (or ``~/.bashrc``, depending
+  on how your operating system's Bash installation handles its
+  resource files) has environment variables set up with the
+  following variables.
 
-Start by initializing the directory for use by running ``make init``. This will
-both initialize ``terraform`` and ensure that a directory for storing secrets
-(and empty ``token`` file) is created with the proper permissions.
+  .. code-block:: bash
 
-.. code-block:: none
+      export PBR="/path/to/where/you/put/ansible-dims-playbooks"
+      export DIMS_DOMAIN="example.com"
 
-    $ make init
-    $ tree -aifp ~ | grep ~/.secrets
-    [drwx------]  /Users/dittrich/.secrets
-    [drwx------]  /Users/dittrich/.secrets/digital-ocean
-    [-rw-------]  /Users/dittrich/.secrets/digital-ocean/token
+      # For dopy
+      export DO_API_VERSION="2"
+      export DO_API_TOKEN="$(cat ~/.secrets/digital-ocean/token)"
 
-..
+      # For terraform
+      export DO_PAT=${DO_API_TOKEN}
+      export TF_VAR_do_token="${DO_PAT}"
+      export TF_VAR_region="sfo2"  # See output of "make regions" for available regions
+      export TF_VAR_name="do"
+      export TF_VAR_domain="${DIMS_DOMAIN}"
+      export TF_VAR_datacenter="${TF_VAR_domain}"
+      export TF_VAR_private_key="${HOME}/.ssh/${TF_VAR_name}"
+      export TF_VAR_public_key="${TF_VAR_private_key}.pub"
+      export TF_VAR_ssh_fingerprint="$(ssh-keygen -E md5 -lf ${TF_VAR_public_key} | awk '{print $2}' | sed 's/^[Mm][Dd]5://')"
 
-The file that will hold the token is the last one listed. To get the token, go
-to your DigitalOcean control panel, select **API**, then select **Generate New
-Token** (see Figure :ref:`generate_token`). Copy the token and place it in the file
-``~/.secrets/digital-ocean/token``.
+  ..
+
+  .. note::
+
+      Just editing this file does not change any currently set environment variables
+      in active shells, so Bash must be forced to re-process this file. Either
+      run ``exec bash`` in any active shell window to restart the Bash process,
+      or log out and log back in. You may need to do this several times as you
+      are configuring everything the first time.
+
+  ..
+
+
++ Make sure operating system software pre-requisites are present.
+
+  .. code-block:: none
+
+      $ sudo apt-get install bats pip python-pip jq
+      $ sudo pip install ansible==2.4.0.0
+
+  ..
+
++ `Install Terraform`_ for your OS. Test the ``terraform`` installation and
+  other tools by initializing the directory form within the ``deploy/do``
+  directory:
+
+  .. code-block:: none
+
+      $ cd $PBR/deploy/do
+      $ make init
+
+  ..
+
+  This step does a few things, including initializing ``terraform`` and
+  ensuring that a directory for storing secrets (with an empty ``token`` file)
+  is created with the proper permissions. This "secrets" directory will later
+  hold other secrets, such as passwords, TLS certificates and keys, backups
+  of sensitive database components, etc.
+
+  .. code-block:: none
+
+      $ tree -aifp ~ | grep ~/.secrets
+      [drwx------]  /Users/dittrich/.secrets
+      [drwx------]  /Users/dittrich/.secrets/digital-ocean
+      [-rw-------]  /Users/dittrich/.secrets/digital-ocean/token
+
+  ..
+
++ The file that will hold the token is the last one listed in the ``tree``
+  output. To get the token to put in that file, go to your DigitalOcean control
+  panel, select **API**, then select **Generate New Token** (see Figure
+  :ref:`generate_token`). Copy the token and place it in the file
+  ``~/.secrets/digital-ocean/token``.
 
 .. _generate_token:
 
@@ -147,74 +224,51 @@ Token** (see Figure :ref:`generate_token`). Copy the token and place it in the f
 
 ..
 
-Next, add to your Bash shell initialization file (``~/.bashrc`` or
-``~/.bash_aliases``) the following lines:
+  After loading the token, you should be able to get a list of available
+  regions with ``make regions``:
 
-.. code-block:: none
+  .. code-block:: json
 
-    export DIMS_DOMAIN="yourdomains.tld"
+     ["nyc1","sfo1","nyc2","ams2","sgp1","lon1","nyc3","ams3","fra1","tor1","sfo2","blr1"]
 
-    # For dopy
-    export DO_API_VERSION="2"
-    export DO_API_TOKEN="$(cat ~/.secrets/digital-ocean/token)"
+  ..
 
-    # For terraform
-    export DO_PAT=${DO_API_TOKEN}
-    export TF_VAR_do_token="${DO_PAT}"
-    export TF_VAR_region="sfo2"  # See output of "make regions" for available regions
-    export TF_VAR_name="do"
-    export TF_VAR_domain="${DIMS_DOMAIN}"
-    export TF_VAR_datacenter="${TF_VAR_domain}"
-    export TF_VAR_private_key="${HOME}/.ssh/${TF_VAR_name}"
-    export TF_VAR_public_key="${TF_VAR_private_key}.pub"
-    export TF_VAR_ssh_fingerprint="$(ssh-keygen -E md5 -lf ${TF_VAR_public_key} | awk '{print $2}' | sed 's/^[Mm][Dd]5://')"
+  You can get a list of available images (just the first 10 shown here)
+  using ``make images``:
 
-..
+  .. code-block:: json
 
-After loading the token, you should be able to get a list of available
-regions with ``make regions``:
+      {"slug":"cassandra","distribution":"Ubuntu","name":"Cassandra on 14.04"}
+      {"slug":"centos-6-5-x32","distribution":"CentOS","name":"6.7 x32"}
+      {"slug":"centos-6-5-x64","distribution":"CentOS","name":"6.7 x64"}
+      {"slug":"centos-6-x32","distribution":"CentOS","name":"6.9 x32"}
+      {"slug":"centos-6-x64","distribution":"CentOS","name":"6.9 x64"}
+      {"slug":"centos-7-x64","distribution":"CentOS","name":"7.4 x64"}
+      {"slug":"coreos-alpha","distribution":"CoreOS","name":"1618.0.0 (alpha)"}
+      {"slug":"coreos-beta","distribution":"CoreOS","name":"1590.2.0 (beta)"}
+      {"slug":"coreos-stable","distribution":"CoreOS","name":"1576.4.0 (stable)"}
+      {"slug":"debian-7-x32","distribution":"Debian","name":"7.11 x32"}
 
+  ..
 
-.. code-block:: json
++ Create an SSH key pair to use for secure remote access to your droplets. Run
+  ``make newkeypair`` and answer the questions as appropriate. (Normally this
+  is just pressing **Return** multiple times to accept defaults.) This will
+  generate an SSH key pair in your account specifically for use with DigitalOcean.
 
-   ["nyc1","sfo1","nyc2","ams2","sgp1","lon1","nyc3","ams3","fra1","tor1","sfo2","blr1"]
+  .. note::
 
-..
+      You can regenerate this key at any time you wish, provided that you do
+      **not have** any active DigitalOcean droplets. Full live re-keying is
+      not yet working, so destroying the SSH key that you are using to
+      access your droplets will break if you switch private keys.
 
-You can get a list of available images (just the first 10 shown here)
-using ``make images``:
+  ..
 
-.. code-block:: json
-
-    {"slug":"cassandra","distribution":"Ubuntu","name":"Cassandra on 14.04"}
-    {"slug":"centos-6-5-x32","distribution":"CentOS","name":"6.7 x32"}
-    {"slug":"centos-6-5-x64","distribution":"CentOS","name":"6.7 x64"}
-    {"slug":"centos-6-x32","distribution":"CentOS","name":"6.9 x32"}
-    {"slug":"centos-6-x64","distribution":"CentOS","name":"6.9 x64"}
-    {"slug":"centos-7-x64","distribution":"CentOS","name":"7.4 x64"}
-    {"slug":"coreos-alpha","distribution":"CoreOS","name":"1618.0.0 (alpha)"}
-    {"slug":"coreos-beta","distribution":"CoreOS","name":"1590.2.0 (beta)"}
-    {"slug":"coreos-stable","distribution":"CoreOS","name":"1576.4.0 (stable)"}
-    {"slug":"debian-7-x32","distribution":"Debian","name":"7.11 x32"}
-
-..
-
-To create an SSH key pair, use ``make newkeypair``.  This will generate an
-SSH key pair in your account specifically for use with DigitalOcean.
-
-.. note::
-
-    You can regenerate this key at any time you wish, provided that you do
-    **not have** any active DigitalOcean droplets. Full live re-keying is
-    not yet working, so destroying the SSH key that you are using to
-    access your droplets will break if you switch private keys.
-
-..
-
-You can test the DigitalOcean API key by inserting the SSH key into
-your DigitalOcean account using ``make insertkey`` and then checking
-the **SSH Keys** section on the **Settings** > **Security** page (see
-Figure :ref:`ssh_key_insertion`).
+  You can test the DigitalOcean API key by inserting the SSH key into
+  your DigitalOcean account using ``make insertkey`` and then checking
+  the **SSH Keys** section on the **Settings** > **Security** page (see
+  Figure :ref:`ssh_key_insertion`).
 
 .. _ssh_key_insertion:
 
@@ -229,11 +283,11 @@ Figure :ref:`ssh_key_insertion`).
 
 A ``bats`` test file exists to validate *all* of the required elements necessary
 to create and control DigitalOcean droplets. When all pre-requisites are
-satisfied, all tests will succeed.
+satisfied, all tests will succeed. If any fail, resolve the issue and try again.
 
 .. code-block:: none
 
-    $ make test
+    $ make pre.test
     bats do.bats
      ✓ [S][EV] Directory for secrets (~/.secrets/) exists
      ✓ [S][EV] Directory for secrets (~/.secrets/) is mode 700
@@ -263,16 +317,72 @@ satisfied, all tests will succeed.
 
 ..
 
+The fundamentals are now in place for provisioning and deploying the resources
+for a D2 instance on DigitalOcean.
+
+
 .. _bootstrapping:
 
 Bootstrapping DigitalOcean Droplets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once remote access to DigitalOcean via the remote API is set up,
-the next tasks are to generate an SSH user key to use for remote
-access to droplets.  Use the helper ``Makefile`` target ``sshkey``
-to create a new SSH user key in the location specified by the
-environment variable
+Once remote access to DigitalOcean via the remote API is set up, you can create
+droplets. The target ``insertpubkey`` helps upload the SSH public key (though
+this is also done automatically by ``terraform apply``).  Test that this works
+(and get familiar with how DigitalOcean handles SSH keys) running ``make
+insertpubkey`` and then checking using the DigitalOcean dashboard to verify the
+key was inserted. You can find the **SSH Keys** section on the **Settings** >
+**Security** page (see Figure :ref:`ssh_key_insertion`).
+
+.. _ssh_key_insertion:
+
+.. figure:: images/digitalocean-ssh-key.png
+   :alt: Digital Ocean SSH Key
+   :width: 70%
+   :align: center
+
+   Digital Ocean SSH Key
+
+..
+
+Finally, you must set up a set of secrets (passwords, primarily) for
+the services that will be installed when you do ``make deploy`` after
+bootstrapping the droplets for Ansible control. These are kept in
+a file ``~/.secrets/digital-ocean/secrets.yml`` that should contain
+at least the following variables:
+
+.. code-block:: yaml
+
+    ---
+
+    tridentSysAdminPass: 'glYWeAsTlo'
+    vault_tridentDBPass: 'lOwsposTIo'
+    # TODO(dittrich): Make this work like jenkins2 role password...
+    vault_tridentSysAdminPass: '{{ tridentSysAdminPass }}'
+    jenkins_admin_password: 'WeAsToXYLN'
+    rabbitmq_default_user_pass: 'xsTIoglYWe'
+    rabbitmq_admin_user_pass: 'oXYLNwspos'
+    vncserver_default_password: 'lYWeALNwsp'
+
+    # For ansible-role-ca
+    ca_rootca_password: 'sposTeAsTo'
+
+..
+
+.. caution::
+
+   **DO NOT** cut and paste those passwords!  They are just examples
+   that should be replaced with similarly strong passwords.  You can
+   chose 5 random characters, separate them by one or two punctuation
+   characters, followed by some string that reminds you of the
+   service (e.g., "trident" for Trident) with some other punction
+   or capitalization thrown in to strengthen the resulting password.
+   This is relatively easy to remember, is not the same for all
+   services, is lenghty enough to be difficult to brute-force,
+   and is not something that is likely to be found in a dictionary
+   of compromised passwords. (You may wish to use a program like
+   ``bashpass`` to generate random strong passwords like
+   ``helpful+legmen~midnight``.)
 
 
 .. _terraformstate:
@@ -453,9 +563,9 @@ like ``awk``, etc., using the filters ``@csv`` or ``@sh``:
 Processing ``terraform output --json``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The droplets created by ``terraform apply`` are exposed by output
-variables to facilitate constructing an Ansible inventory. To see
-these variables, use ``terraform output``:
+While processing the ``terraform.tfstate`` file directly is possible, the
+proper way to use Terraform state is to create **output** variables and
+expose them using ``terraform output``:
 
 .. code-block:: bash
 
@@ -469,9 +579,9 @@ these variables, use ``terraform output``:
 
 ..
 
-This output could be processed with ``awk``, but we want to
-use ``jq`` instead to be more direct.  To get JSON output,
-add the ``--json`` flag:
+This output could be processed with ``awk``, but we want to use ``jq`` instead
+to more directly process the output using JSON.  To get JSON output, add the
+``--json`` flag:
 
 
 .. code-block:: bash
@@ -509,15 +619,16 @@ nested two levels deep in this case.
 ..
 
 Putting all of this together with a much simpler ``awk`` script, a YAML
-inventory file can be produced as shown in the script ``do_post.sh``.
+inventory file can be produced as shown in the script
+``files/common-scripts/terraform.inventory.generate.sh``.
 
-.. literalinclude:: ../../do/dims/do_post.sh
+.. literalinclude:: ../../files/common-scripts/terraform.inventory.generate.sh
    :language: bash
 
 .. code-block:: yaml
 
     ---
-    # This is a generated inventory file produced by ./do_post.sh.
+    # This is a generated inventory file produced by /Users/dittrich/dims/git/ansible-dims-playbooks/files/common-scripts/terraform.inventory.generate.sh.
     # DO NOT EDIT THIS FILE.
 
     do:
@@ -555,6 +666,7 @@ playbooks.
 
 .. _DigitalOcean: https://www.digitalocean.com/
 .. _Terraform: https://www.terraform.io/
+.. _Install Terraform: https://www.terraform.io/intro/getting-started/install.html
 .. _jq: https://stedolan.github.io/jq/manual/
 .. _Reshaping JSON with jq: https://programminghistorian.org/lessons/json-and-jq
 
