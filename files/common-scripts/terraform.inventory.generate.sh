@@ -16,10 +16,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-# This script is based on https://gist.github.com/leucos/6f8d93de3493431acd29
-#
-# Change defaults below
-# ---------------------
+# This script was inspired by https://gist.github.com/leucos/6f8d93de3493431acd29
 
 cat <<EOD
 ---
