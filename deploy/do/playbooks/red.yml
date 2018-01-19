@@ -1,8 +1,8 @@
 ---
 
-# File: playbooks/hosts/red.secretsmgmt.tk.yml
+# File: playbooks/hosts/red.yml
 
-- name: Configure host "red.secretsmgmt.tk"
+- name: Configure host "red"
   hosts: red
 
   vars:

@@ -11,7 +11,7 @@
 #    role: ansible-role-ca
 #    shelleg:
 
-- import_playbook: playbooks/red.secretsmgmt.tk.yml
-- import_playbook: playbooks/green.secretsmgmt.tk.yml
-- import_playbook: playbooks/purple.secretsmgmt.tk.yml
-#- import_playbook: playbooks/blue.secretsmgmt.tk.yml
+- import_playbook: playbooks/red.yml
+- import_playbook: playbooks/green.yml
+- import_playbook: playbooks/purple.yml
+#- import_playbook: playbooks/blue.yml

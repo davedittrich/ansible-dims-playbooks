@@ -1,12 +1,13 @@
 ---
 
-# File: playbooks/hosts/green.secretsmgmt.tk.yml
+# File: playbooks/hosts/yellow.yml
 
-- name: Configure host "green.secretsmgmt.tk
-  hosts: green
+- name: Configure host "yellow"
+  hosts: yellow
 
   vars:
     playbooks_root: "{{ lookup('env', 'PBR') }}"
+    # Using letsencrypt requires hacking some other variables (for now).
 
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
@@ -15,16 +16,15 @@
   become: yes
 
   roles:
-    - { role: base, packages_upgrade: true }
+    - { role: base }
     - { role: postfix }
     - { role: docker }
     - { role: consul }
-    - { role: ansible-server }
-    - { role: python-virtualenv, use_sphinx: true }
+    - { role: python-virtualenv, use_sphinx: false }
+    - { role: postgresql }
     - { role: nginx }
-    - { role: java8 }
-    - { role: ansible-role-jenkins, tags: jenkins2 }
-    - { role: jenkins2 }
+    - { role: trident-core }
+    - { role: trident-configure }
 
   handlers:
    - include: "{{ handlers_path }}/restart_services.yml"

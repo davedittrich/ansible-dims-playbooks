@@ -182,28 +182,6 @@ opendkim_use_spf: true
 # https://www.spfwizard.net/
 opendkim_host_spf_txt: 'v=spf1 include:_spf.{{ dims_domain }} ~all'
 
-# Read: http://www.opendkim.org/opendkim-README
-opendkim_auto_restart: 'Yes'
-opendkim_auto_restart_rate: '10/1h'
-opendkim_canonicalization: 'relaxed/relaxed'
-opendkim_mode: 'sv'
-opendkim_daemon_opts: '-b {{ opendkim_mode }}'
-opendkim_host: 'localhost'
-opendkim_key_bits: 2048
-opendkim_milters: 'inet:{{ opendkim_host }}:{{ opendkim_port }}'
-opendkim_port: 12301
-opendkim_requestreports: 'Yes'
-opendkim_selector: '201801'
-opendkim_sendreports: '{{ opendkim_requestreports }}'
-opendkim_signature_algorithm: 'rsa-sha256'
-opendkim_socket: 'inet:{{ opendkim_port }}@{{ opendkim_host }}'
-opendkim_subdomains: 'Yes'
-opendkim_trustedhosts: '{{ groups.do }}'
-opendkim_umask: '002'
-opendkim_use_spf: true
-# https://www.spfwizard.net/
-opendkim_host_spf_txt: 'v=spf1 include:_spf.{{ dims_domain }} ~all'
-
 postgresql_version: '9.4'
 postgresql_pool: 'main'
 postgresql_apt_key_id: '7FCC7D46ACCC4CF8'
