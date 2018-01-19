@@ -81,11 +81,45 @@ or ``curl``, or indirectly using ``terraform``.
 Getting Started
 ~~~~~~~~~~~~~~~
 
-To use this remote API, you must first create a **personal access token**
-and store it locally in your account.  Start by initializing the directory for
-use by running ``make init``. This will both initialize ``terraform`` and
-ensure that a directory for storing secrets (and empty ``token`` file)
-is created with the proper permissions.
+Before being able to remotely control DigitalOcean droplet and related resource
+creation, you will need to have:
+
+* A DigitalOcean account and a **personal access token** for API access. (You will
+  generate an SSH key for use in accessing droplets created using the API.)
+
+* A domain name for your droplets' DNS ``A``, ``MX``, and ``TXT`` records with
+  the domain's **nameservers** configured to point to DigitalOcean's NS servers
+  (``NS1.DIGITALOCEAN.COM``, ``NS2.DIGITALOCEAN.COM`` and
+  ``NS3.DIGITALOCEAN.COM``) for authoritative DNS requests for the domain.
+
+  .. code-block:: none
+
+    $ dig example.com ns | grep NS
+    example.com.         1799    IN      NS      ns3.digitalocean.com.
+    example.com.         1799    IN      NS      ns1.digitalocean.com.
+    example.com.         1799    IN      NS      ns2.digitalocean.com.
+
+  ..
+
+.. note::
+
+   There are many domain name registrars you can use. Factors such as
+   requirements for specific TLD names, longevity of use, cost,
+   existing DNS services already available to you, etc., will guide
+   your choice. For short-term development and testing, you can use
+   one of the "free" TLD registrars (e.g., `Freenom`_).
+
+..
+
+.. _Freenom: http://www.dot.tk/en/index.html
+
+The DigitalOcean **personal access token** (and other secrets, such as
+passwords, TLS certificates and keys, backups of sensitive database
+components, etc.) will be stored locally in specific files your account.
+
+Start by initializing the directory for use by running ``make init``. This will
+both initialize ``terraform`` and ensure that a directory for storing secrets
+(and empty ``token`` file) is created with the proper permissions.
 
 .. code-block:: none
 
@@ -99,13 +133,26 @@ is created with the proper permissions.
 
 The file that will hold the token is the last one listed. To get the token, go
 to your DigitalOcean control panel, select **API**, then select **Generate New
-Token**. Copy the token and place it in the file
+Token** (see Figure :ref:`generate_token`). Copy the token and place it in the file
 ``~/.secrets/digital-ocean/token``.
+
+.. _generate_token:
+
+.. figure:: images/digitalocean-pat.png
+   :alt: Digital Ocean Personal Access Token Generation
+   :width: 70%
+   :align: center
+
+   Digital Ocean Personal Access Token Generation
+
+..
 
 Next, add to your Bash shell initialization file (``~/.bashrc`` or
 ``~/.bash_aliases``) the following lines:
 
 .. code-block:: none
+
+    export DIMS_DOMAIN="yourdomains.tld"
 
     # For dopy
     export DO_API_VERSION="2"
@@ -114,9 +161,11 @@ Next, add to your Bash shell initialization file (``~/.bashrc`` or
     # For terraform
     export DO_PAT=${DO_API_TOKEN}
     export TF_VAR_do_token="${DO_PAT}"
-    export TF_VAR_region="sfo1"  # See output of "make regions" for available regions
+    export TF_VAR_region="sfo2"  # See output of "make regions" for available regions
     export TF_VAR_name="do"
-    export TF_VAR_private_key="/Users/dittrich/.ssh/do"
+    export TF_VAR_domain="${DIMS_DOMAIN}"
+    export TF_VAR_datacenter="${TF_VAR_domain}"
+    export TF_VAR_private_key="${HOME}/.ssh/${TF_VAR_name}"
     export TF_VAR_public_key="${TF_VAR_private_key}.pub"
     export TF_VAR_ssh_fingerprint="$(ssh-keygen -E md5 -lf ${TF_VAR_public_key} | awk '{print $2}' | sed 's/^[Mm][Dd]5://')"
 
@@ -147,6 +196,34 @@ using ``make images``:
     {"slug":"coreos-beta","distribution":"CoreOS","name":"1590.2.0 (beta)"}
     {"slug":"coreos-stable","distribution":"CoreOS","name":"1576.4.0 (stable)"}
     {"slug":"debian-7-x32","distribution":"Debian","name":"7.11 x32"}
+
+..
+
+To create an SSH key pair, use ``make newkeypair``.  This will generate an
+SSH key pair in your account specifically for use with DigitalOcean.
+
+.. note::
+
+    You can regenerate this key at any time you wish, provided that you do
+    **not have** any active DigitalOcean droplets. Full live re-keying is
+    not yet working, so destroying the SSH key that you are using to
+    access your droplets will break if you switch private keys.
+
+..
+
+You can test the DigitalOcean API key by inserting the SSH key into
+your DigitalOcean account using ``make insertkey`` and then checking
+the **SSH Keys** section on the **Settings** > **Security** page (see
+Figure :ref:`ssh_key_insertion`).
+
+.. _ssh_key_insertion:
+
+.. figure:: images/digitalocean-ssh-key.png
+   :alt: Digital Ocean SSH Key
+   :width: 70%
+   :align: center
+
+   Digital Ocean SSH Key
 
 ..
 
@@ -297,8 +374,8 @@ generate a YAML inventory file.
       "primary": {
         "id": "XXXXXXXX",
         "attributes": {
-          "domain": "secretsmgmt.tk",
-          "fqdn": "blue.secretsmgmt.tk",
+          "domain": "example.com",
+          "fqdn": "blue.example.com",
           "id": "XXXXXXXX",
           "name": "blue",
           "port": "0",
@@ -323,8 +400,8 @@ generate a YAML inventory file.
       "primary": {
         "id": "XXXXXXXX",
         "attributes": {
-          "domain": "secretsmgmt.tk",
-          "fqdn": "orange.secretsmgmt.tk",
+          "domain": "example.com",
+          "fqdn": "orange.example.com",
           "id": "XXXXXXXX",
           "name": "orange",
           "port": "0",
@@ -354,8 +431,8 @@ fields, and adding the ``-c`` option to create a single-line JSON object.
 
 .. code-block:: json
 
-    ["blue.secretsmgmt.tk","XXX.XXX.XXX.XX"]
-    ["orange.secretsmgmt.tk","XXX.XXX.XXX.XXX"]
+    ["blue.example.com","XXX.XXX.XXX.XX"]
+    ["orange.example.com","XXX.XXX.XXX.XXX"]
 
 ..
 
@@ -365,11 +442,11 @@ like ``awk``, etc., using the filters ``@csv`` or ``@sh``:
 .. code-block:: none
 
     $ jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.name, .primary.attributes.fqdn, .primary.attributes.value ]| @csv' terraform.tfstate
-    "blue","blue.secretsmgmt.tk","XXX.XXX.XXX.XX"
-    "orange","orange.secretsmgmt.tk","XXX.XXX.XXX.XXX"
+    "blue","blue.example.com","XXX.XXX.XXX.XX"
+    "orange","orange.example.com","XXX.XXX.XXX.XXX"
     $ jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.name, .primary.attributes.fqdn, .primary.attributes.value ]| @sh' terraform.tfstate
-    'blue' 'blue.secretsmgmt.tk' 'XXX.XXX.XXX.XX'"
-    'blue' 'orange.secretsmgmt.tk' 'XXX.XXX.XXX.XXX'"
+    'blue' 'blue.example.com' 'XXX.XXX.XXX.XX'"
+    'blue' 'orange.example.com' 'XXX.XXX.XXX.XXX'"
 
 ..
 
@@ -384,10 +461,10 @@ these variables, use ``terraform output``:
 
     $ terraform output
     blue = {
-      blue.secretsmgmt.tk = XXX.XX.XXX.XXX
+      blue.example.com = XXX.XX.XXX.XXX
     }
     orange = {
-      orange.secretsmgmt.tk = XXX.XX.XXX.XXX
+      orange.example.com = XXX.XX.XXX.XXX
     }
 
 ..
@@ -405,14 +482,14 @@ add the ``--json`` flag:
             "sensitive": false,
             "type": "map",
             "value": {
-                "blue.secretsmgmt.tk": "XXX.XX.XXX.XXX"
+                "blue.example.com": "XXX.XX.XXX.XXX"
             }
         },
         "orange": {
             "sensitive": false,
             "type": "map",
             "value": {
-                "orange.secretsmgmt.tk": "XXX.XX.XXX.XXX"
+                "orange.example.com": "XXX.XX.XXX.XXX"
             }
         }
     }
@@ -426,8 +503,8 @@ nested two levels deep in this case.
 .. code-block:: none
 
     $ terraform output --json | jq -r 'to_entries[] | [ .key, (.value.value|to_entries[]| .key, .value) ]|@sh'
-    'blue' 'blue.secretsmgmt.tk' 'XXX.XX.XXX.XXX'
-    'orange' 'orange.secretsmgmt.tk' 'XXX.XX.XXX.XXX'
+    'blue' 'blue.example.com' 'XXX.XX.XXX.XXX'
+    'orange' 'orange.example.com' 'XXX.XX.XXX.XXX'
 
 ..
 
@@ -447,10 +524,10 @@ inventory file can be produced as shown in the script ``do_post.sh``.
       hosts:
         'blue':
           ansible_host: 'XXX.XXX.XXX.XX'
-          ansible_fqdn: 'blue.secretsmgmt.tk'
+          ansible_fqdn: 'blue.example.com'
         'orange':
           ansible_host: 'XXX.XXX.XXX.XXX'
-          ansible_fqdn: 'orange.secretsmgmt.tk'
+          ansible_fqdn: 'orange.example.com'
 
 ..
 
