@@ -1,3 +1,4 @@
+ansible.cfg
 provider.tf
 .terraform
 known_hosts
