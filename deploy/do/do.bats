@@ -38,8 +38,8 @@
     [ ! -z "$TF_VAR_region" ]
 }
 
-@test "[S][EV] Variable TF_VAR_name (terraform) is defined in environment" {
-    [ ! -z "$TF_VAR_name" ]
+@test "[S][EV] Variable TF_VAR_environment (terraform) is defined in environment" {
+    [ ! -z "$TF_VAR_environment" ]
 }
 
 @test "[S][EV] Variable TF_VAR_domain (terraform) is defined in environment" {

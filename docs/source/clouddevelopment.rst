@@ -141,7 +141,7 @@ configuration settings (including passwords) for your deployment.
 
   .. code-block:: bash
 
-      export PBR="/path/to/where/you/put/ansible-dims-playbooks"
+      export PBR="${HOME}/path_to_where_you_put/ansible-dims-playbooks"
       export DIMS_DOMAIN="example.com"
 
       # For dopy
@@ -152,10 +152,10 @@ configuration settings (including passwords) for your deployment.
       export DO_PAT=${DO_API_TOKEN}
       export TF_VAR_do_token="${DO_PAT}"
       export TF_VAR_region="sfo2"  # See output of "make regions" for available regions
-      export TF_VAR_name="do"
+      export TF_VAR_environment="do"
       export TF_VAR_domain="${DIMS_DOMAIN}"
       export TF_VAR_datacenter="${TF_VAR_domain}"
-      export TF_VAR_private_key="${HOME}/.ssh/${TF_VAR_name}"
+      export TF_VAR_private_key="${HOME}/.ssh/${TF_VAR_environment}"
       export TF_VAR_public_key="${TF_VAR_private_key}.pub"
       export TF_VAR_ssh_fingerprint="$(ssh-keygen -E md5 -lf ${TF_VAR_public_key} | awk '{print $2}' | sed 's/^[Mm][Dd]5://')"
 
@@ -298,7 +298,7 @@ satisfied, all tests will succeed. If any fail, resolve the issue and try again.
      ✓ [S][EV] Variable DO_PAT (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_do_token (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_region (terraform) is defined in environment
-     ✓ [S][EV] Variable TF_VAR_name (terraform) is defined in environment
+     ✓ [S][EV] Variable TF_VAR_environment (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_domain (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_datacenter (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_private_key (terraform) is defined in environment

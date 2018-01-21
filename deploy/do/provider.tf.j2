@@ -1,6 +1,6 @@
 variable "do_token" {}
 variable "region" { }
-variable "name" { }
+variable "environment" { }
 variable "private_key" {}
 variable "public_key" {}
 variable "ssh_fingerprint" { }
@@ -16,7 +16,7 @@ provider "digitalocean" {
 }
 
 module "do-keypair" {
-  name = "${var.name}"
+  name = "${var.environment}"
   source = "./keypair"
   public_key_filename = "${var.public_key}"
 }

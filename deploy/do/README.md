@@ -28,7 +28,7 @@ an `ansible.cfg` file in this directory and set the `inventory` variable
 like this:
 
 ```
-inventory      = ${PBR}/environments/${TF_VAR_name}/inventory
+inventory      = ${PBR}/environments/${TF_VAR_environment}/inventory
 ```
 
 ```

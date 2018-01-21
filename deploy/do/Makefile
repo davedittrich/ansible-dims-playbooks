@@ -2,7 +2,7 @@
 
 SHELL=/bin/bash
 SECRETS=~/.secrets/digital-ocean
-INVENTORY=$(PBR)/environments/$(TF_VAR_name)/inventory
+INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
 
