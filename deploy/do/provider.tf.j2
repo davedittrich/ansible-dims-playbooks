@@ -31,7 +31,7 @@ resource "digitalocean_domain" "default" {
 resource "digitalocean_droplet" "{{ d.name }}" {
     image = "{{ d.image_id|default('debian-8-x64') }}"
     #name = "{{ d.name }}-${var.role}-${format(var.count_format, count.index+1)}"
-    name = "{{ d.name }}.${vars.domain}"
+    name = "{{ d.name }}.${var.domain}"
     region = "${var.region}"
     size = "{{ d.size|default("512mb") }}"
     private_networking = true
@@ -101,7 +101,7 @@ resource "digitalocean_record" "CNAME-{{ _cn }}" {
 {% endif %}
 
 output "{{ d.name }}" {
-  value = { "{{ d.name }}.${vars.domain}" = "${join(",", digitalocean_droplet.{{ d.name }}.*.ipv4_address)}" }
+  value = { "{{ d.name }}.${var.domain}" = "${join(",", digitalocean_droplet.{{ d.name }}.*.ipv4_address)}" }
 }
 
 {% endif %}
