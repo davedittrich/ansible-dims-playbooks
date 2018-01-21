@@ -30,7 +30,7 @@
   assert:
     that:
       - _iptables is defined
-      - "'dpt:80' in _iptables.stdout
+      - "'dpt:80' in _iptables.stdout"
 
 - name: stat {{ dims_bin }}/certbot-auto
   stat: path='{{ dims_bin }}/certbot-auto'
