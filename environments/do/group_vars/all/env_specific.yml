@@ -2,7 +2,7 @@
 
 category: 'devops'
 deployment: 'local'
-dims_domain: '{{ lookup("env", "DIMS_DOMAIN") }}'
+dims_domain: '{{ (lookup("env", "DIMS_DOMAIN") == "")|ternary(ansible_domain,lookup("env", "DIMS_DOMAIN")) }}'
 playbooks_root: '{{ lookup("env", "PBR") }}'
 #dims_private: '{{ lookup("env", "GIT") }}/private-{{ deployment }}'
 dims_private: '{{ playbooks_root }}'
