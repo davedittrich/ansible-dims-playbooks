@@ -42,16 +42,24 @@ class LookupModule(LookupBase):
         results = []
         txtstr = ""
 
-        with open(args[0], 'r') as _file:
-            txtstr = "".join([ _line.rstrip('\n') for _line in _file ])
+        try:
+            with open(args[0], 'r') as _file:
+                txtstr = "".join([ _line.rstrip('\n') for _line in _file ])
+        except IOError as e:
+            txtstr = ""
+        except Exception as e:
+            raise e
 
         # Clean up string before parsing out TXT record content
-        txtstr = key_regex.sub('h=', _string)
-        txtstr= split_regex.sub('', _string)
+        txtstr = key_regex.sub('h=', txtstr)
+        txtstr = split_regex.sub('', txtstr)
 
         try:
             # Strip off the first/last characters (i.e., the " characters)
-            results.append(txt_regex.search(_string).group('txt')[1:-1])
+            results.append(txt_regex.search(txtstr).group('txt')[1:-1])
+        except AttributeError as e:
+            pass
         except Exception as e:
             raise e
+
         return results
