@@ -2,11 +2,33 @@
 
 # File: roles/bootstrap/tasks/ssh.yml
 
+- name: Assert ansible_ssh_private_key_file is defined and not null
+  assert:
+    that:
+      - ansible_ssh_private_key_file is defined
+      - ansible_ssh_private_key_file != ''
+  tags: [ always ]
+
+- block:
+  - name: Define bootstrap_ssh_private_key_file
+    set_fact:
+      bootstrap_ssh_private_key_file: '{{ lookup("dims_function", "get_ssh_private_key_file " + ansible_user) }}'
+    when: bootstrap_ssh_private_key_file is not defined
+    tags: [ always ]
+
+  rescue:
+  - name: Define bootstrap_ssh_private_key_file
+    set_fact:
+      bootstrap_ssh_private_key_file: '{{ ansible_ssh_private_key_file }}'
+    when: bootstrap_ssh_private_key_file is not defined
+    tags: [ always ]
+
 - name: Define variable with ansible public key
   set_fact:
-    _public_key: '{{ lookup("dims_function", "get_ssh_private_key_file ansible") }}.pub'
+    _public_key: '{{ bootstrap_ssh_private_key_file }}.pub'
   tags: [ bootstrap ]
   when: _public_key is not defined
+  tags: [ always ]
 
 - name: Ensure ansible public key in authorized_keys
   authorized_key:
