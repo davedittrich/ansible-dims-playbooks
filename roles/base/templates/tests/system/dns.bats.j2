@@ -15,11 +15,6 @@ function setup() {
     [ -s /etc/hostname ]
 }
 
-@test "[S][EV] /usr/sbin/dnsmasq exists and is executable" {
-    is_coreos && skip "Not applicable on CoreOS"
-    [ -x /usr/sbin/dnsmasq ]
-}
-
 # Debian and Ubuntu differ slightly in where /etc/resolv.conf points
 @test "[S][EV] /etc/resolv.conf is a link to /run/resolvconf/resolv.conf or /etc/resolvconf/run/resolv.conf" {
     is_coreos && skip "Not applicable on CoreOS"
@@ -27,16 +22,6 @@ function setup() {
     result="$(file /etc/resolv.conf)"
     [[ "$result" =~ 'symbolic link to' ]]
     [[ "$result" =~ "/run/resolvconf/resolv.conf" ]] || [[ "$result" =~ "/etc/resolvconf/run/resolv.conf" ]]
-}
-
-@test "[S][EV] dnsmasq is running" {
-    is_coreos && skip "Not applicable on CoreOS"
-    result="$(ps auxwww | grep '/usr/sbin/dnsmasq' | grep -v grep | wc -l)"
-    [ $result -ne 0 ]
-}
-
-@test "[S][EV] dnsmasq version is {{ dnsmasq_version }}" {
-    assert "{{ dnsmasq_version }}" bash -c "dnsmasq --version|head -n 1|awk '{print \$3;}'"
 }
 
 @test "[S][EV] Output of 'hostname' is not null" {
@@ -50,9 +35,9 @@ function setup() {
     [ "$(hostname)" == "$(cat /etc/hostname)" ]
 }
 
-@test "[S][EV] Output of 'hostname' is equal to 'hostname -s'" {
+@test "[S][EV] Output of 'hostname' is not equal to 'hostname -s'" {
     echo "'hostname -s ' returned '$(hostname -s)'" >&2
-    [ "$(hostname)" == "$(hostname -s)" ]
+    [ "$(hostname)" != "$(hostname -s)" ]
 }
 
 @test "[S][EV] Output of 'hostname' is equal to 'hostname -f'" {
@@ -60,14 +45,14 @@ function setup() {
     [ "$(hostname)" == "$(hostname -f)" ]
 }
 
-@test "[S][EV] Output of 'domainname' is not null" {
-    echo "'domainname' returned '$(domainname)'" >&2
-    [ ! -z "$(domainname)" ]
+@test "[S][EV] Output of 'dnsdomainname' is not null" {
+    echo "'dnsdomainname' returned '$(dnsdomainname)'" >&2
+    [ ! -z "$(dnsdomainname)" ]
 } 
 
-@test "[S][EV] Output of 'domainname' is not '(none)'" {
-    echo "'domainname' returned '$(domainname)'" >&2
-    [ "$(domainname)" != "(none)" ]
+@test "[S][EV] Output of 'dnsdomainname' is not '(none)'" {
+    echo "'dnsdomainname' returned '$(dnsdomainname)'" >&2
+    [ "$(dnsdomainname)" != "(none)" ]
 } 
 
 @test "[S][EV] Can dig @8.8.8.8 www.google.com" {
@@ -86,6 +71,18 @@ function setup() {
     dig_returns_A_records docker.io
 }
 
+{% if manage_dnsmasq is defined and manage_dnsmasq|bool %}
+@test "[S][EV] /usr/sbin/dnsmasq exists and is executable" {
+    is_coreos && skip "Not applicable on CoreOS"
+    [ -x /usr/sbin/dnsmasq ]
+}
+
+@test "[S][EV] dnsmasq is running" {
+    is_coreos && skip "Not applicable on CoreOS"
+    result="$(ps auxwww | grep '/usr/sbin/dnsmasq' | grep -v grep | wc -l)"
+    [ $result -ne 0 ]
+}
+
 @test "[S][EV] Can dig @127.0.0.1 www.google.com" {
     is_coreos && skip "Not applicable on CoreOS"
     dig_returns_A_records @127.0.0.1 www.google.com
@@ -96,27 +93,12 @@ function setup() {
     is_coreos && skip "Not applicable on CoreOS"
     assert "127.0.1.1" dig @127.0.0.1 $(hostname) +short
 }
-
-@test "[S][EV] Partially qualified hostname resolves to 127.0.1.1 (@127.0.0.1)" {
-    skip "Temporarily disabled"
-    name="$(hostname).{{ category }}"
-    result="$(dig @127.0.0.1 ${name} +short)"
-    echo "'dig @127.0.0.1 \"${name}\" +short' returned '$result'" >&2
-    [ "$result" == "127.0.1.1" ]
-}
+{% endif %}
 
 @test "[S][EV] Short hostname resolves to 127.0.1.1 (no server specified)" {
     skip "Temporarily disabled"
     is_coreos && skip "Not applicable on CoreOS"
     assert "127.0.1.1" dig $(hostname) +short
-}
-
-@test "[S][EV] Partially qualified hostname resolves to 127.0.1.1 (no server specified)" {
-    skip "Temporarily disabled"
-    name="$(hostname).{{ category }}"
-    result="$(dig ${name} +short)"
-    echo "'dig ${name} +short' returned '$result'"
-    [ "$result" == "127.0.1.1" ]
 }
 
 # TODO(dittrich): Move to a higher level test suite.

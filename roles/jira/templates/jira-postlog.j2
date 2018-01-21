@@ -7,12 +7,12 @@
 
 TFILE=$(mktemp --tmpdir $$.jenkins.$RANDOM.XXXXXX)
 BASE=$(basename "$0")
-RECIPIENTS=dims-devops@uw.ops-trust.net
+RECIPIENTS={{ dims_email_list }}
 
 # Cleanup on exit
 trap "rm -f $TFILE" EXIT
 
-JIRA_TICKET="DIMS-noclue"
+JIRA_TICKET="DIMS-xxxx"
 
 # Get info to post...
 echo "NOT FINISHED" > $TFILE
@@ -22,7 +22,7 @@ echo "NOT FINISHED" > $TFILE
 
 # Send to DIMS devops email list.
 (echo "To: $RECIPIENTS";
- echo "From: JIRA <dims@eclipse.prisem.washington.edu>";
+ echo "From: JIRA <dims@{{ ansible_fqdn }}>";
  echo "Subject: [JIRA] $JIRA_TICKET";
  echo "Date: $(date)";
  echo "";

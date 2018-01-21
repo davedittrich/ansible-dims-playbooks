@@ -1,10 +1,10 @@
 openvpn_enabled: yes                                # The role is enabled
 
 openvpn_etcdir: /etc/openvpn
-openvpn_keydir: "{{openvpn_etcdir}}/keys"
+openvpn_keydir: "{{ openvpn_etcdir }}/keys"
 
 # Default settings (See OpenVPN documentation)
-openvpn_host: "{{inventory_hostname}}"              # The server address
+openvpn_host: "{{ ansible_fqdn }}"              # The server address
 openvpn_port: 500
 openvpn_proto: udp
 openvpn_dev: tun
@@ -34,7 +34,8 @@ openvpn_key_province: WA
 openvpn_key_city: Seattle
 openvpn_key_org: UW 
 openvpn_key_email: me@myhost.mydomain
-openvpn_key_size: 2048
+openvpn_dhparam: "{{ openvpn_etcdir }}/dhparam.pem"
+openvpn_key_size: 4096
 
 openvpn_clients: [client]                         # Make clients certificate
 openvpn_clients_revoke: []                        # Revoke clients certificates

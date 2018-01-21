@@ -1,0 +1,29 @@
+---
+
+# File: inventory/amqp/nodes.yml
+
+# Keep in mind that variables needed by other hosts to get
+# to rabbitmq are defined in group_vars/all/rabbitmq.yml.
+# This includes things like rabbitmq_tcp_listen_port,
+# rabbitmq_ssl_listen_port, etc.
+
+rabbitmq:
+  vars:
+    rabbitmq_tcp_listen_address: '127.0.0.1'
+    rabbitmq_ssl_listen_address: '0.0.0.0'
+    # Cert vars come from group_vars/all/ssl.yml
+    rabbitmq_users:
+      - { name: '{{ rabbitmq_default_user }}', password: '{{ rabbitmq_default_user_pass }}' }
+      - { name: '{{ rabbitmq_admin_user }}', password: '{{ rabbitmq_admin_user_pass }}' }
+    rabbitmq_environment: |
+      RABBITMQ_NODE_IP_ADDRESS={{ rabbitmq_tcp_listen_address }}
+      RABBITMQ_NODENAME=rabbit@{{ inventory_hostname_short }}
+      RABBITMQ_USE_LONGNAMES=false
+      RABBITMQ_DEFAULT_USER={{ rabbitmq_default_user }}
+      RABBITMQ_DEFAULT_USER_PASS={{ rabbitmq_default_user_pass }}
+      RABBITMQ_ADMIN_USER={{ rabbitmq_admin_user }}
+      RABBITMQ_ADMIN_USER_PASS={{ rabbitmq_admin_user_pass }}
+  hosts:
+    'red':
+
+# vim: ft=ansible :

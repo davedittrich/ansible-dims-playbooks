@@ -41,7 +41,7 @@ LOGGER_TAG="$BASE"
 LOGMON_EXCHANGE="logs"
 
 # Tracks with bumpversion
-DIMS_VERSION=2.14.0
+DIMS_VERSION=3.0.0
 
 FLAGS_HELP="usage: $BASE [options] message"
 
@@ -86,11 +86,9 @@ function logwith_logmon() {
     elif [[ -f /opt/dims/envs/dimsenv/bin/activate ]]; then
         . /opt/dims/envs/dimsenv/bin/activate
     fi
+    # logmon (AMQP) logging is optional
     if which logmon >/dev/null; then
-        logmon -l ${FLAGS_logmon_exchange} -m "$@"
-        return $?
-    else
-        return 1
+        logmon -l ${FLAGS_logmon_exchange} -m "$@" || true
     fi
 }
 

@@ -14,7 +14,22 @@
 #  http://serverfault.com/questions/274625/how-do-i-get-rsyslogd-to-log-a-servers-fqdn-instead-of-its-short-hostname
 
 {% if rsyslog_server is defined %}
-$ModLoad imtcp
+$ModLoad imtcp # load TCP listener
+
+{% if rsyslog_use_ssl|bool|default(false) %}
+# certificate files
+$DefaultNetstreamDriverCAFile {{ rsyslog_ssl_cacertfile }}
+$DefaultNetstreamDriverCertFile {{ rsyslog_ssl_certfile }}
+$DefaultNetstreamDriverKeyFile {{ rsyslog_ssl_keyfile }}
+
+# make gtls driver the default
+$DefaultNetstreamDriver gtls
+
+$InputTCPServerStreamDriverAuthMode x509/name # Auth mode
+$InputTCPServerStreamDriverPermittedPeer *.{{ dims_domain }}
+$InputTCPServerStreamDriverMode 1 # Only use TLS
+{% endif %}
+
 $InputTCPServerRun {{ rsyslog_port }}
 
 # do this in FRONT of the local/regular rules
@@ -23,10 +38,8 @@ $template PerHostLog,"/var/log/dims/%HOSTNAME%.log"
 
 {% if rsyslog_domains is defined %}
 {% for domain in rsyslog_domains %}
-
-if $fromhost != $hostname and $hostname contains '.{{ deployment }}' then -?PerHostLog
+if $fromhost != $LocalHostName and $fromhost contains '{{ domain }}' then -?PerHostLog
 & stop
-
 {% endfor %}
 {% endif %}
 {% endif %}

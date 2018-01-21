@@ -1,0 +1,12 @@
+---
+
+# File: group_vars/all/00-globals.yml
+
+category: 'devops'
+deployment: 'local'
+dims_domain: 'devops.local'
+playbooks_root: "{{ lookup('env', 'PBR') }}"
+#dims_private: "{{ lookup('env', 'GIT') }}/private-{{ deployment }}"
+dims_private: '{{ playbooks_root }}'
+
+# vim: ft=ansible :

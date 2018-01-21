@@ -1,0 +1,13 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+{% if rsyslog_use_ssl is defined and rsyslog_use_ssl|bool  %}
+@test "[I][EV] Can connect to rsyslog server ({{ rsyslog_server }}) via openssl s_client" {
+    openssl s_client -showcerts -connect {{ rsyslog_server }}:{{ rsyslog_port }} -CAfile {{ rsyslog_ssl_cacertfile }} | grep -q 'Verify return code: 0 (ok)'
+}
+{% endif %}

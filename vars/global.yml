@@ -9,7 +9,6 @@
 # TODO(dittrich): Replace this with one dictionary
 
 dims: /opt/dims
-dims_backups:    "{{ dims }}/backups"
 dims_bin:        "{{ dims }}/bin"
 dims_data:       "{{ dims }}/data"
 dims_deploy:     "{{ dims }}/deploy"
@@ -35,7 +34,6 @@ dims_srv:     "{{ dims }}/srv"
 # being tested for in $GIT/dims-ci-utils/dims/test.dims-ci-utils.envcheck.
 
 dims_dirs:
-  - "{{ dims_backups }}"
   - "{{ dims_bin }}"
   - "{{ dims_data }}"
   - "{{ dims_deploy }}"
@@ -56,7 +54,7 @@ dims_dirs:
 # different path components with the users' names, which makes things more
 # complicated in shared code, or with the way we create Vagrants.
 #basedir: /srv/web/infra/ansible
-basedir: "{{ playbooks_root | default(lookup('env', 'PBR'), inventory_dir) }}"
+basedir: "{{ playbooks_root | default(lookup('env', 'PBR')) }}"
 # The private directory is handled differently than other DIMS directories.
 private: "{{ dims }}/private"
 bigfiles: "{{ basedir }}/bigfiles"
@@ -97,14 +95,8 @@ zones: []
 # The following is managed using "bumpversion". See the
 # dims-ci-utils documentation.
 
-ansibleplaybooks_version: "2.14.0"
+ansibleplaybooks_version: "3.0.0"
 
-# Set Python interpreter to be one from DIMS Python virtual
-# environment (the global one, although would be ideal to
-# over-ride this with user version for development and
-# testing).
-
-ansible_python_virtualenv: "/opt/dims/envs/dimsenv"
 
 # Put these here for now to allow Jenkins build jobs to work.
 verbose: false
@@ -126,18 +118,6 @@ hardware_assets: []
 # Override on the command line to remove dims_tests dir with '-e dims_inititalize_tests=true'
 dims_initialize_tests: false
 
-# Set a default timezone so that the common role works properly.
-# Override on the command line for local install with '-e dims_timezone="US/New_York"'
-dims_timezone: "US/Pacific"
-
-dims_host: "{{ ansible_fqdn }}"
-dims_guid: "{{ ansible_cmdline.root }}"
-dims_marker: "{{ dims_deploy }}/LAST_PROVISIONED"
-dims_user: dims
-dims_group: dims
-# This array should be set on a per category+deployment and/or host level
-dims_users: [ ]
-
 # To calculate permissions masks or symbolic representations of same,
 # you can use http://permissions-calculator.org/symbolic/
 
@@ -156,8 +136,6 @@ use_http: true
 # Used to construct a URL to obtain the artifact.
 deploy_type: dev
 
-# Leave this until we can refactor variables (see dims-230)
-deploy_dir: "{{ dims_deploy }}"
 jenkins_url: http://jenkins.prisem.washington.edu
 jenkins_jobs_dir: /var/lib/jenkins/jobs
 git_origin: git@git.prisem.washington.edu:/opt/git
@@ -174,29 +152,6 @@ cfg_path: dims/cfg
 
 #-- END FROM vars/global.yml --#
 
-# ansible.cfg configuration variables
-ansibleForks: 5
-ansiblePollInterval: 15
-ansibleRemotePort: 8422
-ansibleModuleLang: "C"
-ansibleSSHTimeout: 10
-ansibleRemoteUser: "ansible"
-ansibleNoCows: 1
-ansibleSSHArgs: "-o UseRoaming=no"
-ansibleAcceleratePort: 5099
-ansibleAccelerateTimeout: 30
-ansibleAccelerateConnectTimeout: "5.0"
-ansibleAccelerateDaemonTimeout: 30
-
-# Defaults for rsyslog logging to facilitate central logging and
-# debugging services.
-syslog_facility: 'local0'
-syslog_severity: 'info'
-
-packer_ssh_timeout: '60m'
-
-root_user: 'root'
-root_group: 'root'
 
 # The following is for testing and validation of where this
 # variable gets (re)defined.

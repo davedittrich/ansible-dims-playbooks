@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Runs latest consul image as a consul agent container
-CONSUL_JOIN=${CONSUL_JOIN:-$(dig consul.{{ category }}.{{ deployment }} +short | head -n1))
+CONSUL_JOIN=${CONSUL_JOIN:-$(dig consul.{{ ansible_domain }} +short | head -n1))
 CONSUL_BIND=${CONSUL_BIND:-{{ consul_bind_address }})
 docker run -d \
     --name=consul \

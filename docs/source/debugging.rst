@@ -13,7 +13,7 @@ More general debugging strategies and techniques are covered in Section
 .. _debuggingansible:
 
 Debugging Ansible
-----------------
+-----------------
 
 Ansible has two primary methods with which it is invoked -- ``ansible-playbook``
 to run playbooks, and ``ansible`` (a.k.a., "ad-hoc mode") to run individual

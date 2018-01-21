@@ -1,7 +1,0 @@
-provider.tf
-.terraform
-terraform.log
-do_post.log
-ansible-digital_ocean.cache
-terraform.tfstate*
-graph.png

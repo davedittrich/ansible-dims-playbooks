@@ -2,63 +2,85 @@
 
 # File: tasks/install-certbot-auto.yml
 
+- name: Define _certbot_auto
+  set_fact:
+    _certbot_auto: '{{ dims_bin }}/certbot-auto'
+
+- name: Define certbot_auto_renew_options
+  set_fact:
+    certbot_auto_renew_options: "--quiet --no-self-upgrade"
+  when: certbot_auto_renew_options is not defined
+
 # NOTE: Not DRY -- yanked from pre_tasks.yml
 - name: Create task deploy directory
   file:
     state: directory
-    path: "{{ dims_deploy }}/certbot"
+    path: '{{ dims_deploy }}/certbot'
     mode: 0o775
-    owner: "{{ dims_user }}"
-    group: "{{ dims_group }}"
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
   become: yes
-  become_user: "{{ dims_user }}"
+  become_user: '{{ dims_user }}'
 
 - name: Ensure GPG is set up
-  shell: "gpg --list-keys 2>/dev/null >/dev/null"
+  shell: 'gpg --list-keys 2>/dev/null >/dev/null'
   become: yes
-  become_user: "{{ dims_user }}"
+  become_user: '{{ dims_user }}'
   ignore_errors: yes
 
 - name: Ensure EFF public key is available
-  shell: "gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys A2CFB51FA275A7286234E7B24D17C995CD9775F2"
+  shell: 'gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys A2CFB51FA275A7286234E7B24D17C995CD9775F2'
   become: yes
-  become_user: "{{ dims_user }}"
+  become_user: '{{ dims_user }}'
   ignore_errors: yes
 
 - name: Obtain current 'certbot-auto' binary
   get_url:
-    url=https://dl.eff.org/certbot-auto
-    dest={{ dims_deploy }}/certbot/certbot-auto
+    url: 'https://dl.eff.org/certbot-auto'
+    dest: '{{ dims_deploy }}/certbot/certbot-auto'
   become: yes
-  become_user: "{{ dims_user }}"
+  become_user: '{{ dims_user }}'
 
 - name: Obtain current 'certbot-auto' signature
   get_url:
-    url=https://dl.eff.org/certbot-auto.asc
-    dest={{ dims_deploy }}/certbot/certbot-auto.asc
+    url: 'https://dl.eff.org/certbot-auto.asc'
+    dest: '{{ dims_deploy }}/certbot/certbot-auto.asc'
   become: yes
-  become_user: "{{ dims_user }}"
+  become_user: '{{ dims_user }}'
 
 - name: Check signature of certbot-auto binary
-  shell: "gpg2 --verify --trusted-key 4D17C995CD9775F2 {{ dims_deploy }}/certbot/certbot-auto.asc {{ dims_deploy }}/certbot/certbot-auto"
+  shell: 'gpg2 --verify --trusted-key 4D17C995CD9775F2 {{ dims_deploy }}/certbot/certbot-auto.asc {{ dims_deploy }}/certbot/certbot-auto'
   become: yes
-  become_user: "{{ dims_user }}"
+  become_user: '{{ dims_user }}'
 
 - name: Ensure certbot-auto is in PATH
   copy:
     remote_src: true
-    src: "{{ dims_deploy }}/certbot/certbot-auto"
-    dest: "{{ dims_bin }}/certbot-auto"
+    src: '{{ dims_deploy }}/certbot/certbot-auto'
+    dest: '{{ _certbot_auto }}'
     mode: 0o755
   become: yes
-  become_user: "{{ dims_user }}"
+  become_user: '{{ dims_user }}'
+
+- name: Add cron job for certbot renewal.
+  cron:
+    name: Certbot automatic renewal.
+    job: '{{ _certbot_auto }} renew {{ certbot_auto_renew_options }}'
+    minute: '{{ certbot_auto_renew_minute }}'
+    hour: '{{ certbot_auto_renew_hour }}'
+    user: '{{ certbot_auto_renew_user }}'
+  become: yes
+  when: certbot_auto_renew_minute is defined and
+        certbot_auto_renew_hour is defined and
+        certbot_auto_renew_user is defined and
+        certbot_auto_renew_options is defined
 
 # NOTE: Not DRY, see first task
 - name: Remove task deploy directory
   file:
     state: absent
-    path: "{{ dims_deploy }}/certbot"
+    path: '{{ dims_deploy }}/certbot'
   become: yes
-  become_user: "{{ dims_user }}"
+  become_user: '{{ dims_user }}'
 
 # vim: ft=ansible :

@@ -43,6 +43,6 @@
   when: role_name is defined
 
 - name: PRE_TASK - Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
+  include: "{{ tasks_path }}/install-bats-tests.yml"
 
 # vim: ft=ansible :

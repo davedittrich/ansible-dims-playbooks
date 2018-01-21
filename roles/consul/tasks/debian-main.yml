@@ -28,9 +28,7 @@
     state: stopped
   become: yes
   ignore_errors: true
-  when: ansible_os_family == "Debian"
   notify: restart consul
-  tags: [ consul, packages ]
 
 # Download and install Consul from source
 # TODO(dittrich): The certificate check fails (SNI?), but the SHA256 hash exists to validate download.
@@ -40,143 +38,121 @@
     dest: '{{ dims_deploy }}/{{ role_name }}'
     sha256sum: '{{ consul_sha256sum }}'
     validate_certs: false
-  when: ansible_os_family == "Debian"
   become: yes
-  tags: [ consul, packages ]
 
 # TODO(dittrich): Should check hash like Pycharm, dnsmasq, etc.
 
 - name: Unzip contents of Consul archive into DIMS bin directory
-  shell: "unzip -u -o {{ dims_deploy }}/{{ role_name }}/{{ consul_artifact }} -d {{ dims_bin }}"
-  when: ansible_os_family == "Debian"
+  shell: 'unzip -u -o {{ dims_deploy }}/{{ role_name }}/{{ consul_artifact }} -d {{ dims_bin }}'
   become: yes
   notify: restart consul
-  tags: [ consul, packages ]
 
 - name: Make base Consul configuration directory present
   file:
-    state=directory
-    path=/etc/consul.d
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o775
-  when: ansible_os_family == "Debian"
+    state: directory
+    path: /etc/consul.d
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o775
   become: yes
-  tags: [ consul, config ]
 
 - name: Make Consul configuration directories present
   file:
-    state=directory
-    path=/etc/consul.d/{{ item }}
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o775
+    state: directory
+    path: /etc/consul.d/{{ item }}
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o775
   with_items:
     - bootstrap
     - server
     - client
-  when: ansible_os_family == "Debian"
   become: yes
-  tags: [ consul, config ]
 
 - name: Create consul startup JSON cluster config
   template:
-    src=config/consul_{{ consul_agent_type }}_json.j2
-    dest=/etc/consul.d/{{ consul_agent_type }}/consul.json
-    owner={{ dims_user }}
-    group={{ dims_user }}
-    mode=0o640
-  when: ansible_os_family == "Debian"
+    src: config/consul_{{ consul_agent_type }}_json.j2
+    dest: /etc/consul.d/{{ consul_agent_type }}/consul.json
+    owner: '{{ dims_user }}'
+    group: '{{ dims_user }}'
+    mode: 0o640
   become: yes
   notify: restart consul
-  tags: [ consul, config ]
 
 - name: Create persistence directory for use by Consul
   file:
-    state=directory
-    path={{ consul_data_dir }}
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o770
-    recurse=yes
-  when: ansible_os_family == "Debian"
+    state: directory
+    path: '{{ consul_data_dir }}'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o770
+    recurse: yes
   become: yes
-  tags: [ consul, packages ]
 
 - name: Create inital consul.log file
   file:
-    state=touch
-    path={{ consul_log_file }}
-    owner={{ dims_user }}
-    group={{ dims_user }}
-    mode=0o640
-  when: ansible_os_family == "Debian"
+    state: touch
+    path: '{{ consul_log_file }}'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_user }}'
+    mode: 0o640
   become: yes
-  tags: [ consul ]
 
 - name: Make consul.run startup script present
   template:
-    src=consul.run.j2
-    dest={{ dims_bin }}/consul.run
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o755
-  when: ansible_os_family == "Debian"
+    src: consul.run.j2
+    dest: '{{ dims_bin }}/consul.run'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o755
   become: yes
   notify: restart consul
-  tags: [ consul, packages ]
-
 
 - name: Make consul upstart configuration present (upstart)
   template:
-    src=upstart/consul.conf.j2
-    dest=/etc/init/consul.conf
-    owner={{ root_user }}
-    group={{ root_group }}
-    mode=0o644
+    src: upstart/consul.conf.j2
+    dest: /etc/init/consul.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   become: yes
   notify: restart consul
-  tags: [ consul, config ]
 
 - name: Validate consul config file syntax (upstart)
   shell: "init-checkconf /etc/init/consul.conf"
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   become: yes
-  tags: [ consul, config ]
 
 - name: Create consul defaults (upstart)
   template:
-    src=upstart/consul_default.j2
-    dest=/etc/default/consul
-    owner={{ root_user }}
-    group={{ root_group }}
-    mode=0o644
+    src: upstart/consul_default.j2
+    dest: /etc/default/consul
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   become: yes
-  tags: [ consul, config ]
 
 - name: Make consul /etc/init.d startup script present (upstart)
   template:
-    src=upstart/consul.j2
-    dest=/etc/init.d/consul
-    owner={{ root_user }}
-    group={{ root_group }}
-    mode=0o755
+    src: upstart/consul.j2
+    dest: /etc/init.d/consul
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o755
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   become: yes
-  tags: [ consul, config ]
 
 - name: Register the consul init script (upstart)
   shell: "update-rc.d consul defaults"
   when: ( ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 16 ) or
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   become: yes
-  tags: [ consul, config ]
 
 - name: Register the consul upstart configuration (upstart)
   shell: "initctl reload-configuration"
@@ -184,7 +160,6 @@
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int < 8 )
   become: yes
   notify: restart consul
-  tags: [ consul, config ]
 
 - name: Make consul.service unit present (systemd)
   template:
@@ -207,7 +182,6 @@
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
   become: yes
   notify: restart consul
-  tags: [ consul, packages ]
 
 - name: Reload the consul service configuration (systemd)
   shell: "systemctl daemon-reload"
@@ -215,15 +189,12 @@
         ( ansible_distribution == "Debian" and ansible_distribution_major_version|int > 7 )
   become: yes
   notify: restart consul
-  tags: [ consul, packages ]
 
 - name: Ensure consul is started and enabled
   service:
     name: consul
     state: started
     enabled: yes
-  when: ansible_os_family == "Debian"
   become: yes
-  tags: [ consul, packages ]
 
 # vim: ft=ansible :

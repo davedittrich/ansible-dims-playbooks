@@ -68,12 +68,13 @@ class LookupModule(LookupBase):
 
         results = []
         _dims_function = "{}/bin/dims.function".format(
-                os.getenv('DIMS', '')
-                )
-        cmd = [ _dims_function ] + [ arg for arg in terms ]
-        try:
-            results = [line.strip() for line in bash(cmd, _iter=True)]
-        except Exception as e:
-            raise e
+            os.getenv('DIMS', '')
+            )
+        if os.path.exists(_dims_function):
+            cmd = [ _dims_function ] + [ arg for arg in terms ]
+            try:
+                results = [line.strip() for line in bash(cmd, _iter=True)]
+            except Exception as e:
+                raise e
 
         return results

@@ -93,6 +93,7 @@ function setup() {
 	assert 644 stat --printf "%a" /var/www/health_check/index.html
 }
 
+{% if use_letsencrypt is not defined or not use_letsencrypt|bool %}
 {% if ssl_certfile is defined %}
 @test "[S][EV] SSL certificate {{ ssl_certfile }} exists" {
     [ -f {{ ssl_certfile }} ]
@@ -104,3 +105,21 @@ function setup() {
     [ -f {{ ssl_keyfile }} ]
 }
 {% endif %}
+{% else %} # use_letsencrypt is true
+# TODO(dittrich): This is a little less DRY than I would like...
+@test "[S][EV] SSL certificate /etc/letsencrypt/live/{{ certbot_sitename }}/fullchain.pem exists" {
+    sudo bash -c "[ -f /etc/letsencrypt/live/{{ certbot_sitename }}/fullchain.pem ]"
+}
+
+@test "[S][EV] SSL private key /etc/letsencrypt/live/{{ certbot_sitename }}/privkey.pem exists" {
+    sudo bash -c "[ -f /etc/letsencrypt/live/{{ certbot_sitename }}/privkey.pem ]"
+}
+
+@test "[S][EV] certbot-auto is installed in {{ dims_bin }}" {
+	assert "{{ dims_bin }}/certbot-auto" bash -c "which certbot-auto" {
+}
+{% endif %}
+
+@test "[S][EV] Diffie-Hellman group file {{ ssl_dhparam_file }} exists" {
+    [ -f {{ ssl_dhparam_file }} ]
+}

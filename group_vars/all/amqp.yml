@@ -7,8 +7,8 @@
 # the settings from group_vars/all/rabbitmq.yml and will
 # be removed when the PRISEM RPC code can be updated.
 
-amqp_port: '{{ rabbitmq_port }}'
-amqp_mgmt_port: '{{ rabbitmq_mgmt_port }}'
+amqp_port: '{{ rabbitmq_tcp_listen_port }}'
+amqp_mgmt_port: '{{ rabbitmq_mgmt_listen_port }}'
 amqp_program: 'rabbitmq'
 amqp_server: '{{ groups.rabbitmq|list_to_string_args }}'
 

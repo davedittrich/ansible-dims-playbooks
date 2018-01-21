@@ -126,7 +126,7 @@
   tags: [ postgresql, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
+  include: "{{ tasks_path }}/install-bats-tests.yml"
   tags: [ postgresql, tests ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"

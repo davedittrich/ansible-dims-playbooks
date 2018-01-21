@@ -1,0 +1,89 @@
+[
+  {
+    "id": 60550665,
+    "name": "orange",
+    "memory": 512,
+    "vcpus": 1,
+    "disk": 20,
+    "region": {
+      "slug": "sfo1",
+      "name": "San Francisco 1",
+      "sizes": [
+        "512mb",
+        "1gb",
+        "2gb",
+        "4gb"
+      ],
+      "available": true,
+      "features": [
+        "private_networking",
+        "backups",
+        "ipv6",
+        "metadata",
+        "install_agent"
+      ]
+    },
+    "image": {
+      "id": 26767465,
+      "name": "14.04.5 x64",
+      "type": "snapshot",
+      "distribution": "Ubuntu",
+      "slug": "ubuntu-14-04-x64",
+      "public": true,
+      "regions": [
+        "nyc1",
+        "sfo1",
+        "nyc2",
+        "ams2",
+        "sgp1",
+        "lon1",
+        "nyc3",
+        "ams3",
+        "fra1",
+        "tor1",
+        "sfo2",
+        "blr1"
+      ],
+      "min_disk_size": 20,
+      "created_at": "2017-08-02T21:20:30Z"
+    },
+    "size": {
+      "slug": "512mb",
+      "memory": 512,
+      "vcpus": 1,
+      "disk": 20,
+      "price_monthly": 5,
+      "price_hourly": 0.00744,
+      "regions": [
+        "ams2",
+        "ams3",
+        "blr1",
+        "fra1",
+        "lon1",
+        "nyc1",
+        "nyc2",
+        "nyc3",
+        "sfo1",
+        "sfo2",
+        "sgp1",
+        "tor1"
+      ],
+      "available": true,
+      "transfer": 1
+    },
+    "size_slug": "512mb",
+    "status": "active",
+    "networks": {
+      "v4": [
+        {
+          "ip_address": "107.170.212.182",
+          "netmask": "255.255.240.0",
+          "gateway": "107.170.208.1",
+          "type": "public"
+        }
+      ]
+    },
+    "created_at": "2017-08-31T18:26:16Z",
+    "volume_ids": []
+  }
+]

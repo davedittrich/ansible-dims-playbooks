@@ -10,7 +10,7 @@
 
 rabbitmq_tcp_listen_port: 5672
 rabbitmq_ssl_listen_port: 5671
-rabbitmq_mgmt_port: 15672
+rabbitmq_mgmt_listen_port: 15672
 rabbitmq_server: '{{ groups.rabbitmq.0 }}'
 rabbitmq_vhost: '/'
 rabbitmq_default_user: 'rpc_user'

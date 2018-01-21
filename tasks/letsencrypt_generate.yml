@@ -14,34 +14,36 @@
 # certbot_staging - Controls use of staging area to avoid throttle.
 # certbot_sitename - Domain name for certificate
 # certbot_adminemail - Email address for cert (may differ from
-#                      inventory_hostname if NAT in use).
+#                      ansible_fqdn if NAT in use).
 
 - name: Define _certbot_staging option
   set_fact:
     _certbot_staging: '{{ (certbot_staging|bool)|ternary("--staging","") }}'
 
-- block:
-  - name: stat {{ dims_bin }}/certbot-auto
-    stat: path='{{ dims_bin }}/certbot-auto'
-    register: _certbot
+- name: 'Check for iptables rules allowing dpt:80'
+  shell: >
+    iptables -nvL
+  register: _iptables
+  ignore_errors: true
 
-  - name: Ensure certbot-auto is installed
-    include: '{{ tasks_path }}/install-certbot-auto.yml'
-    when: _certbot.stat.exists == False
+- name: 'Assert there is a rule for dpt:80'
+  assert:
+    that:
+      - _iptables is defined
+      - "'dpt:80' in _iptables.stdout"
 
-  - debug: msg="{{ dims_bin }}/certbot-auto is installed"
-    when: _certbot.stat.exists == True
+- name: stat {{ dims_bin }}/certbot-auto
+  stat: path='{{ dims_bin }}/certbot-auto'
+  register: _certbot
 
-  rescue:
-  - fail: msg="{{ dims_bin }}/certbot-auto could not be installed"
-
-  # endblock
+- name: Assert certbot-auto is installed
+  assert: { that: _certbot.stat.exists|bool  }
 
 - block:
   # Generating a new cert using certbot
   - name: Create temporary directory for generating cert
     shell: >
-      mktemp -d "{{ lookup('env', 'TMPDIR') | default('/tmp', true) }}/ansible.XXXX"
+      mktemp -d '{{ ansible_env["TMPDIR"] | default("/tmp", true) }}/ansible.XXXX'
     register: mktemp_output
 
   - name: Define _tmpdir variable

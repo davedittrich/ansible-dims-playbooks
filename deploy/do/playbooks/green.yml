@@ -1,0 +1,31 @@
+---
+
+# File: playbooks/hosts/green.yml
+
+- name: Configure host "green"
+  hosts: green
+
+  vars:
+    playbooks_root: "{{ lookup('env', 'PBR') }}"
+
+  vars_files:
+   - "{{ playbooks_root }}/vars/global.yml"
+
+  remote_user: "ansible"
+  become: yes
+
+  roles:
+    - { role: base, packages_upgrade: true }
+    - { role: postfix }
+    - { role: docker }
+    - { role: consul }
+    - { role: python-virtualenv, use_sphinx: true }
+    - { role: nginx }
+    - { role: java8 }
+    - { role: ansible-role-jenkins, tags: jenkins2 }
+    - { role: jenkins2 }
+
+  handlers:
+   - include: "{{ handlers_path }}/restart_services.yml"
+
+# vim: ft=ansible :

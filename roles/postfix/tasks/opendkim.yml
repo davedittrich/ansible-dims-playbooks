@@ -1,0 +1,272 @@
+---
+
+- name: Assert dims_domain is defined and non-null
+  assert:
+    that:
+      - dims_domain is defined
+      - dims_domain != ''
+  tags: [ always ]
+
+- name: Define key base name
+  set_fact:
+    _key_name: '{{ lookup("pipe","date +%Y%m") }}'
+  tags: [ always ]
+
+- name: Define private key file name
+  set_fact:
+    opendkim_private_key_file: '/etc/opendkim/keys/{{ dims_domain }}/{{ _key_name }}.private'
+  when: opendkim_private_key_file is not defined
+  tags: [ always ]
+
+- name: Debug opendkim_private_key_file
+  debug:
+    var: opendkim_private_key_file
+    verbosity: 2
+  tags: [ always ]
+
+- name: Define local private key file name
+  set_fact:
+    _local_private_key_file: '{{ dims_keys }}/opendkim/{{ dims_domain }}/{{ _key_name }}.private'
+  tags: [ always ]
+
+- name: Debug _local_private_key_file
+  debug:
+    var: _local_private_key_file
+    verbosity: 2
+  tags: [ always ]
+
+- name: Ensure postfix is in opendkim group
+  user:
+    name: postfix
+    append: yes
+    groups: opendkim
+  become: yes
+  tags: [ postfix, config, opendkim ]
+
+- name: 'Ensure /etc/opendkim/keys/{{ dims_domain }} directory is present'
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: '{{ root_user }}'
+    group: opendkim
+    mode: 0o750
+  become: yes
+  with_items:
+    - '/etc/opendkim'
+    - '/etc/opendkim/keys/{{ dims_domain }}'
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+
+- name: 'Ensure directory for _local_private_key_file is present'
+  file:
+    path: '{{ _local_private_key_file|dirname }}'
+    state: directory
+    mode: 0o750
+  become: no
+  delegate_to: 127.0.0.1
+  run_once: true
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+
+- name: Generate keys on first postfix_mx host
+  shell: >
+     opendkim-genkey
+     -b {{ opendkim_key_bits }}
+     -h {{ opendkim_signature_algorithm }}
+     -r
+     -s {{ _key_name }}
+     -d {{ dims_domain }}
+     -v
+  args:
+    chdir: '{{ _local_private_key_file|dirname }}'
+    creates: '{{ _local_private_key_file }}'
+  become: no
+  delegate_to: 127.0.0.1
+  run_once: true
+  register: _private_key_gen
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+
+- name: Debug opendkim key generation
+  debug:
+    var: _private_key_gen
+    verbosity: 2
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+
+- name: Validate private key with opendkim-testkey
+  shell: >
+     opendkim-testkey
+     -d {{ dims_domain }}
+     -s {{ _key_name }}
+     -k {{ _local_private_key_file }}
+     -vvv
+  become: no
+  delegate_to: 127.0.0.1
+  run_once: true
+  when: _private_key_gen.changed
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+
+- name: Define opendkim_dns_txt_record
+  set_fact:
+    opendkim_dns_txt_record: '{{ lookup("dkim_txt_record", _local_private_key_file|regex_replace(".private",".txt")) }}'
+  when: opendkim_dns_txt_record is not defined
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+
+- name: Get private key for postfix hosts
+  set_fact:
+     _private_key: '{{ lookup("file", _local_private_key_file) }}'
+  no_log: '{{ nolog }}'
+  become: no
+  delegate_to: 127.0.0.1
+  run_once: true
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+
+  # The 'content' option of 'copy' module has a "won't fix" bug
+  # that strips the newline character from the file we are attempting
+  # to copy (meaning 'hashes to the same value' copy). Just do it
+  # manually.
+- name: Distribute private key to remaining postfix hosts
+  shell: >
+    echo "{{ _private_key }}" > {{ opendkim_private_key_file }}
+  no_log: '{{ nolog }}'
+  when: inventory_hostname in groups.postfix
+  args:
+    creates: '{{ opendkim_private_key_file }}'
+  become: yes
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+
+- name: Ensure proper private key permissions
+  shell: >
+    chown -R opendkim:opendkim /etc/opendkim &&
+    chmod -R go-rw /etc/opendkim/keys
+  become: yes
+  warn: no
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+
+- name: Validate private key with opendkim-testkey
+  shell: >
+     opendkim-testkey
+     -x /etc/opendkim.conf
+     -d {{ dims_domain }}
+     -s {{ _key_name }}
+     -k {{ opendkim_private_key_file }}
+     -vvv
+  become: yes
+  register: _opendkim_testkey
+  failed_when: not _opendkim_testkey.stdout|search("key OK") or
+               _opendkim_testkey.stdout|search("unsafe permissions")
+  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+
+- name: Make /etc/default/opendkim present
+  template:
+    src: '{{ item }}'
+    dest: /etc/default/opendkim
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - "{{ postfix_opendkim_default }}"
+        - opendkim.{{ inventory_hostname }}.j2
+        - opendkim.{{ host_group }}.j2
+        - opendkim.{{ postfix_group }}.j2
+        - opendkim.deployment-{{ deployment }}.j2
+        - opendkim.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/opendkim/default/'
+        - opendkim/default/
+  notify:
+    - restart opendkim
+    - restart postfix
+  tags: [ postfix, config, opendkim ]
+
+- name: Make /etc/opendkim/TustedHosts present
+  template:
+    src: '{{ item }}'
+    dest: /etc/opendkim/TrustedHosts
+    owner: '{{ root_user }}'
+    group: opendkim
+    mode: 0o644
+  with_first_found:
+    - files:
+        - "{{ postfix_TrustedHosts_default }}"
+        - TrustedHosts.{{ inventory_hostname }}.j2
+        - TrustedHosts.{{ host_group }}.j2
+        - TrustedHosts.{{ postfix_group }}.j2
+        - TrustedHosts.deployment-{{ deployment }}.j2
+        - TrustedHosts.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/opendkim/TrustedHosts/'
+        - opendkim/TrustedHosts/
+  notify:
+    - restart opendkim
+    - restart postfix
+  tags: [ postfix, config, opendkim ]
+
+- name: Make /etc/opendkim/KeyTable present
+  template:
+    src: '{{ item }}'
+    dest: /etc/opendkim/KeyTable
+    owner: '{{ root_user }}'
+    group: opendkim
+    mode: 0o644
+  with_first_found:
+    - files:
+        - "{{ postfix_KeyTable_default }}"
+        - KeyTable.{{ inventory_hostname }}.j2
+        - KeyTable.{{ host_group }}.j2
+        - KeyTable.{{ postfix_group }}.j2
+        - KeyTable.deployment-{{ deployment }}.j2
+        - KeyTable.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/opendkim/KeyTable/'
+        - opendkim/KeyTable/
+  notify:
+    - restart opendkim
+    - restart postfix
+  tags: [ postfix, config, opendkim ]
+
+- name: Make /etc/opendkim/SigningTable present
+  template:
+    src: '{{ item }}'
+    dest: /etc/opendkim/SigningTable
+    owner: '{{ root_user }}'
+    group: opendkim
+    mode: 0o644
+  with_first_found:
+    - files:
+        - "{{ postfix_SigningTable_default }}"
+        - SigningTable.{{ inventory_hostname }}.j2
+        - SigningTable.{{ host_group }}.j2
+        - SigningTable.{{ postfix_group }}.j2
+        - SigningTable.deployment-{{ deployment }}.j2
+        - SigningTable.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/opendkim/SigningTable/'
+        - opendkim/SigningTable/
+  notify:
+    - restart opendkim
+    - restart postfix
+  tags: [ postfix, config, opendkim ]
+
+- name: Make /etc/opendkim.conf present
+  template:
+    src: '{{ item }}'
+    dest: /etc/opendkim.conf
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - "{{ postfix_opendkim_conf }}"
+        - opendkim.conf.{{ inventory_hostname }}.j2
+        - opendkim.conf.{{ host_group }}.j2
+        - opendkim.conf.{{ postfix_group }}.j2
+        - opendkim.conf.deployment-{{ deployment }}.j2
+        - opendkim.conf.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/opendkim.conf/'
+        - opendkim.conf/
+  notify:
+    - restart postfix
+    - restart opendkim
+  tags: [ postfix, config, opendkim ]
+
+# vim: ft=ansible :

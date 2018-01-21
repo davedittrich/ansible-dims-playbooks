@@ -1,7 +1,10 @@
 # vim: set ts=4 sw=4 tw=0 et :
 
-from netaddr import *
+import bcrypt
+import six
 import socket
+
+from netaddr import *
 from ansible import errors
 
 def _list_to_args(_list):
@@ -183,6 +186,25 @@ def _uppercase(_str):
         return "{}".format(_str).upper()
 
 
+def _bcrypt_hashpw(_str):
+    '''Return the salted bcrypt hash of a password string'''
+    # TODO(dittrich): Jenkins 2.89.2 dies with incompatible salt error when using default bcrypt salt prefix ("2y")
+    # java.lang.IllegalArgumentException: Invalid salt revision
+    #   at org.mindrot.jbcrypt.BCrypt.hashpw(BCrypt.java:757)
+    #   at org.mindrot.jbcrypt.BCrypt.checkpw(BCrypt.java:856)
+    #   at hudson.security.HudsonPrivateSecurityRealm$3.isPasswordValid(HudsonPrivateSecurityRealm.java:695)
+    #   at hudson.security.HudsonPrivateSecurityRealm$4.isPasswordValid(HudsonPrivateSecurityRealm.java:716)
+    #   at hudson.security.HudsonPrivateSecurityRealm$Details.isPasswordCorrect(HudsonPrivateSecurityRealm.java:522)
+    #   ...
+    #   See:  https://stackoverflow.com/questions/16478604/bcrypt-checkpw-invalid-salt-version-exception
+    #   Until this is fixed, falling back to supported prefix "2a".
+
+    if isinstance(_str, six.text_type):
+        return "#jbcrypt:{}".format(bcrypt.hashpw(_str.encode("utf-8"), bcrypt.gensalt(prefix=b"2a")))
+    else:
+        return "#jbcrypt:{}".format(bcrypt.hashpw(_str, bcrypt.gensalt(prefix=b"2a")))
+
+
 class FilterModule(object):
     '''DIMS Ansible filters.'''
 
@@ -204,6 +226,7 @@ class FilterModule(object):
             # String filters
             'lowercase': _lowercase,
             'uppercase': _uppercase,
+            'bcrypt_hashpw': _bcrypt_hashpw,
 
             # Other filters go here...
         }

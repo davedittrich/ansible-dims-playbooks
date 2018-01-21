@@ -1,12 +1,12 @@
-// 
+//
 // This script applies the basic Jenkins configuration settings that this
 // Ansible role supports.
-// 
-// Debugging Note: Output from this script won't appear in webapp log UI, but 
-// instead in the system log file, e.g. `/var/log/jenkins/jenkins.log`. 
+//
+// Debugging Note: Output from this script won't appear in webapp log UI, but
+// instead in the system log file, e.g. `/var/log/jenkins/jenkins.log`.
 //
 
-// These are the basic imports that Jenkin's interactive script console 
+// These are the basic imports that Jenkin's interactive script console
 // automatically includes.
 import jenkins.*;
 import jenkins.model.*;

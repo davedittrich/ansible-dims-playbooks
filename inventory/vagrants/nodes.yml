@@ -125,5 +125,15 @@ vagrants:
         'red.devops.local':
         'yellow.devops.local':
         'purple.devops.local':
+    coreos_vagrant:
+      hosts:
+        'core-01':
+          ansible_host: '127.0.0.1'
+          #ansible_host: '172.17.8.101'
+          ansible_user: 'core'
+          ansible_port: 2222
+          ansible_ssh_private_key_file: '/home/dittrich/.vagrant.d/insecure_private_key'
+          ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+
 
 # vim: ft=ansible :

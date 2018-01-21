@@ -1,39 +1,37 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 #
 # This NGINX configuration comes from the Jenkins web site:
-# https://wiki.jenkins-ci.org/display/JENKINS/Jenkins+behind+an+NGinX+reverse+proxy
-
-# The following is for cleartext HTTP access.
+# https://wiki.jenkins.io/display/JENKINS/Jenkins+behind+an+NGinX+reverse+proxy
 
 upstream jenkins {
-    server 127.0.0.1:8080;
+    server 127.0.0.1:{{ jenkins_port }} fail_timeout=0;
 }
 
+# The following is for cleartext HTTP access.
+#
 #server {
 #  listen {{ nginx_default_port }};
-#  server_name {{ ansible_hostname }}.devops.{{ deployment }};
-#  return 301 http://{{ ansible_hostname }}.devops.{{ deployment }}$request_uri;
+#  server_name {{ jenkins_fqdn }};
+#  return 301 http://$host$request_uri;
 #}
 
 server {
-  listen 80;
-  server_name jenkins.devops.{{ deployment }};
+  listen 443;
+  server_name {{ jenkins_fqdn }};
 
   location ^~ /jenkins {
     sendfile off;
-    proxy_pass http://jenkins;
-    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
-    proxy_redirect off;
-    proxy_http_version 1.1;
-    #proxy_set_header Host jenkins.devops.local;
-    #proxy_set_header Host jenkins.devops.{{ deployment }};
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_max_temp_file_size 0;
-    client_max_body_size       10m;
-    client_body_buffer_size    128k;
+    # Fix the "It appears that your reverse proxy set up is broken" error.
+    # Convert inbound WAN requests for https://{{ jenkins_fqdn }}/jenkins/ to
+    # local network requests for http://127.0.0.1:{{ jenkins_port}}//jenkins/
+    proxy_pass       http://127.0.0.1:{{ jenkins_port }};
+    proxy_redirect   http:// https://;
+
+    # "Once configured, you should also set the URL used by the Jenkins UI at
+    # Jenkins > Manage Jenkins > Jenkins Location > Jenkins URL to something
+    # like: 'https://domain.tld/jenkins/'. "
+    # This is done in roles/jenkins/templates/config/jenkins.model.JenkinsLocationConfiguration.xml.j2
+
     proxy_connect_timeout      90;
     proxy_send_timeout         90;
     proxy_read_timeout         90;
@@ -41,37 +39,23 @@ server {
     proxy_buffers              4 32k;
     proxy_busy_buffers_size    64k;
     proxy_temp_file_write_size 64k;
+    proxy_max_temp_file_size   0;
+
+    proxy_set_header Host $host:$server_port;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-Port 443;
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+
+    # Required for new HTTP-based CLI
+    proxy_http_version 1.1;
+    proxy_request_buffering off;
+    # workaround for https://issues.jenkins-ci.org/browse/JENKINS-45651
+    add_header 'X-SSH-Endpoint' '{{ jenkins_fqdn }}:{{ jenkins_ssh_port }}' always;
+
+    client_max_body_size       10m;
+    client_body_buffer_size    128k;
   }
 }
-
-
-
-# The following is an alternative for HTTPS access.
-#upstream jenkins {
-#  server 127.0.0.1:8080 fail_timeout=0;
-#}
-# 
-#server {
-#  listen 80;
-#  server_name {{ ansible_hostname }}.devops.{{ deployment }};
-#  return 301 https://$host$request_uri;
-#}
-# 
-#server {
-#  listen 443 ssl;
-#  server_name {{ ansible_hostname }}.devops.{{ deployment }};
-# 
-#  ssl_certificate /etc/nginx/ssl/server.crt;
-#  ssl_certificate_key /etc/nginx/ssl/server.key;
-# 
-#  location / {
-#    proxy_set_header        Host $host:$server_port;
-#    proxy_set_header        X-Real-IP $remote_addr;
-#    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-#    proxy_set_header        X-Forwarded-Proto $scheme;
-#    proxy_redirect http:// https://;
-#    proxy_pass              http://jenkins;
-#    # Required for new HTTP-based CLI
-#    proxy_http_version 1.1;
-#  }
-#}

@@ -1,4 +1,4 @@
-// These are the basic imports that Jenkin's interactive script console 
+// These are the basic imports that Jenkin's interactive script console
 // automatically includes.
 import jenkins.*;
 import jenkins.model.*;

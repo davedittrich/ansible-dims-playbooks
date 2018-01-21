@@ -6,11 +6,19 @@
 _erlang_apt_key: 'http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
 _erlang_apt_repo: 'deb http://packages.erlang-solutions.com/ubuntu trusty contrib'
 
+# Set with something like:
+# '{{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface["rabbitmq"]].ip }}'
 _rabbitmq_listen_address: '127.0.0.1'
+_rabbitmq_listen_port: 5672
+_rabbitmq_ssl_listen_address: '127.0.0.1'
+_rabbitmq_ssl_listen_port: 5671
+_rabbitmq_mgmt_listen_address: '127.0.0.1'
+_rabbitmq_mgmt_listen_port: 15672
 _rabbitmq_apt_repo: 'deb http://www.rabbitmq.com/debian/ testing main'
 _rabbitmq_apt_key: 'https://www.rabbitmq.com/rabbitmq-release-signing-key.asc'
 _rabbitmq_plugins:
   - rabbitmq_management
+  - rabbitmq_auth_mechanism_ssl
   - rabbitmq_federation
   - rabbitmq_shovel
 _rabbitmq_etc_default: |
@@ -18,20 +26,15 @@ _rabbitmq_etc_default: |
 _rabbitmq_environment: false
 _rabbitmq_reverse_lookups: true
   
-
 #rabbitmq_cacert     : "files/rabbitmq_cacert.pem"
 #rabbitmq_server_key : "files/rabbitmq_server_key.pem"
 #rabbitmq_server_cert: "files/rabbitmq_server_cert.pem"
 
 # Assumes using "nginx" role to simplify handling SSL certs
-rabbitmq_listen_address: ''
-rabbitmq_listen_port: 5672
-rabbitmq_ssl_listen_address: '0.0.0.0'
-rabbitmq_ssl_listen_port: 5671
 # Paths to certs and key align with ansible-role-ca (see inventory/ca-certs/nodes.yml)
 rabbitmq_ssl_cacertfile: "/etc/ssl/certs/ca.pem"
-rabbitmq_ssl_certfile: "/etc/ssl/certs/{{ inventory_hostname }}-cert.pem"
-rabbitmq_ssl_keyfile: "/etc/ssl/private/{{ inventory_hostname }}-priv-key.pem"
+rabbitmq_ssl_certfile: "/etc/ssl/certs/{{ ansible_fqdn }}-cert.pem"
+rabbitmq_ssl_keyfile: "/etc/ssl/private/{{ ansible_fqdn }}-priv-key.pem"
 rabbitmq_ssl_fail_if_no_peer_cert: "true"
 
-# ft=ansible :
+# vim: ft=ansible :

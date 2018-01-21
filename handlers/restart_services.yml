@@ -83,6 +83,12 @@
 - name: restart ip6tables (Ubuntu/xenial)
   action: service name=netfilter-persistent state=reloaded
 
+- name: restart iptables (centos7)
+  action: service name=iptables state=restarted
+
+- name: restart iptables6 (centos7)
+  action: service name=iptables6 state=restarted
+
 - name: restart virtualbox
   action: service name=virtualbox state=restarted
 
@@ -122,6 +128,9 @@
 - name: restart postfix
   service: name=postfix state=restarted
 
+- name: restart opendkim
+  service: name=opendkim state=restarted
+
 - name: restart trident
   service: name=trident state=restarted
 
@@ -136,5 +145,15 @@
 
 - name: restart rabbitmq-server
   service: name=rabbitmq-server state=restarted
+
+- name: restart fail2ban (service)
+  service:
+    name: fail2ban
+    state: restarted
+
+- name: restart fail2ban (systemd)
+  systemd:
+    name: fail2ban
+    state: restarted
 
 # vim: ft=ansible :

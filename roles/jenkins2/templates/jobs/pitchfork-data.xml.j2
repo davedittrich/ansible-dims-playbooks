@@ -43,6 +43,7 @@
       <command># BOJ
 #sudo apt-get install  -t jessie-backports golang-go -y
 #sudo apt-get install dh-golang dh-systemd
+eval $(go env)
 make pkg
 mkdir output
 mv ../*.deb ./output

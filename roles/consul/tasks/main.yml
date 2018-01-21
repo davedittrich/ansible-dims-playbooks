@@ -9,8 +9,7 @@
 
 - debug:
     msg: "{{ inventory_hostname }} is not in groups.consul"
-  when: not (ansible_os_family == "Debian" and
-             groups.consul is defined and
+  when: not (groups.consul is defined and
              inventory_hostname in groups.consul)
   tags: [ consul, config, tests, packages ]
 
@@ -27,7 +26,7 @@
   tags: [ consul, config, packages ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks_path }}/bats-tests.yml"
+  include: "{{ tasks_path }}/install-bats-tests.yml"
   when: groups.consul is defined and
         inventory_hostname in groups.consul
   tags: [ consul, tests ]

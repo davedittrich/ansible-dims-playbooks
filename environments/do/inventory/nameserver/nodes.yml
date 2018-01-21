@@ -1,0 +1,7 @@
+---
+
+nameserver:
+  hosts:
+    'red':
+
+# vim: ft=ansible :
