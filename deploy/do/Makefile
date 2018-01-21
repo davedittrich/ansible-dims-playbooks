@@ -6,6 +6,10 @@ INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
 
+# Generate SSH public key fingerprint for terraform to use
+SSH_FINGERPRINT=$(shell ssh-keygen -E md5 -lf ${TF_VAR_public_key}|awk '{print $$2}'|sed 's/^[Mm][Dd]5://')
+TF_VARS=-var 'ssh_fingerprint=$(SSH_FINGERPRINT)'
+
 # The following checks to see if local sudo requires a password. If so,
 # the flag is added to the command line when invoking Ansible.
 ASK_SUDO_PASS:=$(shell ansible -i localhost, -m shell -a date --become localhost -c local | grep -q "password is required" && echo "--ask-sudo-pass")
@@ -122,7 +126,8 @@ provider:
 
 .PHONY: plan
 plan: init provider
-	terraform plan
+	terraform plan $(TF_VARS)
+	$(MAKE) --always-make $(INVENTORY_GENERATED)
 
 .PHONY: graph
 graph: graph.png
@@ -131,33 +136,34 @@ graph: graph.png
 	@if [[ "$(shell uname -s)" == "Linux" && ! -z "$(shell which xdg-open)" ]] ; then (xdg-open graph.png &); fi
 
 graph.png: init
-	terraform graph | dot -Tpng -o graph.png
+	terraform graph $(TF_VARS) | dot -Tpng -o graph.png
 
 $(INVENTORY_GENERATED):
 	$(COMMON_SCRIPTS)/terraform.inventory.generate.sh > $(INVENTORY_GENERATED)
 
 .PHONY: newkeypair
 newkeypair:
-	@if [ $(shell jq -r '.resources' terraform.tfstate) != "null" ]; then \
-		echo '[!] Refusing to replace SSH keys while droplets are running'; \
-		echo '[!] Use "make destroy" first or manually re-key droplets'; \
-		false; \
-	fi
+	@if [ -f terraform.tfstate -a "$(shell jq -r '.resources' terraform.tfstate)" != "null" ]; then \
+	        echo '[!] Refusing to replace SSH keys while droplets are running'; \
+	        echo '[!] Use "make destroy" first or manually re-key droplets'; \
+	        false; \
+	 fi
 	@echo "[+] Generating new SSH key pair"
 	ssh-keygen -t rsa -f $(TF_VAR_private_key)
+	ssh-add $(TF_VAR_private_key) || true
 
 .PHONY: insertpubkey
 insertpubkey:
-	terraform apply -target=digitalocean_ssh_key.default -auto-approve
+	terraform apply $(TF_VARS) -target=digitalocean_ssh_key.default -auto-approve
 
 .PHONY: removepubkey
 removepubkey:
-	terraform destroy -target=digitalocean_ssh_key.default --force
+	terraform destroy $(TF_VARS) -target=digitalocean_ssh_key.default --force
 
 .PHONY: create
 create: init hosts provider
 	$(MAKE) insertpubkey && sleep 2
-	terraform apply | tee -a terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)//keys.host.extract.sh
+	terraform apply $(TF_VARS) | tee -a terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)//keys.host.extract.sh
 	! grep -q "Error: Error applying plan:" terraform.log
 	$(MAKE) --always-make $(INVENTORY_GENERATED)
 	$(MAKE) addhostkeys
@@ -169,7 +175,7 @@ sshkeys:
 
 .PHONY: bootstrap
 bootstrap:
-	(terraform plan | grep -q "No changes") || $(MAKE) create
+	(terraform plan $(TF_VARS) | grep -q "No changes") || $(MAKE) create
 	ansible-playbook -i $(INVENTORY) \
 		$(DIMS_ANSIBLE_ARGS) \
 		$(PBR)/playbooks/bootstrap.yml \
@@ -285,7 +291,7 @@ backup.letsencrypt:
 
 .PHONY: destroy
 destroy:
-	terraform destroy --force
+	terraform destroy $(TF_VARS) --force
 	-$(MAKE) removehostkeys
 	-rm -rf fingerprints/ known_hosts/
 	-rm -f ansible-digital_ocean.cache
