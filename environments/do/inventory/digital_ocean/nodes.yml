@@ -115,6 +115,7 @@ do:
   hosts:
     'red':
       custom_rules: [
+        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ rabbitmq_ssl_listen_port }} -j ACCEPT',
         ]
@@ -122,8 +123,16 @@ do:
     #  epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
     'green':
       tridentFQDN: '{{ ansible_fqdn }}'
+      custom_rules: [
+        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
+        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
+        ]
     'purple':
       tridentFQDN: '{{ ansible_fqdn }}'
+      custom_rules: [
+        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
+        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
+        ]
       trident_perl_disturl: 'https://staff.washington.edu/dittrich/{{ trident_perl_archive }}'
 
 # vim: ft=ansible :
