@@ -74,11 +74,11 @@ do:
         value: 'ra=root'
       # https://app.dmarcanalyzer.com/dns/dkim?simple=1
       - name: '{{ opendkim_selector }}._domainkey'
-        value: 'v=DKIM1; h=sha256; k=rsa; s=email; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApZRpNnjWsbqldIIFFJQ+8VEgO4EVVbTFL7fmYB/BAOGdbNeCYyDNcM7b/1SVjucrrWJgrUvYlQhydI1i33BN4veLgLjUE5WJg5FIT2d0wk1wawQ0g/rXgUTmhz2ouWSSE9DFsHGPmR7Pi+6w3BNJU12Xtd7RiXw4g567g/uniQ2TrMkFfxtVSwOJ6bPNvNBxVzPJN7pRVh3kdVUFnnUY9BuC7O6debIOi3+QKdjocpCcLVXpHnJnKihTgp04JnvTYctxlVpWC8vr1D0JNgWlmjIWjr5KtrzG4fSVT5ZKFplLFHYI4jXCgbaQgxWO9d0IHSmPAfvObVKC0STNQx3AMQIDAQAB'
+        value: '{{ lookup("dkim_txt_record", dims_keys + "/opendkim/" + dims_domain + "/" + opendkim_selector + ".txt") }}'
       # https://www.spfwizard.net/
       - name: '_spf'
-        value: 'v=spf1 mx ptr ip4:{{ hostvars["red"].ansible_default_ipv4.address|ipaddr("host") }} ip4:{{ hostvars["green"].ansible_default_ipv4.address|ipaddr("host") }} ip4:{{ hostvars["purple"].ansible_default_ipv4.address|ipaddr("host") }} ~all'
-        #value: 'v=spf1 mx a ptr ~all'
+        #value: 'v=spf1 mx ptr ip4:{{ hostvars["red"].ansible_default_ipv4.address|ipaddr("host") }} ip4:{{ hostvars["green"].ansible_default_ipv4.address|ipaddr("host") }} ip4:{{ hostvars["purple"].ansible_default_ipv4.address|ipaddr("host") }} ~all'
+        value: 'v=spf1 mx a ptr ~all'
       - name: '@'
         value: 'v=spf1 include:_spf.{{ dims_domain }} ~all'
     dns_txt_ttl: 360

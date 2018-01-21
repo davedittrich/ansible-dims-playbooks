@@ -1,5 +1,12 @@
 ---
 
+- name: Assert dims_domain is defined and non-null
+  assert:
+    that:
+      - dims_domain is defined
+      - dims_domain != ''
+  tags: [ always ]
+
 - name: Define key base name
   set_fact:
     _key_name: '{{ lookup("pipe","date +%Y%m") }}'
@@ -96,28 +103,10 @@
   when: _private_key_gen.changed
   tags: [ postfix, config, opendkim, opendkim_genkeys ]
 
-- name: Extract TXT record
-  shell: >
-    cat '{{ _local_private_key_file|regex_replace(".private",".txt") }}' |
-    sed 's/h=rsa-/h=/' |
-    gawk 'match($0, /"([^"]+)"/, arr) { printf arr[1]}'
-  register: _txt_record
-  become: no
-  delegate_to: 127.0.0.1
-  run_once: true
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
-
-- name: Debug _txt_record
-  debug:
-    var: _txt_record.stdout
-    verbosity: 2
-  when: _txt_record.stdout is defined
-  tags: [ always ]
-
 - name: Define opendkim_dns_txt_record
   set_fact:
-    opendkim_dns_txt_record: '{{ _txt_record.stdout }}'
-  when: opendkim_dns_txt_record is not defined and _txt_record.stdout is defined
+    opendkim_dns_txt_record: '{{ lookup("dkim_txt_record", _local_private_key_file|regex_replace(".private",".txt")) }}'
+  when: opendkim_dns_txt_record is not defined
   tags: [ postfix, config, opendkim, opendkim_genkeys ]
 
 - name: Get private key for postfix hosts
