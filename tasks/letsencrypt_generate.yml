@@ -20,6 +20,18 @@
   set_fact:
     _certbot_staging: '{{ (certbot_staging|bool)|ternary("--staging","") }}'
 
+- name: 'Check for iptables rules allowing dpt:80'
+  shell: >
+    iptables -nvL
+  register: _iptables
+  ignore_errors: true
+
+- name: 'Assert there is a rule for dpt:80'
+  assert:
+    that:
+      - _iptables is defined
+      - "'dpt:80' in _iptables.stdout
+
 - name: stat {{ dims_bin }}/certbot-auto
   stat: path='{{ dims_bin }}/certbot-auto'
   register: _certbot
