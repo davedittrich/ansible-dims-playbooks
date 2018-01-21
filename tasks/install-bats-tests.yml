@@ -19,6 +19,12 @@
 # multiple lines, so they are left as big long lines
 # despite possible readability problems.
 
+- name: Assert playbooks_root is defined and not null
+  assert:
+    that:
+      - playbooks_root is defined
+      - playbooks_root != ""
+
 - name: Set _base_path
   set_fact:
     _base_path: '{{ playbooks_root }}/roles/{{ role_name }}/templates/tests'
