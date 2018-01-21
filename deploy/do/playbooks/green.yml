@@ -19,7 +19,6 @@
     - { role: postfix }
     - { role: docker }
     - { role: consul }
-    - { role: ansible-server }
     - { role: python-virtualenv, use_sphinx: true }
     - { role: nginx }
     - { role: java8 }
