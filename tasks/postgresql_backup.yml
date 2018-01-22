@@ -24,7 +24,7 @@
 
 - name: Define backup_ts timestamp
   set_fact:
-    backup_ts: "{{ lookup('dims_function', 'iso8601dateshort') }}"
+    backup_ts: "{{ lookup('pipe', 'date +%FT%T%Z') }}"
 
 - name: Define postgresql_backup_file
   set_fact:

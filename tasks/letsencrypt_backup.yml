@@ -24,7 +24,7 @@
 
   - name: Define backup_ts timestamp
     set_fact:
-      _backup_ts: "{{ lookup('dims_function', 'iso8601dateshort') }}"
+      _backup_ts: "{{ lookup('pipe', 'date +%FT%T%Z') }}"
 
   # Note that the backup is named "letsencrypt" for the
   # /etc/letsencrypt directory, not "certbot". Be aware of
