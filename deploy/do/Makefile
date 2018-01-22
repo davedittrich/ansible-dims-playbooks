@@ -36,6 +36,7 @@ help:
 	@echo " hosts - show list of hosts in group 'do'"
 	@echo " dumpjson - dump all DigitalOcean image related information in JSON"
 	@echo " dumpvars - produces Ansible debug output of vars for hosts in group 'do'"
+	@echo " updatefacts - run 'ansible -m setup' to refresh cached facts"
 	@echo " images - lists available DigitalOcean images"
 	@echo " regions - lists available DigitalOcean regions"
 	@echo " provider - generate terraform provider.tf file for creating nodes in group 'do'"
@@ -260,6 +261,11 @@ dumpvars:
 		$(DIMS_ANSIBLE_ARGS) |\
 			pygmentize -ljson |\
 			less -R
+.PHONY: updatefacts
+updatefacts:
+	ansible -i $(INVENTORY) \
+		-m setup do \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: ping
 ping:
