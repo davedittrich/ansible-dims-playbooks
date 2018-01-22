@@ -18,11 +18,11 @@
     [ -d ~/.secrets/digital-ocean ]
 }
 
-@test "[S][EV] DigitalOcean token is in ~/.secrets/digital-ocean/token" {
+@test "[S][EV] DigitalOcean token file (~/.secrets/digital-ocean/token) is not empty" {
     [ -s ~/.secrets/digital-ocean/token ]
 }
 
-@test "[S][EV] Secrets for DigitalOcean ~/.secrets/digital-ocean/secrets.yml exist" {
+@test "[S][EV] Secrets for DigitalOcean (~/.secrets/digital-ocean/secrets.yml) exist" {
     [ -s ~/.secrets/digital-ocean/secrets.yml ]
 }
 
@@ -70,7 +70,7 @@
     ! bash -c "make images | grep 'Unable to authenticate you'"
 }
 
-@test "[S][EV] Variable TF_VAR_public_key (terraform .tf) is defined in environment" {
+@test "[S][EV] Variable TF_VAR_public_key (terraform) is defined in environment" {
     [ ! -z "$TF_VAR_public_key" ]
 }
 
@@ -78,7 +78,7 @@
     [ -r "$TF_VAR_public_key" ]
 }
 
-@test "[S][EV] Variable TF_VAR_private_key (terraform .tf) is defined in environment" {
+@test "[S][EV] Variable TF_VAR_private_key (terraform) is defined in environment" {
     [ ! -z "$TF_VAR_private_key" ]
 }
 
