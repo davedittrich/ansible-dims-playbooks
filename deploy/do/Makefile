@@ -28,6 +28,7 @@ help:
 	@echo ""
 	@echo " help - print this help text"
 	@echo " init - initialize terraform state (this is automatic)"
+	@echo " prerequisites - install prerequisite programs"
 	@echo " droplets - show list of active droplets using digital_ocean.py dynamic inventory"
 	@echo " hosts - show list of hosts in group 'do'"
 	@echo " dumpjson - dump all DigitalOcean image related information in JSON"
@@ -78,6 +79,11 @@ init: terraform.tfstate
 
 terraform.tfstate:
 	terraform init
+
+.PHONY: prerequisites
+prerequisites:
+	sudo apt-get install bats pip python-pip jq
+	sudo pip install ansible==2.4.0.0
 
 .PHONY: droplets
 droplets:
