@@ -81,7 +81,7 @@ terraform.tfstate:
 
 .PHONY: droplets
 droplets:
-	ansible -i $(INVENTORY)/digital_ocean.py $(DIMS_ANSIBLE_ARGS) --list-hosts all |\
+	ansible -i $(INVENTORY)/digital_ocean.py --list-hosts all $(DIMS_ANSIBLE_ARGS) |\
 	       sed 's/ *//g' |\
 	       tail -n +2
 
@@ -90,7 +90,7 @@ hosts:
 	$(MAKE) --always-make inventory/hosts 2>/dev/null
 
 inventory/hosts:
-	(echo "[droplets]"; ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) |\
+	(echo "[droplets]"; ansible -i $(INVENTORY) --list-hosts do $(DIMS_ANSIBLE_ARGS)|sed 's/ *//g'|tail -n +2) |\
 		tee inventory/hosts
 
 .PHONY: etchosts
@@ -121,8 +121,8 @@ regions:
 .PHONY: provider
 provider:
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
-		create-provider.tf.yml
+		create-provider.tf.yml \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: plan
 plan: init provider
@@ -177,59 +177,60 @@ sshkeys:
 bootstrap:
 	(terraform plan $(TF_VARS) | grep -q "No changes") || $(MAKE) create
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(PBR)/playbooks/bootstrap.yml \
-		-e host=do
+		-e host=do \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: installcerts
 installcerts:
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(PBR)/playbooks/certbot-installcert.yml \
-		-e host=do
+		-e host=do \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: deploy
 deploy:
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
-		master.yml
+		master.yml \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: update
 update:
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		--tags updates \
 		-e packages_upgrade=yes \
-		master.yml
+		master.yml \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: reboot
 reboot:
 	ansible -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		--become \
 		-m shell \
 		-a '/sbin/shutdown -r +1' \
-		do
+		do \
+		$(DIMS_ANSIBLE_ARGS)
+
 .PHONY: cancel
 cancel:
 	ansible -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		--become \
 		-m shell \
 		-a '/sbin/shutdown -c && echo "[+] Whew! That was close!"' \
-		do
+		do \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: addhostkeys
 addhostkeys:
 	@echo "[+] Adding host keys to known_hosts on localhost"
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSILE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		$(PBR)/playbooks/do_rekey.yml \
-		-e known_hosts_root="$(shell pwd)/known_hosts"
+		-e known_hosts_root="$(shell pwd)/known_hosts" \
+		$(DIMS_ANSILE_ARGS)
 	@echo "[+] Adding host keys to known_hosts on droplets"
 	ansible-playbook -i $(INVENTORY) \
 		$(DIMS_ANSILE_ARGS) \
@@ -240,24 +241,24 @@ addhostkeys:
 .PHONY: removehostkeys
 removehostkeys:
 	-ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		$(PBR)/playbooks/do_rekey.yml \
-		-e remove_keys=true
+		-e remove_keys=true \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: dumpvars
 dumpvars:
 	ansible -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
-		-m debug -a "var=hostvars[inventory_hostname]" do |\
+		-m debug -a "var=hostvars[inventory_hostname]" do \
+		$(DIMS_ANSIBLE_ARGS) |\
 			pygmentize -ljson |\
 			less -R
 
 .PHONY: ping
 ping:
 	ansible -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
-		-m ping do
+		-m ping do \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: pre.test
 pre.test:
@@ -266,28 +267,28 @@ pre.test:
 .PHONY: post.test
 post.test:
 	ansible -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		-m shell \
 		-a 'test.runner --terse --tap' \
-		do || (echo '[!] Some test(s) failed' && exit 1)
+		do \
+		$(DIMS_ANSIBLE_ARGS) || (echo '[!] Some test(s) failed' && exit 1)
 	@echo '[+] All tests passed!'
 
 .PHONY: backup.postgresql
 backup.postgresql:
 	-ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
-		$(PBR)/playbooks/postgresql_backup.yml
+		$(PBR)/playbooks/postgresql_backup.yml \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: backup.letsencrypt
 backup.letsencrypt:
 	-ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		$(PBR)/playbooks/letsencrypt_backup.yml \
-		-e host=do
+		-e host=do \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: destroy
 destroy:
