@@ -20,7 +20,7 @@
   set_fact:
     _certbot_staging: '{{ (certbot_staging|bool)|ternary("--staging","") }}'
 
-- name: 'Check for iptables rules allowing dpt:80'
+- name: 'Check for iptables rules allowing dpt:80 and dpt:443'
   shell: >
     iptables -nvL
   register: _iptables
@@ -31,6 +31,7 @@
     that:
       - _iptables is defined
       - "'dpt:80' in _iptables.stdout"
+      - "'dpt:443' in _iptables.stdout"
 
 - name: stat {{ dims_bin }}/certbot-auto
   stat: path='{{ dims_bin }}/certbot-auto'
@@ -72,7 +73,7 @@
       --noninteractive
       --standalone {{ _certbot_staging }}
       --keep-until-expiring
-      --preferred-challenges tls-sni
+      --preferred-challenges {{ certbot_preferred_challenges|default("http") }}
       --domain {{ certbot_sitename }}
       --agree-tos
       --email {{ certbot_adminemail }}
