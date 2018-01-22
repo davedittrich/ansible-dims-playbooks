@@ -16,9 +16,9 @@
 
   roles:
     - { role: base, packages_upgrade: true }
+    - { role: docker }
     - { role: nginx }
     - { role: postfix }
-    - { role: docker }
     - { role: consul }
     - { role: python-virtualenv, use_sphinx: true }
     - { role: java8 }

@@ -17,9 +17,9 @@
 
   roles:
     - { role: base }
+    - { role: docker }
     - { role: nginx }
     - { role: postfix }
-    - { role: docker }
     - { role: consul }
     - { role: python-virtualenv, use_sphinx: false }
     - { role: postgresql }
