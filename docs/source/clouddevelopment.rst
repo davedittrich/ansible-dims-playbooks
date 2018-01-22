@@ -289,10 +289,12 @@ satisfied, all tests will succeed. If any fail, resolve the issue and try again.
 
     $ make pre.test
     bats do.bats
+     ✓ [S][EV] terraform is found in $PATH
      ✓ [S][EV] Directory for secrets (~/.secrets/) exists
      ✓ [S][EV] Directory for secrets (~/.secrets/) is mode 700
      ✓ [S][EV] Directory for DigitalOcean secrets (~/.secrets/digital-ocean/) exists
      ✓ [S][EV] DigitalOcean token is in ~/.secrets/digital-ocean/token
+     ✓ [S][EV] Secrets for DigitalOcean in ~/.secrets/digital-ocean/secrets.yml exist
      ✓ [S][EV] Variable DO_API_VERSION (dopy) is defined in environment
      ✓ [S][EV] Variable DO_API_TOKEN (dopy) is defined in environment
      ✓ [S][EV] Variable DO_PAT (terraform) is defined in environment
@@ -309,11 +311,9 @@ satisfied, all tests will succeed. If any fail, resolve the issue and try again.
      ✓ [S][EV] File pointed to by TF_VAR_public_key exists and is readable
      ✓ [S][EV] Variable TF_VAR_private_key (terraform .tf) is defined in environment
      ✓ [S][EV] File pointed to by TF_VAR_private_key exists and is readable
-     ✓ [S][EV] Variable TF_VAR_ssh_fingerprint (terraform .tf) is defined in environment
      ✓ [S][EV] DO_API_TOKEN authentication succeeds
-     ✓ [S][EV] terraform is found in $PATH
 
-    23 tests, 0 failures
+    22 tests, 0 failures
 
 ..
 
