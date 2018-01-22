@@ -17,12 +17,12 @@
 
   roles:
     - { role: base }
+    - { role: nginx }
     - { role: postfix }
     - { role: docker }
     - { role: consul }
     - { role: python-virtualenv, use_sphinx: false }
     - { role: postgresql }
-    - { role: nginx }
     - { role: trident-core }
     - { role: trident-configure }
 
