@@ -153,55 +153,8 @@
   become: yes
   tags: [ base, config, updates ]
 
-- name: Ensure ansible_fqdn is really FQDN
-  set_fact:
-    ansible_fqdn: '{{ inventory_hostname }}.{{ dims_domain }}'
-  when: not dims_domain in ansible_fqdn
-  tags: [ always ]
-
-- debug: msg=System "{{ inventory_hostname }} ({{ ansible_fqdn }})"
-  when: verbose
-  tags: [ base ]
-
-- name: Make /etc/hostname present
-  shell: 'echo {{ ansible_fqdn }} > /etc/hostname'
-  become: yes
-  when: ansible_os_family != "MacOSX"
-  tags: [ base, config ]
-
-- name: Set hostname (runtime) (Debian)
-  shell: 'hostname -b -F /etc/hostname'
-  become: yes
-  when: ansible_distribution == "Debian"
-  tags: [ base, config ]
-
-- name: Ensure kernel uses FQDN hostname (Debian)
-  sysctl:
-    name: kernel.hostname
-    value: '{{ ansible_fqdn }}'
-    sysctl_set: yes
-    state: present
-    reload: yes
-  become: yes
-  when: ansible_distribution == "Debian"
-  tags: [ base, config ]
-
-- name: Set hostname (runtime) (Ubuntu, CoreOS)
-  shell: 'hostname {{ ansible_fqdn }}'
-  become: yes
-  when: ansible_distribution == "Ubuntu" or ansible_os_family == "Container Linux by CoreOS"
-  tags: [ base, config ]
-
-- name: Set domainname (MacOSX)
-  lineinfile:
-    dest=/etc/defaultdomain
-    regexp='^.*$'
-    line={{ ansible_domain }}
-    owner={{ root_user }}
-    group={{ root_group }}
-    mode=0o644
-  become: yes
-  when: ansible_os_family == "MacOSX"
+- name: Ensure hostname is set
+  include_tasks: "{{ tasks_path }}/hostname.yml"
   tags: [ base, config ]
 
   # Must include tag for any task in this playbook that uses
@@ -553,7 +506,7 @@
   tags: [ base, services ]
 
 - name: Check proxy availability
-  include: "{{ tasks_path }}/proxy_check.yml"
+  include_tasks: "{{ tasks_path }}/proxy_check.yml"
   tags: [ base, config, packages, updates, triggers ]
 
 - name: Make CoreOS resources present

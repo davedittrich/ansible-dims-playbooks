@@ -39,6 +39,10 @@
   include: 'sudo.yml'
   tags: [ 'bootstrap', 'sudo' ]
 
+- name: Ensure hostname is set consistent with base role
+  include_tasks: '{{ tasks_path }}/hostname.yml'
+  tags: [ 'bootstrap', 'hostname' ]
+
 - name: Ensure DIMS-specific resources present
   include: dims_base.yml
   tags: [ 'bootstrap', 'dims_base' ]
