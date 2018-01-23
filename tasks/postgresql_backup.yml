@@ -14,7 +14,9 @@
     postgresql_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
   when: postgresql_backup_dir is not defined
 
-- debug: 'var=postgresql_backup_dir'
+- debug:
+    var: postgresql_backup_dir
+    verbosity: 2
 
 # TODO(dittrich): Add support for hourly/daily backup cycle
 # Use variable to select backup type ("daily" or "hourly") and

@@ -13,7 +13,9 @@
   no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=admins_defined
+- debug:
+    var: admins_defined
+    verbosity: 2
 
 - name: Ensure administator is logged in
   shell: >
@@ -61,7 +63,9 @@
   when: ansible_lsb.codename == "jessie"
   ignore_errors: yes
 
-- debug: var=tg_check
+- debug:
+    var: tg_check
+    verbosity: 2
 
 # NOTE(mboggess): propogate use of this boolean
 # to other TG tasks
@@ -69,7 +73,9 @@
   set_fact: tg_exists={{ tg_check.rc == 0 }}
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=tg_exists
+- debug:
+    var: tg_exists
+    verbosity: 2
 
 - name: List current primary TG members
   shell: >
@@ -78,7 +84,9 @@
   when: ansible_lsb.codename == "jessie"
   ignore_errors: yes
 
-- debug: var=results
+- debug:
+    var: results
+    verbosity: 2
 
 - name: Extract members on success
   set_fact:
@@ -90,7 +98,9 @@
     members_current: "{{ members_current | default([]) }}"
   when: (":" in results.stdout_lines[0])
 
-- debug: var=members_current
+- debug:
+    var: members_current
+    verbosity: 2
 
 # https://groups.google.com/forum/#!topic/Ansible-project/MohcQCsbp0w
 # "Python lists have a truthiness of False when empty"
@@ -99,7 +109,9 @@
   set_fact:
     have_members: "{{ members_current.0 is defined }}"
 
-- debug: var=have_members
+- debug:
+    var: have_members
+    verbosity: 2
 
 # If there are no members, add them. We will promote sysadmins
 # later, but they have to be members first.
@@ -154,7 +166,9 @@
   ignore_errors: yes
   when: have_members
 
-- debug: var=results
+- debug:
+    var: results
+    verbosity: 2
 
 - name: Build dict with admin status for each member
   set_fact:
@@ -162,7 +176,9 @@
   with_items: "{{ results.results }}"
   when: have_members
 
-- debug: var=admins_dict
+- debug:
+    var: admins_dict
+    verbosity: 2
 
 - name: Extract subset of members w/sysadmin status
   set_fact:
@@ -170,7 +186,9 @@
   with_dict: "{{ admins_dict }}"
   when: have_members and item.value == "yes"
 
-- debug: var=admins_current
+- debug:
+    var: admins_current
+    verbosity: 2
 
 # If the trust group hasn't been setup yet, but there
 # might be users around (trident, at least), we need
@@ -184,7 +202,9 @@
   register: results
   when: admins_current is not defined
 
-- debug: var=results.results[0].item
+- debug:
+    var: results.results[0].item
+    verbosity: 2
 
 - name: Extract existing admins
   set_fact:
@@ -193,7 +213,9 @@
   when: admins_current is not defined
         and item.stdout != item.item
 
-- debug: var=admins_needed
+- debug:
+    var: admins_needed
+    verbosity: 2
 
 - fail: msg="Short circuit task to stop the playbook."
 
@@ -225,14 +247,18 @@
 #  no_log: "{{ nolog }}"
 #  when: ansible_lsb.codename == "jessie"
 #
-#- debug: var=account_status
+#- debug:
+#    var: account_status
+#    verbosity: 2
 
 #- name: Retrieve accounts not yet setup
 #  set_fact: setup_accounts={{ account_status.results | selectattr('stdout', 'defined') | map(attribute='stdout') | list }}
 #  no_log: "{{ nolog }}"
 #  when: ansible_lsb.codename == "jessie"
 #
-#- debug: var=setup_accounts
+#- debug:
+#    var: setup_accounts
+#    verbosity: 2
 
 - name: Determine trust group status
   shell: >
@@ -241,7 +267,9 @@
   no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=group_status
+- debug:
+    var: group_status
+    verbosity: 2
 
 - name: Retrieve group not yet setup
   set_fact: setup_group={{ group_status.stdout }}
@@ -263,14 +291,18 @@
   no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=list_status
+- debug:
+    var: list_status
+    verbosity: 2
 
 - name: Retrieve lists not yet setup
   set_fact: setup_lists={{ list_status.stdout_lines }}
   no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=setup_lists
+- debug:
+    var: setup_lists
+    verbosity: 2
 
 - name: Ensure initial ML is setup
   shell: >
@@ -287,14 +319,18 @@
   no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=member_status
+- debug:
+    var: member_status
+    verbosity: 2
 
 - name: Retrieve members in TG
   set_fact: setup_members={{ member_status.stdout_lines }}
   no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=setup_members
+- debug:
+    var: setup_members
+    verbosity: 2
 
 - name: Add, approve, promote global admins to initial TG admins
   shell: >
@@ -322,14 +358,18 @@
   no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=list_status
+- debug:
+    var: list_status
+    verbosity: 2
 
 - name: Retrieve created mailing lists
   set_fact: initial_lists={{ list_status.stdout_lines }}
   no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=initial_lists
+- debug:
+    var: initial_lists
+    verbosity: 2
 
 - name: Determine mailing list members
   shell: >
@@ -339,7 +379,9 @@
   #no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=ml_member_status
+- debug:
+    var: ml_member_status
+    verbosity: 2
 
 - name: Determine TG members
   shell: >
@@ -348,14 +390,18 @@
   no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=tg_member_status
+- debug:
+    var: tg_member_status
+    verbosity: 2
 
 - name: Retrieve members in TG
   set_fact: setup_members={{ tg_member_status.stdout_lines }}
   no_log: "{{ nolog }}"
   when: ansible_lsb.codename == "jessie"
 
-- debug: var=setup_members
+- debug:
+    var: setup_members
+    verbosity: 2
 
 # NOTE(mboggess): this task makes for a huge, not-DRY
 # at all data structure, but it does get around the
@@ -376,7 +422,9 @@
   when: ansible_lsb.codename == "jessie"
         and item.1 not in item.0.stdout_lines
 
-- debug: var=ml_members_status_dict
+- debug:
+    var: ml_members_status_dict
+    verbosity: 2
 
 - name: Ensure all primary TG members on all initial TG MLs
   shell: >
