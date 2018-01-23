@@ -22,10 +22,14 @@
     postgresql_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
   when: postgresql_backup_dir is not defined
 
-- debug: 'var=postgresql_backup_dir'
+- name: Debug postgresql_backup_dir
+  debug:
+    var: postgresql_backup_dir
+    verbosity: 2
 
-- name: Ensure exclude use of '--data-only' and '--clean'
-  fail: msg="Use 'postgresql_restore_data_only' or 'postgresql_restore_clean', not both"
+- name: "Ensure exclude use of '--data-only' and '--clean'"
+  fail:
+    msg: "Use 'postgresql_restore_data_only' or 'postgresql_restore_clean', not both"
   when: (postgresql_restore_data_only is defined and postgresql_restore_data_only != "") and
         (postgresql_restore_clean is defined and postgresql_restore_clean != "")
 
@@ -40,7 +44,7 @@
   when: postgresql_restore_clean is not defined or
         (postgresql_restore_clean is defined and postgresql_restore_clean|bool)
 
-- include: '{{ tasks_path }}/get_backups.yml'
+- include_tasks: '{{ tasks_path }}/get_backups.yml'
   vars:
     backups_dir: '{{ postgresql_backup_dir }}'
     backups_service: 'postgresql'
@@ -53,11 +57,13 @@
         backups_files.0 is defined
 
 - name: Require 'postgresql_backup_file' be set
-  fail: msg="Please specify backup to restore with 'postgresql_backup_file'"
+  fail:
+    msg: "Please specify backup to restore with 'postgresql_backup_file'"
   when: postgresql_backup_file is not defined
 
 - name: Require backup file name ends with '.pgdmp.bz2'
-  fail: msg="Backup file name '{{ postgresql_backup_file }}' does not end with '.pgdmp.bz2'"
+  fail:
+    msg: "Backup file name '{{ postgresql_backup_file }}' does not end with '.pgdmp.bz2'"
   when: not postgresql_backup_file.endswith('.pgdmp.bz2')
 
 - name: Create remote temporary directory

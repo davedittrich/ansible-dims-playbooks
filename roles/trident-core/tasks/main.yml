@@ -34,6 +34,47 @@
 #  $ sudo apt-get purge postgresql-*
 # before running this playbook.
 
+- name: Determine user running ansible
+  local_action: command whoami
+  become: no
+  register: _whoami
+  tags: [ always ]
+
+- name: Define trident_initial_user_ident
+  set_fact:
+    trident_initial_user_ident: '{{ _whoami.stdout }}'
+  when: trident_initial_user_ident is not defined
+  tags: [ always ]
+
+- name: "Determine user's name"
+  local_action: command git config user.name
+  become: no
+  register: _gitusername
+  tags: [ always ]
+
+- name: Define trident_initial_user_descr
+  set_fact:
+    trident_initial_user_descr: '{{ _gitusername.stdout }}'
+  when: trident_initial_user_descr is not defined
+  tags: [ always ]
+
+- email: "Determine user's email"
+  local_action: command git config user.email
+  become: no
+  register: _gituseremail
+  tags: [ always ]
+
+- email: Define trident_initial_user_descr
+  set_fact:
+    trident_initial_user_email: '{{ _gituseremail.stdout }}'
+  when: trident_initial_user_email is not defined
+  tags: [ always ]
+
+  # TODO(dittrich): Figure out why adding GPG is not working and add logic to add it
+  # Validate GPG key:
+  #  $ gpg --list-packets --verbose dittrich.asc 2>/dev/null | grep "user ID packet"
+  # :user ID packet: "Dave Dittrich <dave.dittrich@gmail.com>"
+
 - name: Validate Debian Jessie is being used.
   fail:
     msg: "Debian Jessie is required for running Trident."
@@ -159,7 +200,9 @@
     state: present
   with_items: '{{ trident_dist_bundle }}'
   become: yes
-  notify: restart trident
+  notify:
+    - restart trident
+    - restart nginx
   tags: [ trident-core, packages ]
 
 - name: Ensure trident is disabled with service
@@ -220,7 +263,9 @@
        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/default/'
        - trident/default/
   become: yes
-  notify: restart trident
+  notify:
+    - restart trident
+    - restart nginx
   tags: [ trident-core, config ]
 
 - name: Ensure /etc/trident/trident.conf is present
@@ -241,7 +286,9 @@
        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/trident.conf/'
        - trident/trident.conf/
   become: yes
-  notify: restart trident
+  notify:
+    - restart trident
+    - restart nginx
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
@@ -266,7 +313,9 @@
        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/siteconfig/'
        - trident/siteconfig/
   become: yes
-  notify: restart trident
+  notify:
+    - restart trident
+    - restart nginx
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
@@ -288,7 +337,9 @@
        - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/sites-available/'
        - nginx/sites-available/
   become: yes
-  notify: restart nginx
+  notify:
+    - restart trident
+    - restart nginx
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
@@ -298,7 +349,9 @@
     dest: '/etc/nginx/sites-enabled/trident'
     state: link
   become: yes
-  notify: restart nginx
+  notify:
+    - restart trident
+    - restart nginx
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
@@ -392,6 +445,17 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
+- name: Check tcli system name
+  shell: >
+    tcli system get name
+  register: _tcli_system_get_name
+  tags: [ trident-core, trident-configure, config ]
+
+- name: Define _trident_configured
+  set_fact:
+    _trident_configured: '"Not Configured" not in _tcli_system_get_name.stdout'
+  tags: [ trident-core, trident-configure, config ]
+
   # "trident" in pg_roles.  The value "1" means the roles
   # exists (which implies that the setup tasks below
   # have already been applied.) If not, it is safe to
@@ -428,7 +492,7 @@
 
 - name: Ensure Trident user and database present
   shell: "/usr/sbin/tsetup setup_db"
-  when: not _trident_role_exists
+  when: not _trident_role_exists or not _trident_configured
   become: yes
   become_user: 'postgres'
   tags: [ trident-core ]
@@ -436,7 +500,10 @@
   # Restore database from a previous backup if enabled and if first
   # time.
 - include_tasks: '{{ tasks_path }}/postgresql_restore.yml'
-  when: postgresql_backup_restorefrom is defined and not _trident_role_exists
+  when:
+    - postgresql_backup_restorefrom is defined
+    - postgresql_backup_restorefrom != ''
+    - not _trident_role_exists
   tags: [ trident-core, trident-configure ]
 
 # Add initial sysadmin user. This step is necessary according to Linda's email
@@ -445,7 +512,8 @@
   shell: >
     /usr/sbin/tsetup adduser trident {{ tridentSysAdminPass }}
   no_log: '{{ nolog }}'
-  when: postgresql_backup_restorefrom is not defined and not _trident_role_exists
+  when: (postgresql_backup_restorefrom is not defined and not _trident_role_exists) or
+        not _trident_configured
   become: yes
   become_user: 'postgres'
   tags: [ trident-core ]

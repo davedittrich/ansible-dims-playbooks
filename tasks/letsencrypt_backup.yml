@@ -6,6 +6,24 @@
 # certbot_backup_dir - Directory to store backup (defaults to
 #                      directory using ansible_fqdn in path)
 
+- name: Identify use running ansible-playbook
+  local_action: command whoami
+  register: _localuser
+
+- debug:
+    var: _localuser
+    verbosity: 2
+
+- name: Define backups_owner
+  set_fact:
+    backups_owner: '{{ _localuser.stdout }}'
+  when: backups_owner is not defined
+
+- name: Define backups_group
+  set_fact:
+    backups_group: '{{ backups_owner }}'
+  when: backups_group is not defined
+
 - name: Define _default_backups_dir
   set_fact:
     certbot_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
@@ -48,11 +66,12 @@
     file:
       dest: '{{ certbot_backup_dir }}'
       state: directory
-      owner: dims
-      group: dims
+      owner: '{{ backups_owner }}'
+      group: '{{ backups_group }}'
       mode: 0o770
     delegate_to: 127.0.0.1
-    become: yes
+    become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
+    become_user: '{{ backups_owner }}'
 
   - name: Fetch backup copy of letsencrypt directory
     fetch:
@@ -61,7 +80,7 @@
       flat: true
       validate_checksum: yes
     no_log: '{{ nolog|default(true) }}'
-    become: yes
+    become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
 
   - name: Note success in backing up certs
     set_fact:
@@ -70,11 +89,12 @@
   - name: Set backup ownership
     file:
       path: '{{ certbot_backup_dir }}/{{ certbot_backup_file }}'
-      owner: dims
-      group: dims
+      owner: '{{ backups_owner }}'
+      group: '{{ backups_group }}'
       mode: 0o660
     delegate_to: 127.0.0.1
-    become: yes
+    become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
+    become_user: '{{ backups_owner }}'
 
   rescue:
   - name: Note failure in backing up certs
