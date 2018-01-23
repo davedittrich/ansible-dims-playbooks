@@ -90,3 +90,11 @@
     ! bash -c "make images | grep 'Unable to authenticate you'"
 }
 
+@test "[S][EV] Git user.name is set" {
+    [ ! -z "$(git config user.name)" ]
+}
+
+@test "[S][EV] Git user.email is set" {
+    [ ! -z "$(git config user.email)" ]
+}
+

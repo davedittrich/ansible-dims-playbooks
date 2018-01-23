@@ -311,8 +311,10 @@ satisfied, all tests will succeed. If any fail, resolve the issue and try again.
      ✓ [S][EV] Variable TF_VAR_private_key (terraform) is defined in environment
      ✓ [S][EV] File pointed to by TF_VAR_private_key exists and is readable
      ✓ [S][EV] DO_API_TOKEN authentication succeeds
+     ✓ [S][EV] Git user.name is set
+     ✓ [S][EV] Git user.email is set
 
-    22 tests, 0 failures
+    24 tests, 0 failures
 
 ..
 
