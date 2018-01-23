@@ -4,6 +4,7 @@
 
 - name: Configure host "green"
   hosts: green
+  gather_facts: true
 
   vars:
     playbooks_root: "{{ lookup('env', 'PBR') }}"

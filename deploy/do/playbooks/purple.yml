@@ -4,6 +4,7 @@
 
 - name: Configure host "purple"
   hosts: purple
+  gather_facts: true
 
   vars:
     playbooks_root: "{{ lookup('env', 'PBR') }}"
