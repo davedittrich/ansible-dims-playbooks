@@ -93,12 +93,14 @@ trident:
 
       # TODO(dittrich): Prototyping multi-TG settings
       # The primary trust group is the 0th element by convention.
+      # Initial user defaults to person running ansible
+      # (see roles/trident-core/tasks/main.yml)
       trident_site_trust_groups:
         - name: 'main'
           initial_users:
-            - ident: 'dittrich'
-              descr: 'Dave Dittrich'
-              email: 'dave.dittrich@gmail.com'
+            - ident: '{{ trident_initial_user_ident }}'
+              descr: '{{ trident_initial_user_descr }}'
+              email: '{{ trident_initial_user_email }}'
           additional_lists:
             - ident: 'demo'
               descr: 'LOCAL Trident Demos'
