@@ -31,7 +31,7 @@ EOD
 terraform output --json | jq -r 'to_entries[] | [ .key, (.value.value|to_entries[]| .key, .value) ]|@sh' |
 awk '{
     printf "    %s:\n", $1
-    printf "      ansible_fqdn: %s\n", $2
+    printf "      dims_fqdn: %s\n", $2
     printf "      ansible_host: %s\n", $3
      }'
 
