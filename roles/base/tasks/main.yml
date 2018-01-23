@@ -175,6 +175,17 @@
   when: ansible_distribution == "Debian"
   tags: [ base, config ]
 
+- name: Ensure kernel uses FQDN hostname (Debian)
+  sysctl:
+    name: kernel.hostname
+    value: '{{ ansible_fqdn }}'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  become: yes
+  when: ansible_distribution == "Debian"
+  tags: [ base, config ]
+
 - name: Set hostname (runtime) (Ubuntu, CoreOS)
   shell: 'hostname {{ ansible_fqdn }}'
   become: yes
