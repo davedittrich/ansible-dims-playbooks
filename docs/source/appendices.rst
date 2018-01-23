@@ -26,7 +26,7 @@ contain a ``DOCKER`` chain for Docker, which attempts to keep the
 in the the container effectively "hanging" from time to time.  This manifests
 as a random failure in an Ansible task that is trying to use the configured
 proxy (e.g., see the ``python-virtualenv`` build failure in Section
-:ref:`_using_dims_functions_in_bats`.)
+:ref:`using_dims_functions_in_bats`.)
 
 A ``bats`` test exists to test the proxy:
 
@@ -696,4 +696,291 @@ to do.
 ..
 
 
+.. _terraformstate:
+
+Leveraging the Terraform State File
+-----------------------------------
+
+Terraform maintains state in a file named ``terraform.tfstate`` (and
+a backup file ``terraform.tfstate.backup``) in the home directory
+where Terraform was initialized. While the ``terraform.tfstate`` file
+is a JSON object that can be manipulated using programs like `jq`_,
+the proper way to exploit this state is to use ``terraform output --json``.
+
+Introduction to ``jq``
+~~~~~~~~~~~~~~~~~~~~~~
+
+To better understand how to manipulate the contents of the
+``terraform.tfstate`` file with ``jq``, we will start out by directly
+manipulating the file so we don't have to *also* struggle with defining
+Terraform ``output`` variables.
+
+.. note::
+
+    See `Reshaping JSON with jq`_ for examples of how to use ``jq``.
+
+..
+
+Using the filter ``.`` with ``jq`` will show the entire structure. Here are the
+first 10 lines in a ``terraform.tfstate`` file
+
+.. code-block:: none
+
+    $ jq -r '.' terraform.tfstate | head
+    {
+      "version": 3,
+      "terraform_version": "0.11.1",
+      "serial": 7,
+      "lineage": "755c781e-407c-41e2-9f10-edd0b80bcc9f",
+      "modules": [
+        {
+          "path": [
+            "root"
+          ],
+
+..
+
+.. note::
+
+   To more easily read the JSON, you can pipe the output through
+   ``pygmentize`` to colorize it, then ``less -R`` to preserve
+   the ANSI colorization codes. The command line to use is:
+
+   .. code-block:: bash
+
+       $ jq -r '.' terraform.tfstate | pygmentize | less -R
+
+   ..
+
+..
+
+By choosing a specific field for the filter, ``jq`` will print just that field.
+
+.. code-block:: none
+
+    $ jq -r '.lineage' terraform.tfstate
+    755c781e-407c-41e2-9f10-edd0b80bcc9f
+
+..
+
+Adding ``[]`` to a field that is an array produces a list, and piping filters with
+a ``|`` allows additional filtering to be applied to narrow the results. Functions
+like ``select()`` can be used to extract a specific field from a list element that
+is a dictionary, allowing selection of just specific members. In the next example,
+the nested structures named ``resources`` within the structure ``modules`` are
+evaluated, selecting only those where the ``type`` field is ``digitalocean_record``
+(i.e., DNS records).
+
+.. code-block:: bash
+
+    $ jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record"))' terraform.tfstate
+
+..
+
+The first record is highlighted in the output here.  Within the record are
+two fields (``.primary.attributes.fqdn`` and ``.primary.attributes.value``)
+that are needed to help build ``/etc/hosts`` style DNS mappings, or to
+generate a YAML inventory file.
+
+.. code-block:: json
+   :emphasize-lines: 1-26
+   :linenos:
+
+    {
+      "type": "digitalocean_record",
+      "depends_on": [
+        "digitalocean_domain.default",
+        "digitalocean_droplet.blue"
+      ],
+      "primary": {
+        "id": "XXXXXXXX",
+        "attributes": {
+          "domain": "example.com",
+          "fqdn": "blue.example.com",
+          "id": "XXXXXXXX",
+          "name": "blue",
+          "port": "0",
+          "priority": "0",
+          "ttl": "360",
+          "type": "A",
+          "value": "XXX.XXX.XXX.XX",
+          "weight": "0"
+        },
+        "meta": {},
+        "tainted": false
+      },
+      "deposed": [],
+      "provider": "provider.digitalocean"
+    }
+    {
+      "type": "digitalocean_record",
+      "depends_on": [
+        "digitalocean_domain.default",
+        "digitalocean_droplet.orange"
+      ],
+      "primary": {
+        "id": "XXXXXXXX",
+        "attributes": {
+          "domain": "example.com",
+          "fqdn": "orange.example.com",
+          "id": "XXXXXXXX",
+          "name": "orange",
+          "port": "0",
+          "priority": "0",
+          "ttl": "360",
+          "type": "A",
+          "value": "XXX.XXX.XXX.XXX",
+          "weight": "0"
+        },
+        "meta": {},
+        "tainted": false
+      },
+      "deposed": [],
+      "provider": "provider.digitalocean"
+    }
+
+..
+
+By adding another pipe step to create an list item with just these two
+fields, and adding the ``-c`` option to create a single-line JSON object.
+
+.. code-block:: none
+
+    $ jq -c '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.fqdn, .primary.attributes.value ]' terraform.tfstate
+
+..
+
+.. code-block:: json
+
+    ["blue.example.com","XXX.XXX.XXX.XX"]
+    ["orange.example.com","XXX.XXX.XXX.XXX"]
+
+..
+
+These can be further converted into formats parseable by Unix shell programs
+like ``awk``, etc., using the filters ``@csv`` or ``@sh``:
+
+.. code-block:: none
+
+    $ jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.name, .primary.attributes.fqdn, .primary.attributes.value ]| @csv' terraform.tfstate
+    "blue","blue.example.com","XXX.XXX.XXX.XX"
+    "orange","orange.example.com","XXX.XXX.XXX.XXX"
+    $ jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.name, .primary.attributes.fqdn, .primary.attributes.value ]| @sh' terraform.tfstate
+    'blue' 'blue.example.com' 'XXX.XXX.XXX.XX'"
+    'blue' 'orange.example.com' 'XXX.XXX.XXX.XXX'"
+
+..
+
+.. _processing_terraform_output:
+
+Processing ``terraform output --json``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While processing the ``terraform.tfstate`` file directly is possible, the
+proper way to use Terraform state is to create **output** variables and
+expose them using ``terraform output``:
+
+.. code-block:: bash
+
+    $ terraform output
+    blue = {
+      blue.example.com = XXX.XX.XXX.XXX
+    }
+    orange = {
+      orange.example.com = XXX.XX.XXX.XXX
+    }
+
+..
+
+This output could be processed with ``awk``, but we want to use ``jq`` instead
+to more directly process the output using JSON.  To get JSON output, add the
+``--json`` flag:
+
+
+.. code-block:: bash
+
+    $ terraform output --json
+    {
+        "blue": {
+            "sensitive": false,
+            "type": "map",
+            "value": {
+                "blue.example.com": "XXX.XX.XXX.XXX"
+            }
+        },
+        "orange": {
+            "sensitive": false,
+            "type": "map",
+            "value": {
+                "orange.example.com": "XXX.XX.XXX.XXX"
+            }
+        }
+    }
+
+..
+
+To get to clean single-line, multi-colum output, we need to use
+``to_entries[]`` to turn the dictionaries into key/value pairs,
+nested two levels deep in this case.
+
+.. code-block:: none
+
+    $ terraform output --json | jq -r 'to_entries[] | [ .key, (.value.value|to_entries[]| .key, .value) ]|@sh'
+    'blue' 'blue.example.com' 'XXX.XX.XXX.XXX'
+    'orange' 'orange.example.com' 'XXX.XX.XXX.XXX'
+
+..
+
+Putting all of this together with a much simpler ``awk`` script, a YAML
+inventory file can be produced as shown in the script
+``files/common-scripts/terraform.inventory.generate.sh``.
+
+.. literalinclude:: ../../files/common-scripts/terraform.inventory.generate.sh
+   :language: bash
+
+.. code-block:: yaml
+
+    ---
+    # This is a generated inventory file produced by /Users/dittrich/dims/git/ansible-dims-playbooks/files/common-scripts/terraform.inventory.generate.sh.
+    # DO NOT EDIT THIS FILE.
+
+    do:
+      hosts:
+        'blue':
+          ansible_host: 'XXX.XXX.XXX.XX'
+          ansible_fqdn: 'blue.example.com'
+        'orange':
+          ansible_host: 'XXX.XXX.XXX.XXX'
+          ansible_fqdn: 'orange.example.com'
+
+..
+
+This inventory file can then be used by Ansible to perform ad-hoc tasks or run
+playbooks.
+
+.. code-block:: none
+
+    $ make ping
+    ansible -i ../../environments/do/inventory \
+                     \
+                    -m ping do
+    orange | SUCCESS => {
+        "changed": false,
+        "failed": false,
+        "ping": "pong"
+    }
+    blue | SUCCESS => {
+        "changed": false,
+        "failed": false,
+        "ping": "pong"
+    }
+
+..
+
+.. REFERENCES
+
 .. _In YAML, how do I break a string over multiple lines?: https://stackoverflow.com/questions/3790454/in-yaml-how-do-i-break-a-string-over-multiple-lines
+.. _jq: https://stedolan.github.io/jq/manual/
+.. _Reshaping JSON with jq: https://programminghistorian.org/lessons/json-and-jq
+
+.. EOF
