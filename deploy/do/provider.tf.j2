@@ -16,7 +16,7 @@ provider "digitalocean" {
 }
 
 module "do-keypair" {
-  name = "${var.environment}"
+  keyname = "${var.environment}"
   source = "./keypair"
   public_key_filename = "${var.public_key}"
 }

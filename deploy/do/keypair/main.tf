@@ -1,10 +1,10 @@
 # input variables
-variable name { default = "dims" }
+variable keyname { }
 variable public_key_filename { }
 
 # create resources
 resource "digitalocean_ssh_key" "default" {
-  name = "${var.name}-key"
+  name = "${var.keyname}-key"
   public_key = "${file(var.public_key_filename)}"
 }
 
