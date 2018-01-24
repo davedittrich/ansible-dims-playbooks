@@ -512,8 +512,8 @@
   shell: >
     /usr/sbin/tsetup adduser trident {{ tridentSysAdminPass }}
   no_log: '{{ nolog }}'
-  when: (postgresql_backup_restorefrom is not defined and not _trident_role_exists) or
-        not _trident_configured
+  when: ((postgresql_backup_restorefrom is not defined or postgresql_backup_restorefrom == '') and not _trident_role_exists)
+        or not _trident_configured
   become: yes
   become_user: 'postgres'
   tags: [ trident-core ]
