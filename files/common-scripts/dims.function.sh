@@ -39,7 +39,7 @@ else
 fi
 
 # Tracks with bumpversion
-DIMS_VERSION=3.0.2
+DIMS_VERSION=3.0.3
 
 # Define command line options
 DEFINE_boolean 'debug' false 'enable debug mode' 'd'
