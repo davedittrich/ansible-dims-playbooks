@@ -5,11 +5,15 @@
 - name: Install DigitalOcean monitoring agent
   shell: >
     curl -sSL https://agent.digitalocean.com/install.sh | sh
+  args:
+    creates: '/opt/digitalocean/bin/do-agent'
   register: _agent
   when: groups.do is defined
         and inventory_hostname in groups.do
 
-- debug: 'var=_agent.stdout_lines'
+- debug:
+    var: _agent.stdout_lines
+    verbosity: 2
   when: groups.do is defined
         and inventory_hostname in groups.do
         and _agent.stdout_lines is defined
