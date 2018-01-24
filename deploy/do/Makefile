@@ -170,7 +170,6 @@ removepubkey:
 
 .PHONY: create
 create: init hosts provider
-	$(MAKE) insertpubkey && sleep 2
 	terraform apply $(TF_VARS) | tee -a terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)//keys.host.extract.sh
 	! grep -q "Error: Error applying plan:" terraform.log
 	$(MAKE) --always-make $(INVENTORY_GENERATED)
@@ -202,7 +201,7 @@ installcerts:
 
 # TODO(dittrich): Remove the postgresql_backup_restorefrom after debugging. :(
 .PHONY: deploy
-deploy: .bootstrapped
+deploy:
 	ansible-playbook -i $(INVENTORY) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
@@ -276,8 +275,7 @@ updatefacts:
 .PHONY: ping
 ping:
 	ansible -i $(INVENTORY) \
-		-m ping do \
-		$(DIMS_ANSIBLE_ARGS)
+		-m ping do
 
 .PHONY: pre.test
 pre.test:
