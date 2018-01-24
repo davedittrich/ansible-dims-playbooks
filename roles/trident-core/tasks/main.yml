@@ -377,6 +377,28 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
+- name: Ensure 'favicon.ico' is present
+  copy:
+    src: '{{ item }}'
+    dest: /usr/share/pitchfork/webroot/{{ trident_site_favicon_image }}
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+       - '{{ trident_favicon }}'
+       - favicon.ico.{{ inventory_hostname }}
+       - favicon.ico.category-{{ category }}
+       - favicon.ico.deployment-{{ deployment }}
+       - favicon.ico
+      paths:
+       - '{{ dims_private }}/roles/{{ role_name }}/files/favicon.ico/'
+       - files/favicon.ico/
+      skip: true
+  become: yes
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+  tags: [ trident-core, trident-configure, config ]
+
 - name: Ensure header_image is present
   copy:
     src: '{{ item }}'
