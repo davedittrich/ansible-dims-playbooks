@@ -4,34 +4,17 @@
 
 trident:
   vars:
-      tridentFQDN: '{{ ansible_fqdn }}'
-
       # Default site settings. Over-ride specifics below
-      trident_site_name: '{{ ansible_domain }} Trident Portal'
-      trident_site_welcome_text: 'Trident'
-      trident_site_url_public: 'https://{{ tridentFQDN }}'
-      trident_site_email_domain: '{{ tridentFQDN }}'
-      trident_site_people_domain: '{{ trident_site_email_domain }}'
-      trident_site_logo_image: '/gfx/logo.png'
-      trident_site_header_image: '/gfx/header_image.jpg'
-      trident_site_unknown_person: '/gfx/unknown_person.jpg'
-      trident_site_var: '/var/lib/trident'
-      trident_site_mail_handler: '/var/lib/trident/library/mh-wrapper'
-      trident_site_adminname: 'Trident Administrator'
-      trident_site_adminemail: 'admin@{{ trident_site_email_domain }}'
-      trident_site_admins: []
+      trident_nginx_http_listen_port: 80
+      trident_nginx_https_listen_port: 443
+      trident_http_listen_port: 8333
+      trident_sysadmin_user: 'trident'
+      trident_sysadmin_pass: '{{ vault_trident_sysadmin_pass }}'
 
-      tridentHTTPPort: 8333
-      tridentSysAdminUser: 'trident'
-      tridentSysAdminPass: '{{ vault_tridentSysAdminPass }}'
-
-      tridentDBName: 'trident'
-      tridentDBUser: 'trident'
-      tridentDBPass: '{{ vault_tridentDBPass }}'
-      tridentDBPort: 5432
-
-      tridentNginxHTTPPort: 80
-      tridentNginxHTTPSPort: 443
+      trident_db_name: 'trident'
+      trident_db_user: 'trident'
+      trident_db_pass: '{{ vault_trident_db_pass }}'
+      trident_db_listen_port: 5432
 
       # Several trident packages (server, cli, all) share the same
       # version number. Related packages are in the same directory, too.
@@ -86,11 +69,7 @@ trident:
       # Specific site setting overrides
       trident_site_name: '{{ dims_domain }} Trident Portal'
       trident_site_welcome_text: '{{ dims_domain }} Trident'
-      trident_site_adminname: 'Trident Administrator'
       trident_site_adminemail: 'admin@{{ trident_site_email_domain }}'
-      trident_site_admins:
-        - dittrich
-
       # TODO(dittrich): Prototyping multi-TG settings
       # The primary trust group is the 0th element by convention.
       # Initial user defaults to person running ansible
@@ -158,18 +137,16 @@ trident:
       postgresql_backup_restorefrom: 'latest'
       trident_site_name: '{{ dims_domain }} DevTest Trident Portal'
       trident_site_welcome_text: '{{ dims_domain }} DevTest Trident'
-      trident_site_adminname: 'Trident Administrator'
-      trident_site_admins:
-        - dittrich
       trident_logo: '{{ files }}/logo/d2-logo.png'
+      trident_favicon: '{{ files }}/logo/d2-logo-square.ico'
       # TODO(dittrich): Prototyping multi-TG settings
       # The primary trust group is the 0th element by convention.
       trident_site_trust_groups:
         - name: 'main'
           initial_users:
-            - ident: 'dittrich'
-              descr: 'Dave Dittrich'
-              email: 'dave.dittrich@gmail.com'
+            - ident: '{{ trident_initial_user_ident }}'
+              descr: '{{ trident_initial_user_descr }}'
+              email: '{{ trident_initial_user_email }}'
           additional_lists:
             - ident: 'demo'
               descr: 'DevTest Trident Demos'

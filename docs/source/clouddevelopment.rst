@@ -296,10 +296,10 @@ following variables:
 
     ---
 
-    tridentSysAdminPass: 'glYWeAsTlo'
-    vault_tridentDBPass: 'lOwsposTIo'
+    trident_sysadmin_pass: 'glYWeAsTlo'
+    vault_trident_db_pass: 'lOwsposTIo'
     # TODO(dittrich): Make this work like jenkins2 role password...
-    vault_tridentSysAdminPass: '{{ tridentSysAdminPass }}'
+    vault_trident_sysadmin_pass: '{{ trident_sysadmin_pass }}'
     jenkins_admin_password: 'WeAsToXYLN'
     rabbitmq_default_user_pass: 'xsTIoglYWe'
     rabbitmq_admin_user_pass: 'oXYLNwspos'

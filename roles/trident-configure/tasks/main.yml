@@ -13,12 +13,12 @@
 - name: Load deployment secrets
   include_vars: '{{ dims_private }}/group_vars/vault.yml'
   no_log: '{{ nolog }}'
-  when: vault_tridentSysAdminPass is not defined
+  when: vault_trident_sysadmin_pass is not defined
   tags: [ trident-configure, config ]
 
 - name: Ensure administator is logged in
   shell: >
-    tcli system login trident {{ tridentSysAdminPass }} | grep -q "Login successful"
+    tcli system login trident {{ trident_sysadmin_pass }} | grep -q "Login successful"
   register: tcli_login
   no_log: '{{ nolog }}'
   tags: [ trident-configure, config ]
@@ -212,7 +212,7 @@
   replace:
     path: /etc/cron.d/trident-perl
     regexp: '^(MAILTO=hostmaster@)(\S+)$'
-    replace: '\1{{ tridentFQDN }}'
+    replace: '\1{{ trident_fqdn }}'
     backup: yes
   ignore_errors: yes
   tags: [ trident-configure, config ]

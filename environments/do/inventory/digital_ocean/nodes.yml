@@ -122,13 +122,13 @@ do:
     #'blue':
     #  epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
     'green':
-      tridentFQDN: '{{ ansible_fqdn }}'
+      trident_fqdn: '{{ ansible_fqdn }}'
       custom_rules: [
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
         ]
     'purple':
-      tridentFQDN: '{{ ansible_fqdn }}'
+      trident_fqdn: '{{ ansible_fqdn }}'
       custom_rules: [
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',

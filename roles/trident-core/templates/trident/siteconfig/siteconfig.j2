@@ -9,7 +9,7 @@ title='{{ trident_site_welcome_text }}'
 coname='Trident'
 #
 # The portal host name.
-portalname='{{ tridentFQDN }}'
+portalname='{{ trident_fqdn }}'
 #
 # The auth URL.
 authurl='{{ trident_site_url_public }}'
@@ -29,11 +29,11 @@ supportemail='{{ trident_site_adminemail }}'
 #
 # The location of the postgres DB, either a local instance or a hostname.
 pghost='/var/run/postgresql'
-pgport={{ tridentDBPort }}
-pguser='{{ tridentDBUser }}'
+pgport={{ trident_db_listen_port }}
+pguser='{{ trident_db_user }}'
 #
 # The database name to be used.
-pgname='{{ tridentDBName }}'
+pgname='{{ trident_db_name }}'
 #
 # Paths to the running code once installed.
 portal='{{ trident_site_var }}'
@@ -54,7 +54,7 @@ sslcertfile='{{ ssl_certfile }}'
 sslkeyfile='{{ ssl_keyfile }}'
 sslchainfile=''
 {% else %}
-sslcertfile='/etc/letsencrypt/live/{{ tridentFQDN }}/fullchain.pem'
-sslkeyfile='/etc/letsencrypt/live/{{ tridentFQDN }}/privkey.pem'
-sslchainfile='/etc/letsencrypt/live/{{ tridentFQDN }}/fullchain.pem'
+sslcertfile='/etc/letsencrypt/live/{{ trident_fqdn }}/fullchain.pem'
+sslkeyfile='/etc/letsencrypt/live/{{ trident_fqdn }}/privkey.pem'
+sslchainfile='/etc/letsencrypt/live/{{ trident_fqdn }}/fullchain.pem'
 {% endif %}

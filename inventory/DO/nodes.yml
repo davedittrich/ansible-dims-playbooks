@@ -77,7 +77,7 @@ do:
     'blue.devops.local':
       epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
     'orange.devops.local':
-      tridentFQDN: '{{ inventory_hostname }}'
+      trident_fqdn: '{{ inventory_hostname }}'
     'purple.devops.local':
 
 # vim: ft=ansible :

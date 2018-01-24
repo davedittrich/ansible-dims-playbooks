@@ -95,4 +95,4 @@ host    all             all             ::1/128                 trust
 #host    replication     postgres        ::1/128                 trust
 
 # Allow connections to trident db from remote user via md5
-host	{{ tridentDBName }} 	{{ tridentDBUser }} 	0.0.0.0/0	md5
+host	{{ trident_db_name }} 	{{ trident_db_user }} 	0.0.0.0/0	md5

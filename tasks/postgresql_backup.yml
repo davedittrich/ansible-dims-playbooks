@@ -67,7 +67,7 @@
     --host=localhost
     --port=5432
     --username=postgres
-    --dbname={{ tridentDBName }}
+    --dbname={{ trident_db_name }}
     --schema=public
     --format=c
     --blobs

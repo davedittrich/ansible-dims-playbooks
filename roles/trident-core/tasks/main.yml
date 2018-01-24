@@ -87,7 +87,7 @@
 - name: Load deployment secret variables file
   include_vars: '{{ dims_private }}/group_vars/vault.yml'
   no_log: '{{ nolog }}'
-  when: vault_tridentSysAdminPass is not defined
+  when: vault_trident_sysadmin_pass is not defined
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
@@ -532,7 +532,7 @@
 # and Trident documentation (last sentence of ``tsetup`` section).
 - name: Make initial sysadmin user present
   shell: >
-    /usr/sbin/tsetup adduser trident {{ tridentSysAdminPass }}
+    /usr/sbin/tsetup adduser trident {{ trident_sysadmin_pass }}
   no_log: '{{ nolog }}'
   when: ((postgresql_backup_restorefrom is not defined or postgresql_backup_restorefrom == '') and not _trident_role_exists)
         or not _trident_configured
@@ -542,7 +542,7 @@
 
 - name: Ensure trident administator is logged in
   shell: >
-    tcli system login trident {{ tridentSysAdminPass }}
+    tcli system login trident {{ trident_sysadmin_pass }}
   register: tcli_login
   no_log: '{{ nolog }}'
   tags: [ trident-core ]

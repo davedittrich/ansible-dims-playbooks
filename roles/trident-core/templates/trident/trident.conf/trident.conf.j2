@@ -56,10 +56,10 @@
 	#   "db_port": "5432",
 	#########################################
 	"db_host": "localhost",
-	"db_port": "{{ tridentDBPort }}",
-	"db_name": "{{ tridentDBName }}",
-	"db_user": "{{ tridentDBUser }}",
-	"db_pass": "{{ tridentDBPass }}",
+	"db_port": "{{ trident_db_listen_port }}",
+	"db_name": "{{ trident_db_name }}",
+	"db_user": "{{ trident_db_user }}",
+	"db_pass": "{{ trident_db_pass }}",
 	"db_ssl_mode": "disable",
 	##########################################
 	# Admin postgres user for table management
@@ -75,11 +75,11 @@
 	# messages and thus must be a FQDN.
 	#
 	# empty => system configured (typically /etc/hostname)
-	"nodename": "{{ tridentFQDN }}",
+	"nodename": "{{ trident_fqdn }}",
 
 	# On which HTTP port to run our Trident Daemon
 	"http_host": "0.0.0.0",
-	"http_port": "{{ tridentHTTPPort }}",
+	"http_port": "{{ trident_http_listen_port }}",
 
 	# Regexp for usernames, should allow email addresses
 	"username_regexp": "^[a-z0-9_.+-@].*$",

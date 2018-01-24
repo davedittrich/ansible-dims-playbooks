@@ -102,7 +102,7 @@
       --host=localhost
       --port=5432
       --username=postgres
-      --dbname={{ tridentDBName }}
+      --dbname={{ trident_db_name }}
       {{ _restore_options }}
     register: restore_status
     become: yes
@@ -119,7 +119,7 @@
 #       --variable=ON_ERROR_STOP=1
 #       --pset=pager=off
 #       --username=postgres
-#       --dbname={{ tridentDBName }}
+#       --dbname={{ trident_db_name }}
 #       --log-file={{ _logfile }}
 #     environment:
 #       PGOPTIONS: '--client-min-messages=warning'

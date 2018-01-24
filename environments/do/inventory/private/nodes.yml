@@ -16,8 +16,8 @@
 
 private:
   vars:
-    vault_tridentDBPass: 'trident'
-    vault_tridentSysAdminPass: 'trident'
+    vault_trident_db_pass: 'trident'
+    vault_trident_sysadmin_pass: 'trident'
     vault_jenkins_admin_password: 'admin'
     vault_ssh_pass: 'bootr8pr00tp@ssw0rd!'
     vault_rabbitmq_default_user_pass: 'rpcm3pwd'
