@@ -181,8 +181,12 @@ create: init hosts provider
 sshkeys:
 	cat terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)/keys.host.extract.sh > /dev/null
 
+.bootstrapped: bootstrap
+	touch .bootstrapped
+
 .PHONY: bootstrap
 bootstrap:
+	rm -f .bootstrapped
 	(terraform plan $(TF_VARS) | grep -q "No changes") || $(MAKE) create
 	ansible-playbook -i $(INVENTORY) \
 		$(PBR)/playbooks/bootstrap.yml \
@@ -198,7 +202,7 @@ installcerts:
 
 # TODO(dittrich): Remove the postgresql_backup_restorefrom after debugging. :(
 .PHONY: deploy
-deploy:
+deploy: .bootstrapped
 	ansible-playbook -i $(INVENTORY) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
@@ -313,6 +317,7 @@ destroy:
 	-rm -f ansible-digital_ocean.cache
 	-rm -f inventory/hosts inventory/nodes-generated.yml
 	-rm -f provider.tf graph.png
+	-rm -f .bootstrapped
 	-$(MAKE) removepubkey
 
 .PHONY: spotless
