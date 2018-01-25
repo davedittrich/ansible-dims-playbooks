@@ -6,7 +6,7 @@
 # certbot_backup_dir - Directory to store backup (defaults to
 #                      directory using ansible_fqdn in path)
 
-- name: Identify use running ansible-playbook
+- name: Identify user running ansible-playbook
   local_action: command whoami
   register: _localuser
 
