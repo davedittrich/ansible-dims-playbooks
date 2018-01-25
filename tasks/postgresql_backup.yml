@@ -8,6 +8,24 @@
 #
 # See https://www.postgresql.org/docs/current/static/app-pgdump.html
 
+- name: Identify user running ansible-playbook
+  local_action: command whoami
+  register: _localuser
+
+- debug:
+    var: _localuser
+    verbosity: 2
+
+- name: Define backups_owner
+  set_fact:
+    backups_owner: '{{ _localuser.stdout }}'
+  when: backups_owner is not defined
+
+- name: Define backups_group
+  set_fact:
+    backups_group: '{{ backups_owner }}'
+  when: backups_group is not defined
+
 # TODO(dittrich): Could use dims.function to get backup dir
 - name: Define local postgresql backup directory
   set_fact:
@@ -37,11 +55,11 @@
   file:
     dest: '{{ postgresql_backup_dir }}'
     state: directory
-    owner: dims
-    group: dims
+    owner: '{{ backups_owner }}'
+    group: '{{ backups_group }}'
     mode: 0o770
   delegate_to: 127.0.0.1
-  become: yes
+  become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
 
 - name: Create remote temporary directory
   shell: >
@@ -89,11 +107,11 @@
 - name: Set backup ownership
   file:
     path: '{{ postgresql_backup_dir }}/{{ postgresql_backup_file }}'
-    owner: dims
-    group: dims
+    owner: '{{ backups_owner }}'
+    group: '{{ backups_group }}'
     mode: 0o660
   delegate_to: 127.0.0.1
-  become: yes
+  become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
 
 - name: Remove temporary directory
   file:
