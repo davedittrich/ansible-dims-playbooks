@@ -170,10 +170,6 @@ ci_server:
         repo_credentials: ''
   hosts:
     'orange.devops.local':
-      nginx_sites_available: "{{ _nginx_sites_available }} + [ 'source' ]"
-      nginx_sites_enabled: "{{ _nginx_sites_enabled }} + [ 'source' ]"
-      nginx_source_hostname: '{{ inventory_hostname }}'
-      nginx_source_port: 8081
       custom_hosts:
         - '10.142.29.98  source.devops.develop'
         - '10.142.29.115  eclipse.devops.develop'

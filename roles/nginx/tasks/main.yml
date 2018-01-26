@@ -231,13 +231,6 @@
   notify: restart nginx
   tags: [ nginx, config ]
 
-- name: Define nginx_source_hostname
-  set_fact:
-    nginx_source_hostname: 'source.{{ ansible_domain }}'
-  when: (nginx_locations is defined and "source" in nginx_locations)
-        and nginx_source_hostname is not defined
-  tags: [ nginx, config ]
-
   # We only need to worry about bootstrapping the source directory
   # to serve source when this is meant to be a source server. Duh.
 - include_tasks: 'bootstrap-source.yml'
