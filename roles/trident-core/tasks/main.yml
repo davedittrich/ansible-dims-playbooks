@@ -521,10 +521,10 @@
 
   # Restore database from a previous backup if enabled and if first
   # time.
-- include_tasks: '{{ tasks_path }}/postgresql_restore.yml'
+- include_tasks: '{{ tasks_path }}/trident_restore.yml'
   when:
-    - postgresql_backup_restorefrom is defined
-    - postgresql_backup_restorefrom != ''
+    - trident_backup_restorefrom is defined
+    - trident_backup_restorefrom != ''
     - not _trident_role_exists
   tags: [ trident-core, trident-configure ]
 
@@ -534,7 +534,7 @@
   shell: >
     /usr/sbin/tsetup adduser trident {{ trident_sysadmin_pass }}
   no_log: '{{ nolog }}'
-  when: ((postgresql_backup_restorefrom is not defined or postgresql_backup_restorefrom == '') and not _trident_role_exists)
+  when: ((trident_backup_restorefrom is not defined or trident_backup_restorefrom == '') and not _trident_role_exists)
         or not _trident_configured
   become: yes
   become_user: 'postgres'

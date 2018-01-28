@@ -63,7 +63,8 @@ help:
 	@echo " reboot - reboot droplets in +1 minute"
 	@echo " cancel - cancel rebooting (if you REALLY DIDN'T MEAN IT)"
 	@echo " backup.letsencrypt - backup Letsencrypt certificate store"
-	@echo " backup.postgresql - backup Trident postgresql database"
+	@echo " backup.trident - backup Trident postgresql database and other ancillary files"
+	@echo " restore.trident - restore Trident postgresql database and other ancillary files"
 	@echo ""
 	@echo " * The default if you just type 'make' is the same as 'make help'"
 	@echo " * To control Ansible, set DIMS_ANSIBLE_ARGS to the arguments you want"
@@ -290,12 +291,20 @@ post.test:
 		$(DIMS_ANSIBLE_ARGS) || (echo '[!] Some test(s) failed' && exit 1)
 	@echo '[+] All tests passed!'
 
-.PHONY: backup.postgresql
-backup.postgresql:
+.PHONY: backup.trident
+backup.trident:
 	-ansible-playbook -i $(INVENTORY) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
-		$(PBR)/playbooks/postgresql_backup.yml \
+		$(PBR)/playbooks/trident_backup.yml \
+		$(DIMS_ANSIBLE_ARGS)
+
+.PHONY: restore.trident
+restore.trident:
+	-ansible-playbook -i $(INVENTORY) \
+		$(ASK_SUDO_PASS) \
+		-e@~/.secrets/digital-ocean/secrets.yml \
+		$(PBR)/playbooks/trident_restore.yml \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: backup.letsencrypt
