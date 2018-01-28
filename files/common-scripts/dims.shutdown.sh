@@ -33,7 +33,7 @@
 . $DIMS/bin/dims_functions.sh
 
 # Tracks with bumpversion
-DIMS_VERSION=3.0.6
+DIMS_VERSION=3.1.0
 
 # This script is designed to handle shutting down Vagrants before
 # the VM host, so DEPLOYMENT here applies to the Vagrants.
