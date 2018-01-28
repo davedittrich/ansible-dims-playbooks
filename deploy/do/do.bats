@@ -26,6 +26,14 @@
     [ -s ~/.secrets/digital-ocean/secrets.yml ]
 }
 
+@test "[S][EV] Variable DIMS_DOMAIN is defined in environment" {
+    [ ! -z "$DIMS_DOMAIN" ]
+}
+
+@test "[S][EV] Variable DIMS_SITE_ID is defined in environment" {
+    [ ! -z "$DIMS_SITE_ID" ]
+}
+
 @test "[S][EV] Variable DO_API_VERSION (dopy) is defined in environment" {
     [ ! -z "$DO_API_VERSION" ]
 }
@@ -70,24 +78,12 @@
     ! bash -c "make images | grep 'Unable to authenticate you'"
 }
 
-@test "[S][EV] Variable TF_VAR_public_key (terraform) is defined in environment" {
-    [ ! -z "$TF_VAR_public_key" ]
-}
-
 @test "[S][EV] File pointed to by TF_VAR_public_key exists and is readable" {
     [ -r "$TF_VAR_public_key" ]
 }
 
-@test "[S][EV] Variable TF_VAR_private_key (terraform) is defined in environment" {
-    [ ! -z "$TF_VAR_private_key" ]
-}
-
 @test "[S][EV] File pointed to by TF_VAR_private_key exists and is readable" {
     [ -r "$TF_VAR_private_key" ]
-}
-
-@test "[S][EV] DO_API_TOKEN authentication succeeds" {
-    ! bash -c "make images | grep 'Unable to authenticate you'"
 }
 
 @test "[S][EV] Git user.name is set" {
