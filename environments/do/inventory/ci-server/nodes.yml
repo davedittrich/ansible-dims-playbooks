@@ -176,15 +176,7 @@ ci_server:
       - 'build pitchfork-data'
   hosts:
     'green':
-      #nginx_sites_available: "{{ _nginx_sites_available }} + [ 'source' ]"
-      #nginx_sites_enabled: "{{ _nginx_sites_enabled }} + [ 'source' ]"
-      nginx_source_hostname: '{{ ansible_fqdn }}'
-      #nginx_locations:
-      #  '/source':
-      #    - 'try_files $uri $uri/'
-      #    - 'autoindex on'
       nginx_source_dir: '/var/www/source'
-      nginx_source_port: 8081
       cronjobs:
         - name: 'source index'
           weekday: '*'

@@ -6,11 +6,34 @@
 # with support for hooks that drive Jenkins jobs as part of a
 # continuous integration, continuous delivery development server.
 
-- name: Define variable with ansible public key
+- name: Define git_ansible_ssh_private_key_file
   set_fact:
-    ansibleuser_public_key: '{{ lookup("dims_function", "get_ssh_private_key_file {{ ansible_user }}") }}.pub'
-  when: ansibleuser_public_key is not defined
-  tags: [ git-ssh ]
+    git_ansible_ssh_private_key_file: '{{ ansible_ssh_private_key_file }}'
+  when: git_ansible_ssh_private_key_file is not defined
+  tags: [ always ]
+
+- name: Stat git_ansible_ssh_private_key_file
+  stat:
+    path: '{{ git_ansible_ssh_private_key_file }}'
+  delegate_to: '127.0.0.1'
+  become: no
+  register: _privkeystat
+  tags: [ always ]
+
+- name: Stat git_ansible_ssh_private_key_file + .pub
+  stat:
+    path: '{{ git_ansible_ssh_private_key_file }}.pub'
+  delegate_to: '127.0.0.1'
+  become: no
+  register: _pubkeystat
+  tags: [ always ]
+
+- name: Assert private and public keys exist
+  assert:
+    that:
+      - _privkeystat.stat.exists
+      - _pubkeystat.stat.exists
+  tags: [ always ]
 
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ git-ssh ]
@@ -64,7 +87,7 @@
     state: present
     key: '{{ item }}'
   with_items:
-      - '{{ lookup("file", ansibleuser_public_key) }}'
+      - '{{ lookup("file", git_ansible_ssh_private_key_file + ".pub") }}'
       - '{{ git_authorized_keys }}'
   become: yes 
   tags: [ git-ssh ]

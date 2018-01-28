@@ -46,11 +46,11 @@ $ cat testrepo.yml
 
 default_context:
   full_name: "Dave Dittrich"
-  email: "dittrich@u.washington.edu"
-  project_name: "DIMS Ansible Playbooks"
+  email: "dave.dittrich@gmail.com"
+  project_name: "D2 Ansible Playbooks"
   project_slug: "ansible-dims-playbooks"
-  project_short_description: "Ansible Playbooks for DIMS System Configuration"
-  project_copyright_name: "University of Washington"
+  project_short_description: "Ansible Playbooks for D2 System Configuration"
+  project_copyright_name: "David Dittrich"
 
 
 Now run "cookiecutter":
@@ -68,30 +68,30 @@ message above was generated.)
 
 -------------------------------------------------------------------
 .. ansible-dims-playbooks documentation master file, created by
-   cookiecutter on 2017-04-10.
+   cookiecutter on 2018-01-01.
 
 DIMS Ansible Playbooks v |release|
 .. FIX_UNDERLINE
 
-* GitHub repo: https://github.com/uw-dims/ansible-dims-playbooks/
-* Documentation: https://ansible-dims-playbooks.readthedocs.io/
-* License: Berkeley Three Clause License
+* GitHub repo: https://github.com/davedittrich/ansible-dims-playbooks/
+* Documentation: https://davedittrich/projects/ansible-dims-playbooks/en/latest/
+* License: Apache 2.0 License
 
 Contact:
 --------
 
-Dave Dittrich dittrich@u.washington.edu
+Dave Dittrich dave.dittrich@gmail.com
 
 .. |copy|   unicode:: U+000A9 .. COPYRIGHT SIGN
 
-Copyright |copy| 2017 University of Washington. All rights reserved.
--------------------------------------------------------------------
+Copyright |copy| 2018 David Dittrich. All rights reserved.
+----------------------------------------------------------
 
 Edit the "FIX_UNDERLINE" line to look like this:
 
 
-DIMS Ansible Playbooks v |release|
-==================================
+D2 Ansible Playbooks v |release|
+================================
 
 
 The repo directory is now ready to be populated
@@ -108,12 +108,10 @@ $ tree /tmp/ansible-dims-playbooks/
 │       ├── license.txt
 │       ├── _static
 │       ├── _templates
-│       ├── UW-logo-16x16.ico
-│       ├── UW-logo-32x32.ico
-│       ├── UW-logo.ico
-│       └── UW-logo.png
+│       ├── d2-logo.ico
+│       └── d2-logo.png
 ├── README.rst
 └── VERSION
 
-5 directories, 10 files
+5 directories, 8 files
 

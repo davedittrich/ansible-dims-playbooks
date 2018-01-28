@@ -27,7 +27,7 @@ The resulting system supports any/all of the following features:
 * A Trident trust group management and communication portal behind an NGINX
   reverse proxy secured by TLS.
 
-* A Jenkins build server behnid an Nginx reverse proxy secured by TLS, with
+* A Jenkins build server behind an Nginx reverse proxy secured by TLS, with
   Jenkins CLI secured with SSH.
 
 * Support for Letsencrypt SSL/TLS certificate generation, backup/restoration,

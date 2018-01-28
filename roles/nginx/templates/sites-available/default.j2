@@ -87,13 +87,13 @@ server {
   }
 
 {% if nginx_locations is defined %}
-  {%- for _key, _value in nginx_locations.items() %}
+  {%- for _key, _value in nginx_locations.iteritems() %}
   location {{ _key }} {
-    {%- for line in _value %}
+    {% for line in _value %}
     {{ _line }};
-    {% endfor -%}
+    {% endfor %}
   }
-  {% endfor -%}
-{% endif %}
+  {% endfor %}
+{% endif -%}
 
 }

@@ -7,17 +7,19 @@ upstream jenkins {
     server 127.0.0.1:{{ jenkins_port }} fail_timeout=0;
 }
 
-# The following is for cleartext HTTP access.
-#
-#server {
-#  listen {{ nginx_default_port }};
-#  server_name {{ jenkins_fqdn }};
-#  return 301 http://$host$request_uri;
-#}
 
 server {
   listen 443;
   server_name {{ jenkins_fqdn }};
+
+{% if nginx_source_dir is defined %}
+  # Serving up artifacts from /var/www/source
+  location /{{ nginx_source_dir|basename }} {
+    root {{ nginx_source_dir|dirname }};
+    autoindex on;
+    try_files $uri $uri/ =404;
+  }
+{% endif %}
 
   location ^~ /jenkins {
     sendfile off;

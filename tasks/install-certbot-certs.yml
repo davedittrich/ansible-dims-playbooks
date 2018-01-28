@@ -107,7 +107,9 @@
 
   # endblock
 
-- debug: msg="Failed to set _backup_dir and _backup_file"
+- debug:
+    msg: "Failed to set _backup_dir and _backup_file"
+    verbosity: 2
   when: certbot_backup_restorefrom is defined and
         not (_backup_dir is defined and _backup_file is defined)
 
@@ -175,6 +177,7 @@
 
 - debug:
     msg: '_have_cert is {{ _have_cert }}'
+    verbosity: 2
 
 - include_tasks: '{{ tasks_path }}/letsencrypt_generate.yml'
   when: use_letsencrypt and not _have_cert

@@ -1,0 +1,202 @@
+---
+
+# File: tasks/postgresql_backup.yml
+
+# This task file will produce a dated backup of the
+# postgresql database and ancillary files (e.g., PGP keys)
+# for a Trident portal installed using DIMS Ansible playbooks.
+#
+# See https://www.postgresql.org/docs/current/static/app-pgdump.html
+
+- name: Identify user running ansible-playbook
+  local_action: command whoami
+  register: _localuser
+
+- debug:
+    var: _localuser
+    verbosity: 2
+
+- name: Define backups_owner
+  set_fact:
+    backups_owner: '{{ _localuser.stdout }}'
+  when: backups_owner is not defined
+
+- name: Define backups_group
+  set_fact:
+    backups_group: '{{ backups_owner }}'
+  when: backups_group is not defined
+
+- name: Define (local) trident_backup_dir
+  set_fact:
+    trident_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
+  when: trident_backup_dir is not defined
+
+- name: Debug trident_backup_dir
+  debug:
+    var: trident_backup_dir
+    verbosity: 2
+
+- name: Define trident_backups_paths
+  set_fact:
+    trident_backups_paths:
+      - '/var/lib/trident'
+      - '/usr/share/nginx'
+      - '/usr/share/trident'
+      - '/usr/share/pitchfork'
+  when: trident_backups_paths is not defined
+
+- name: Define _trident_backups_args
+  set_fact:
+    _trident_backups_args: '{{ trident_backups_paths|join(" ") }}'
+
+- name: Debug _trident_backups_args
+  debug:
+    var: _trident_backups_args
+    verbosity: 2
+
+# TODO(dittrich): Add support for hourly/daily backup cycle
+# Use variable to select backup type ("daily" or "hourly") and
+# then use names "H" + 'ansible_date_time.hour' and
+# "D" + 'ansible_date_time.weekday_number' to automatically roll
+# backup files.
+
+- name: Define backup_ts timestamp
+  set_fact:
+    backup_ts: '{{ lookup("pipe", "date +%FT%T%Z") }}'
+
+- name: Debug backup_ts variable
+  debug:
+    var: backup_ts
+    verbosity: 2
+
+- name: Define _postgresql_backup_file
+  set_fact:
+    _postgresql_backup_file: 'postgresql_{{ backup_ts }}.pgdmp.bz2'
+  when: _postgresql_backup_file is not defined
+
+- name: Debug _postgresql_backup_file
+  debug:
+    var: _postgresql_backup_file
+    verbosity: 2
+
+- name: Define _trident_ancillary_backup_file
+  set_fact:
+    _trident_ancillary_backup_file: 'trident_ancillary_{{ backup_ts }}.tar.bz2'
+  when: _trident_ancillary_backup_file is not defined
+
+- name: Debug _trident_ancillary_backup_file
+  debug:
+    var: _trident_ancillary_backup_file
+    verbosity: 2
+
+- name: Define trident_backup_file
+  set_fact:
+    trident_backup_file: 'trident_{{ backup_ts }}.tar.bz2'
+  when: trident_backup_file is not defined
+
+- name: Debug trident_backup_file
+  debug:
+    var: trident_backup_file
+    verbosity: 2
+
+- name: Ensure local trident backup directory exists
+  file:
+    dest: '{{ trident_backup_dir }}'
+    state: directory
+    owner: '{{ backups_owner }}'
+    group: '{{ backups_group }}'
+    mode: 0o770
+  delegate_to: 127.0.0.1
+  become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
+
+- name: Create remote temporary directory
+  shell: >
+    mktemp -d '{{ ansible_env["TMPDIR"] | default("/tmp", true) }}/ansible.XXXX'
+  register: mktemp_output
+  become: yes
+  become_user: postgres
+
+- name: Define _tmpdir variable
+  set_fact:
+    _tmpdir: '{{ mktemp_output.stdout }}'
+
+  # Note: The Trident /var/lib/trident/library/funcs.sh script has a function
+  # "portal_dump()" that does "pg_dump -a --inserts --column-inserts ...". There
+  # doesn't appear to be code that calls this, nor is there an inverse function
+  # "portal_restore()". Noting this here because the way backups are created here
+  # differs slightly (though a diff of the uncompressed output using both methods
+  # does not seem to show a difference.)
+
+- name: Create backup of postgresql database
+  shell: >
+    chdir={{ _tmpdir }}
+    pg_dump
+    --host=localhost
+    --port=5432
+    --username=postgres
+    --dbname={{ trident_db_name }}
+    --schema=public
+    --format=c
+    --blobs
+    | bzip2 > {{ _postgresql_backup_file }} &&
+    chmod 770 {{ _postgresql_backup_file }}
+    creates={{ _tmpdir }}/{{ _postgresql_backup_file }}
+  become: yes
+  become_user: postgres
+
+- name: Create backup of ancillary Trident files
+  shell: >
+    chdir=/
+    tar -cf - {{ _trident_backups_args }}
+    | bzip2 > {{ _tmpdir }}/{{ _trident_ancillary_backup_file }} &&
+    chmod 770 {{ _tmpdir }}/{{ _trident_ancillary_backup_file }}
+    creates={{ _tmpdir }}/{{ _trident_ancillary_backup_file }}
+  register: _tar1_results
+  failed_when: _tar1_results.rc|int != 0
+
+- name: Combine sub-backups into single backup file
+  shell: >
+    chdir={{ _tmpdir }}
+    tar -cf -
+    {{ _postgresql_backup_file }}
+    {{ _trident_ancillary_backup_file }}
+    | bzip2 > {{ _tmpdir }}/{{ trident_backup_file }} &&
+    chmod 770 {{ _tmpdir }}/{{ trident_backup_file }}
+    creates={{ _tmpdir }}/{{ trident_backup_file }}
+  register: _tar2_results
+  failed_when: _tar2_results.rc|int != 0
+
+- name: Fetch trident backup file
+  fetch:
+    src: '{{ _tmpdir }}/{{ trident_backup_file }}'
+    dest: '{{ trident_backup_dir }}/{{ trident_backup_file }}'
+    flat: true
+    validate_checksum: yes
+  no_log: '{{ nolog|default(true) }}'
+  become: yes
+
+- name: Set backup ownership
+  file:
+    path: '{{ trident_backup_dir }}/{{ trident_backup_file }}'
+    owner: '{{ backups_owner }}'
+    group: '{{ backups_group }}'
+    mode: 0o660
+  delegate_to: 127.0.0.1
+  become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
+
+- name: Shred backups before deleting directory
+  shell: >
+    chdir={{ _tmpdir }}
+    shred -uz -n 5 {{ item }}
+  with_items:
+    - '{{ _postgresql_backup_file|basename }}'
+    - '{{ _trident_ancillary_backup_file|basename }}'
+    - '{{ trident_backup_file|basename }}'
+
+- name: Remove temporary directory
+  file:
+    path: '{{ _tmpdir }}'
+    state: absent
+  become: yes
+
+# vim: ft=ansible :

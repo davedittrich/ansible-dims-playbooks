@@ -4,6 +4,7 @@
 
 - name: Configure host "purple"
   hosts: purple
+  gather_facts: true
 
   vars:
     playbooks_root: "{{ lookup('env', 'PBR') }}"
@@ -16,12 +17,12 @@
 
   roles:
     - { role: base }
-    - { role: postfix }
     - { role: docker }
+    - { role: nginx }
+    - { role: postfix }
     - { role: consul }
     - { role: python-virtualenv, use_sphinx: false }
     - { role: postgresql }
-    - { role: nginx }
     - { role: trident-core }
     - { role: trident-configure }
 

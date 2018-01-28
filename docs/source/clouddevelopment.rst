@@ -98,9 +98,15 @@ configuration settings (including passwords) for your deployment.
 
 ..
 
-+ Set up an account on DigitalOcean. (If you do not yet have a
-  DigitalOcean account and want to try it out with $10 credit,
-  you may use this referral link https://m.do.co/c/a05d1634982e).
++ Set up an account on DigitalOcean.
+
+  .. note::
+
+      If you do not yet have a DigitalOcean account and want to try it
+      out with $10 credit, you may use this referral link:
+      https://m.do.co/c/a05d1634982e
+
+..
 
 + Create a DNS domain to use for your development deployment and configure the
   domain's **Nameservers** entries to point to DigitalOcean's NS servers
@@ -157,7 +163,6 @@ configuration settings (including passwords) for your deployment.
       export TF_VAR_datacenter="${TF_VAR_domain}"
       export TF_VAR_private_key="${HOME}/.ssh/${TF_VAR_environment}"
       export TF_VAR_public_key="${TF_VAR_private_key}.pub"
-      export TF_VAR_ssh_fingerprint="$(ssh-keygen -E md5 -lf ${TF_VAR_public_key} | awk '{print $2}' | sed 's/^[Mm][Dd]5://')"
 
   ..
 
@@ -176,14 +181,14 @@ configuration settings (including passwords) for your deployment.
 
   .. code-block:: none
 
-      $ sudo apt-get install bats pip python-pip jq
-      $ sudo pip install ansible==2.4.0.0
+      $ make prerequisites
 
   ..
 
-+ `Install Terraform`_ for your OS. Test the ``terraform`` installation and
-  other tools by initializing the directory form within the ``deploy/do``
-  directory:
++ `Install Terraform`_ for your OS.
+
++ Test the ``terraform`` installation and other tools by initializing the
+  directory form within the ``deploy/do`` directory:
 
   .. code-block:: none
 
@@ -281,6 +286,46 @@ configuration settings (including passwords) for your deployment.
 
 ..
 
+Finally, you must set up a set of secrets (passwords, primarily) for the
+services that will be installed when you do ``make deploy`` after bootstrapping
+the droplets for Ansible control. These secrets are kept in a file
+``~/.secrets/digital-ocean/secrets.yml`` that should contain at least the
+following variables:
+
+.. code-block:: yaml
+
+    ---
+
+    trident_sysadmin_pass: 'glYWeAsTlo'
+    vault_trident_db_pass: 'lOwsposTIo'
+    # TODO(dittrich): Make this work like jenkins2 role password...
+    vault_trident_sysadmin_pass: '{{ trident_sysadmin_pass }}'
+    jenkins_admin_password: 'WeAsToXYLN'
+    rabbitmq_default_user_pass: 'xsTIoglYWe'
+    rabbitmq_admin_user_pass: 'oXYLNwspos'
+    vncserver_default_password: 'lYWeALNwsp'
+
+    # For ansible-role-ca
+    ca_rootca_password: 'sposTeAsTo'
+
+..
+
+.. caution::
+
+   **DO NOT** just cut and paste those passwords!  They are just examples that
+   should be replaced with similarly strong passwords.  You can chose 5 random
+   characters, separate them by one or two punctuation characters, followed by
+   some string that reminds you of the service (e.g., "trident" for Trident)
+   with some other punction or capitalization thrown in to strengthen the
+   resulting password.  This is relatively easy to remember, is not the same
+   for all services, is lenghty enough to be difficult to brute-force, and is
+   not something that is likely to be found in a dictionary of compromised
+   passwords. (You may wish to use a program like ``bashpass`` to generate
+   random strong passwords like ``helpful+legmen~midnight``.)
+
+..
+
+
 A ``bats`` test file exists to validate *all* of the required elements necessary
 to create and control DigitalOcean droplets. When all pre-requisites are
 satisfied, all tests will succeed. If any fail, resolve the issue and try again.
@@ -289,10 +334,12 @@ satisfied, all tests will succeed. If any fail, resolve the issue and try again.
 
     $ make pre.test
     bats do.bats
+     ✓ [S][EV] terraform is found in $PATH
      ✓ [S][EV] Directory for secrets (~/.secrets/) exists
      ✓ [S][EV] Directory for secrets (~/.secrets/) is mode 700
      ✓ [S][EV] Directory for DigitalOcean secrets (~/.secrets/digital-ocean/) exists
-     ✓ [S][EV] DigitalOcean token is in ~/.secrets/digital-ocean/token
+     ✓ [S][EV] DigitalOcean token file (~/.secrets/digital-ocean/token) is not empty
+     ✓ [S][EV] Secrets for DigitalOcean (~/.secrets/digital-ocean/secrets.yml) exist
      ✓ [S][EV] Variable DO_API_VERSION (dopy) is defined in environment
      ✓ [S][EV] Variable DO_API_TOKEN (dopy) is defined in environment
      ✓ [S][EV] Variable DO_PAT (terraform) is defined in environment
@@ -303,17 +350,16 @@ satisfied, all tests will succeed. If any fail, resolve the issue and try again.
      ✓ [S][EV] Variable TF_VAR_datacenter (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_private_key (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_public_key (terraform) is defined in environment
-     ✓ [S][EV] Variable TF_VAR_ssh_fingerprint (terraform) is defined in environment
      ✓ [S][EV] DO_API_TOKEN authentication succeeds
-     ✓ [S][EV] Variable TF_VAR_public_key (terraform .tf) is defined in environment
+     ✓ [S][EV] Variable TF_VAR_public_key (terraform) is defined in environment
      ✓ [S][EV] File pointed to by TF_VAR_public_key exists and is readable
-     ✓ [S][EV] Variable TF_VAR_private_key (terraform .tf) is defined in environment
+     ✓ [S][EV] Variable TF_VAR_private_key (terraform) is defined in environment
      ✓ [S][EV] File pointed to by TF_VAR_private_key exists and is readable
-     ✓ [S][EV] Variable TF_VAR_ssh_fingerprint (terraform .tf) is defined in environment
      ✓ [S][EV] DO_API_TOKEN authentication succeeds
-     ✓ [S][EV] terraform is found in $PATH
+     ✓ [S][EV] Git user.name is set
+     ✓ [S][EV] Git user.email is set
 
-    23 tests, 0 failures
+    24 tests, 0 failures
 
 ..
 
@@ -334,340 +380,136 @@ insertpubkey`` and then checking using the DigitalOcean dashboard to verify the
 key was inserted. You can find the **SSH Keys** section on the **Settings** >
 **Security** page (see Figure :ref:`ssh_key_insertion`).
 
-.. _ssh_key_insertion:
+.. _creating_resources:
 
-.. figure:: images/digitalocean-ssh-key.png
-   :alt: Digital Ocean SSH Key
-   :width: 70%
-   :align: center
+Creating DigitalOcean Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   Digital Ocean SSH Key
-
-..
-
-Finally, you must set up a set of secrets (passwords, primarily) for
-the services that will be installed when you do ``make deploy`` after
-bootstrapping the droplets for Ansible control. These are kept in
-a file ``~/.secrets/digital-ocean/secrets.yml`` that should contain
-at least the following variables:
-
-.. code-block:: yaml
-
-    ---
-
-    tridentSysAdminPass: 'glYWeAsTlo'
-    vault_tridentDBPass: 'lOwsposTIo'
-    # TODO(dittrich): Make this work like jenkins2 role password...
-    vault_tridentSysAdminPass: '{{ tridentSysAdminPass }}'
-    jenkins_admin_password: 'WeAsToXYLN'
-    rabbitmq_default_user_pass: 'xsTIoglYWe'
-    rabbitmq_admin_user_pass: 'oXYLNwspos'
-    vncserver_default_password: 'lYWeALNwsp'
-
-    # For ansible-role-ca
-    ca_rootca_password: 'sposTeAsTo'
-
-..
+Running ``make create`` will update the ``provider.tf`` file from a Jinja template,
+then apply the plan.  This is useful whenever you make changes to variables that
+affect things like droplet attributes (e.g., disk size, RAM, number of CPUs, etc.)
+and DNS records.
 
 .. caution::
 
-   **DO NOT** cut and paste those passwords!  They are just examples
-   that should be replaced with similarly strong passwords.  You can
-   chose 5 random characters, separate them by one or two punctuation
-   characters, followed by some string that reminds you of the
-   service (e.g., "trident" for Trident) with some other punction
-   or capitalization thrown in to strengthen the resulting password.
-   This is relatively easy to remember, is not the same for all
-   services, is lenghty enough to be difficult to brute-force,
-   and is not something that is likely to be found in a dictionary
-   of compromised passwords. (You may wish to use a program like
-   ``bashpass`` to generate random strong passwords like
-   ``helpful+legmen~midnight``.)
+   Some changes to droplet configuration settings will entice ``terraformm apply``
+   to destroy the resource and recreate it. This is not much of an issue for things
+   like DNS entries, but if it causes a droplet to be destroyed you may -- if you are
+   not paying attention and say **No** when ``terraform`` asks for confirmation --
+   destroy files you have created in the droplet being recreated.
 
+..
 
-.. _terraformstate:
+.. _bootstrapping_droplets:
 
-Leveraging the Terraform State File
+Bootstrapping DigitalOcean Droplets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Terraform maintains state in a file named ``terraform.tfstate`` (and
-a backup file ``terraform.tfstate.backup``) in the home directory
-where Terraform was initialized. While the ``terraform.tfstate`` file
-is a JSON object that can be manipulated using programs like `jq`_,
-the proper way to exploit this state is to use ``terraform output --json``.
-
-Introduction to ``jq``
-^^^^^^^^^^^^^^^^^^^^^^
-
-To better understand how to manipulate the contents of the
-``terraform.tfstate`` file with ``jq``, we will start out by directly
-manipulating the file so we don't have to *also* struggle with defining
-Terraform ``output`` variables.
+Running ``make bootstrap`` will apply the ``bootstrap`` role to the droplets, preparing
+them for full Ansible control. This is typically only necessary when the droplets
+are first created. After that, the specific host playbooks from the
+``deploy/do/playbooks/`` directory are used to ensure the defined roles are
+applied to the droplets.
 
 .. note::
 
-    See `Reshaping JSON with jq`_ for examples of how to use ``jq``.
+   You can limit the hosts being affected when running Ansible via the ``Makefile`` rules
+   by defining the variable ``DIMS_ANSIBLE_ARGS`` on the command line to pass along
+   any Ansible command line arguments to ``ansible`` or ``ansible-playbook``.  For
+   example,
 
-..
+   .. code-block:: none
 
-Using the filter ``.`` with ``jq`` will show the entire structure. Here are the
-first 10 lines in a ``terraform.tfstate`` file
-
-.. code-block:: none
-
-    $ jq -r '.' terraform.tfstate | head
-    {
-      "version": 3,
-      "terraform_version": "0.11.1",
-      "serial": 7,
-      "lineage": "755c781e-407c-41e2-9f10-edd0b80bcc9f",
-      "modules": [
-        {
-          "path": [
-            "root"
-          ],
-
-..
-
-.. note::
-
-   To more easily read the JSON, you can pipe the output through
-   ``pygmentize`` to colorize it, then ``less -R`` to preserve
-   the ANSI colorization codes. The command line to use is:
-
-   .. code-block:: bash
-
-       $ jq -r '.' terraform.tfstate | pygmentize | less -R
+       $ make DIMS_ANSIBLE_ARGS="--limit red" bootstrap
+       $ make DIMS_ANSIBLE_ARGS="--limit green,purple" ping
+       $ make DIMS_ANSIBLE_ARGS="--tags base -vv" deploy
 
    ..
 
 ..
 
-By choosing a specific field for the filter, ``jq`` will print just that field.
+.. _backing_up_data:
+
+Backing Up Certificates and Trident Portal Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are two ``Makefile`` helper targets that will create backups of
+either Letsencrypt certificate related files or Trident database files.
+
+Using ``make backup.letsencrypt`` creates a backup of the ``/etc/letsencrypt`` directory
+tree, preserving the ``certbot`` account information used to generate the host's certificate,
+the most recently generated certificate, renewal information, etc.  This backup can be
+restored the next time the droplet is destroyed and created again, allowing the host
+to immediately be used for SSL/TLS secured connections.
+
+
+.. todo::
+
+   Finish documenting this...
+
+..
+
+Using ``make backup.postgres`` creates a backup of the Trident ``postgresql``
+database, preserving any manually-created portal content required for
+demonstration, testing, or debugging.
+
+.. todo::
+
+   Finish documenting this...
+
+..
+
+For more information on how these backups work, see Section :ref:`backups`.
+
+.. _destroying_resources:
+
+Destroying DigitalOcean Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Doing ``make destroy`` will destroy *all* of the DigitalOcean resources you have created
+and remove the SSH host keys from the local ``known_hosts`` files.
+
+To destroy specific resources, use ``terraform destroy`` and specify the resource using
+the ``-target=`` option.  For example, here is how to destroy the droplet ``purple``:
 
 .. code-block:: none
 
-    $ jq -r '.lineage' terraform.tfstate
-    755c781e-407c-41e2-9f10-edd0b80bcc9f
+    $ terraform destroy -target=digitalocean_droplet.purple
+    digitalocean_droplet.purple: Refreshing state... (ID: 79647375)
+
+    An execution plan has been generated and is shown below.
+    Resource actions are indicated with the following symbols:
+      - destroy
+
+    Terraform will perform the following actions:
+
+      - digitalocean_droplet.purple
+
+      - digitalocean_record.purple
+
+
+    Plan: 0 to add, 0 to change, 2 to destroy.
+
+    Do you really want to destroy?
+      Terraform will destroy all your managed infrastructure, as shown above.
+      There is no undo. Only 'yes' will be accepted to confirm.
+
+      Enter a value: yes
+
+    digitalocean_record.purple: Destroying... (ID: 33572623)
+    digitalocean_record.purple: Destruction complete after 1s
+    digitalocean_droplet.purple: Destroying... (ID: 79647375)
+    digitalocean_droplet.purple: Still destroying... (ID: 79647375, 10s elapsed)
+    digitalocean_droplet.purple: Destruction complete after 13s
+
+    Destroy complete! Resources: 2 destroyed.
 
 ..
 
-Adding ``[]`` to a field that is an array produces a list, and piping filters with
-a ``|`` allows additional filtering to be applied to narrow the results. Functions
-like ``select()`` can be used to extract a specific field from a list element that
-is a dictionary, allowing selection of just specific members. In the next example,
-the nested structures named ``resources`` within the structure ``modules`` are
-evaluated, selecting only those where the ``type`` field is ``digitalocean_record``
-(i.e., DNS records).
-
-.. code-block:: bash
-
-    $ jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record"))' terraform.tfstate
-
-..
-
-The first record is highlighted in the output here.  Within the record are
-two fields (``.primary.attributes.fqdn`` and ``.primary.attributes.value``)
-that are needed to help build ``/etc/hosts`` style DNS mappings, or to
-generate a YAML inventory file.
-
-.. code-block:: json
-   :emphasize-lines: 1-26
-   :linenos:
-
-    {
-      "type": "digitalocean_record",
-      "depends_on": [
-        "digitalocean_domain.default",
-        "digitalocean_droplet.blue"
-      ],
-      "primary": {
-        "id": "XXXXXXXX",
-        "attributes": {
-          "domain": "example.com",
-          "fqdn": "blue.example.com",
-          "id": "XXXXXXXX",
-          "name": "blue",
-          "port": "0",
-          "priority": "0",
-          "ttl": "360",
-          "type": "A",
-          "value": "XXX.XXX.XXX.XX",
-          "weight": "0"
-        },
-        "meta": {},
-        "tainted": false
-      },
-      "deposed": [],
-      "provider": "provider.digitalocean"
-    }
-    {
-      "type": "digitalocean_record",
-      "depends_on": [
-        "digitalocean_domain.default",
-        "digitalocean_droplet.orange"
-      ],
-      "primary": {
-        "id": "XXXXXXXX",
-        "attributes": {
-          "domain": "example.com",
-          "fqdn": "orange.example.com",
-          "id": "XXXXXXXX",
-          "name": "orange",
-          "port": "0",
-          "priority": "0",
-          "ttl": "360",
-          "type": "A",
-          "value": "XXX.XXX.XXX.XXX",
-          "weight": "0"
-        },
-        "meta": {},
-        "tainted": false
-      },
-      "deposed": [],
-      "provider": "provider.digitalocean"
-    }
-
-..
-
-By adding another pipe step to create an list item with just these two
-fields, and adding the ``-c`` option to create a single-line JSON object.
-
-.. code-block:: none
-
-    $ jq -c '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.fqdn, .primary.attributes.value ]' terraform.tfstate
-
-..
-
-.. code-block:: json
-
-    ["blue.example.com","XXX.XXX.XXX.XX"]
-    ["orange.example.com","XXX.XXX.XXX.XXX"]
-
-..
-
-These can be further converted into formats parseable by Unix shell programs
-like ``awk``, etc., using the filters ``@csv`` or ``@sh``:
-
-.. code-block:: none
-
-    $ jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.name, .primary.attributes.fqdn, .primary.attributes.value ]| @csv' terraform.tfstate
-    "blue","blue.example.com","XXX.XXX.XXX.XX"
-    "orange","orange.example.com","XXX.XXX.XXX.XXX"
-    $ jq -r '.modules[] | .resources[] | select(.type | test("digitalocean_record")) | [ .primary.attributes.name, .primary.attributes.fqdn, .primary.attributes.value ]| @sh' terraform.tfstate
-    'blue' 'blue.example.com' 'XXX.XXX.XXX.XX'"
-    'blue' 'orange.example.com' 'XXX.XXX.XXX.XXX'"
-
-..
-
-Processing ``terraform output --json``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-While processing the ``terraform.tfstate`` file directly is possible, the
-proper way to use Terraform state is to create **output** variables and
-expose them using ``terraform output``:
-
-.. code-block:: bash
-
-    $ terraform output
-    blue = {
-      blue.example.com = XXX.XX.XXX.XXX
-    }
-    orange = {
-      orange.example.com = XXX.XX.XXX.XXX
-    }
-
-..
-
-This output could be processed with ``awk``, but we want to use ``jq`` instead
-to more directly process the output using JSON.  To get JSON output, add the
-``--json`` flag:
-
-
-.. code-block:: bash
-
-    $ terraform output --json
-    {
-        "blue": {
-            "sensitive": false,
-            "type": "map",
-            "value": {
-                "blue.example.com": "XXX.XX.XXX.XXX"
-            }
-        },
-        "orange": {
-            "sensitive": false,
-            "type": "map",
-            "value": {
-                "orange.example.com": "XXX.XX.XXX.XXX"
-            }
-        }
-    }
-
-..
-
-To get to clean single-line, multi-colum output, we need to use
-``to_entries[]`` to turn the dictionaries into key/value pairs,
-nested two levels deep in this case.
-
-.. code-block:: none
-
-    $ terraform output --json | jq -r 'to_entries[] | [ .key, (.value.value|to_entries[]| .key, .value) ]|@sh'
-    'blue' 'blue.example.com' 'XXX.XX.XXX.XXX'
-    'orange' 'orange.example.com' 'XXX.XX.XXX.XXX'
-
-..
-
-Putting all of this together with a much simpler ``awk`` script, a YAML
-inventory file can be produced as shown in the script
-``files/common-scripts/terraform.inventory.generate.sh``.
-
-.. literalinclude:: ../../files/common-scripts/terraform.inventory.generate.sh
-   :language: bash
-
-.. code-block:: yaml
-
-    ---
-    # This is a generated inventory file produced by /Users/dittrich/dims/git/ansible-dims-playbooks/files/common-scripts/terraform.inventory.generate.sh.
-    # DO NOT EDIT THIS FILE.
-
-    do:
-      hosts:
-        'blue':
-          ansible_host: 'XXX.XXX.XXX.XX'
-          ansible_fqdn: 'blue.example.com'
-        'orange':
-          ansible_host: 'XXX.XXX.XXX.XXX'
-          ansible_fqdn: 'orange.example.com'
-
-..
-
-This inventory file can then be used by Ansible to perform ad-hoc tasks or run
-playbooks.
-
-.. code-block:: none
-
-    $ make ping
-    ansible -i ../../environments/do/inventory \
-                     \
-                    -m ping do
-    orange | SUCCESS => {
-        "changed": false,
-        "failed": false,
-        "ping": "pong"
-    }
-    blue | SUCCESS => {
-        "changed": false,
-        "failed": false,
-        "ping": "pong"
-    }
-
-..
+.. REFERENCES
 
 .. _DigitalOcean: https://www.digitalocean.com/
 .. _Terraform: https://www.terraform.io/
 .. _Install Terraform: https://www.terraform.io/intro/getting-started/install.html
-.. _jq: https://stedolan.github.io/jq/manual/
-.. _Reshaping JSON with jq: https://programminghistorian.org/lessons/json-and-jq
 
 .. EOF

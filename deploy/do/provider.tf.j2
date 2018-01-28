@@ -16,7 +16,7 @@ provider "digitalocean" {
 }
 
 module "do-keypair" {
-  name = "${var.environment}"
+  keyname = "${var.environment}"
   source = "./keypair"
   public_key_filename = "${var.public_key}"
 }
@@ -39,7 +39,7 @@ resource "digitalocean_droplet" "{{ d.name }}" {
       "${var.ssh_fingerprint}"
     ]
     #user_data = "{\"role\":\"${var.role}\",\"dc\":\"${var.datacenter}\"}"
-    user_data = "{\"dc\":\"${var.datacenter}\"}"
+    user_data = "${chomp(file("{{ user_data|default("user-data") }}"))}"
 
   connection {
       user = "root"

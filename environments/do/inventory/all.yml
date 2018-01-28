@@ -14,7 +14,7 @@ all:
     'green':
       tcp_ports: [ 25, '{{ nginx_default_port }}', '{{ nginx_ssl_port }}' ]
       udp_ports: [ ]
-      jenkins_url_external: 'https://{{ hostvars[inventory_hostname].ansible_fqdn }}/jenkins'
+      jenkins_url_external: 'https://{{ hostvars[inventory_hostname].dims_fqdn }}/jenkins'
     'purple':
       tcp_ports: [ 25, '{{ nginx_default_port }}', '{{ nginx_ssl_port }}' ]
   children:

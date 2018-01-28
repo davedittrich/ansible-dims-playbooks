@@ -1,0 +1,22 @@
+---
+
+# File: roles/trident-core/defaults/main.yml
+
+trident_domain: '{{ ansible_domain }}'
+trident_fqdn: '{{ ansible_fqdn }}'
+trident_site_adminname: 'Trident Administrator'
+trident_site_adminemail: 'admin@{{ trident_site_email_domain }}'
+trident_site_admins: []
+trident_site_email_domain: '{{ trident_fqdn }}'
+trident_site_favicon_image: 'favicon.ico'
+trident_site_header_image: '/gfx/header_image.jpg'
+trident_site_logo_image: '/gfx/logo.png'
+trident_site_mail_handler: '/var/lib/trident/library/mh-wrapper'
+trident_site_name: '{{ ansible_domain }} Trident Portal'
+trident_site_people_domain: '{{ trident_site_email_domain }}'
+trident_site_unknown_person: '/gfx/unknown_person.jpg'
+trident_site_var: '/var/lib/trident'
+trident_site_welcome_text: 'Trident'
+trident_site_url_public: 'https://{{ trident_fqdn }}'
+
+# vim: ft=ansible :

@@ -34,7 +34,7 @@
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
   hosts: "{{ host|default('localhost') }}" # override with '-e host=$host.fq.dn'
-  gather_facts: True
+  gather_facts: true
 
 # Everything from here on out will be stripped by dims.ansible-playbooks
 # in order to use this as a base for inserting roles (--role) or

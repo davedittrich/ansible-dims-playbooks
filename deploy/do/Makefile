@@ -27,40 +27,44 @@ help:
 	@echo "Where 'something' is one of these:"
 	@echo ""
 	@echo " help - print this help text"
+	@echo ""
+	@echo " ---- Build state functions ----"
 	@echo " init - initialize terraform state (this is automatic)"
+	@echo " prerequisites - install prerequisite programs"
+	@echo " pre.test - run pre-requisite tests for using terraform with DigitalOcean"
 	@echo " droplets - show list of active droplets using digital_ocean.py dynamic inventory"
 	@echo " hosts - show list of hosts in group 'do'"
 	@echo " dumpjson - dump all DigitalOcean image related information in JSON"
+	@echo " dumpvars - produces Ansible debug output of vars for hosts in group 'do'"
+	@echo " updatefacts - run 'ansible -m setup' to refresh cached facts"
 	@echo " images - lists available DigitalOcean images"
 	@echo " regions - lists available DigitalOcean regions"
 	@echo " provider - generate terraform provider.tf file for creating nodes in group 'do'"
-	@echo ""
 	@echo " plan - show the terraform plan for the current state"
 	@echo " graph - generate terraform graph (output is 'graph.png')"
 	@echo " newkeypair - generate a new SSH user keypair"
 	@echo " insertpubkey - insert SSH public key on DigitalOcean"
 	@echo " removepubkey - remove SSH public key on DigitalOcean"
+	@echo " addhostkeys - adds SSH host public keys to selected known_hosts files"
+	@echo " removehostkeys - removes SSH host public keys from selected known_hosts files"
+	@echo " destroy - destroys droplets and related resources for hosts in group 'do'"
+	@echo " spotless - remove terraform log and state files"
+	@echo ""
+	@echo " ---- Provisioning functions ----"
 	@echo " create - applies terraform plan to create droplets for hosts in group 'do'"
+	@echo " ping - does Ansible ad-hoc ping of hosts in group 'do'"
 	@echo " bootstrap - create, then run bootstrap.yml and ca-certs.yml playbooks"
 	@echo " installcerts - run 'certbot-installcert.yml' playbook to install SSL certs"
 	@echo " deploy - run 'master.yml' playbook to deploy roles on droplets"
-	@echo ""
-	@echo " update - update packages"
-	@echo " reboot - reboot the system in +1 minute"
-	@echo " cancel - cancel rebooting (if you REALLY DIDN'T MEAN IT)"
-	@echo ""
-	@echo " addhostkeys - adds SSH host public keys to selected known_hosts files"
-	@echo " removehostkeys - removes SSH host public keys from selected known_hosts files"
-	@echo ""
-	@echo " dumpvars - produces Ansible debug output of vars for hosts in group 'do'"
-	@echo " ping - does Ansible ad-hoc ping of hosts in group 'do'"
-	@echo " pre.test - run pre-requisite tests for using terraform with DigitalOcean"
 	@echo " post.test - run 'test.runner --terse' on all droplets"
-	@echo " backup.postgresql - backup Trident postgresql database"
-	@echo " backup.letsencrypt - backup Letsencrypt certificate store"
 	@echo ""
-	@echo " destroy - destroys droplets for hosts in group 'do'"
-	@echo " spotless - remove terraform log and state files"
+	@echo " ---- Maintenance functions ----"
+	@echo " update - update packages on droplets"
+	@echo " reboot - reboot droplets in +1 minute"
+	@echo " cancel - cancel rebooting (if you REALLY DIDN'T MEAN IT)"
+	@echo " backup.letsencrypt - backup Letsencrypt certificate store"
+	@echo " backup.trident - backup Trident postgresql database and other ancillary files"
+	@echo " restore.trident - restore Trident postgresql database and other ancillary files"
 	@echo ""
 	@echo " * The default if you just type 'make' is the same as 'make help'"
 	@echo " * To control Ansible, set DIMS_ANSIBLE_ARGS to the arguments you want"
@@ -79,9 +83,14 @@ init: terraform.tfstate
 terraform.tfstate:
 	terraform init
 
+.PHONY: prerequisites
+prerequisites:
+	sudo apt-get install bats pip python-pip jq
+	sudo pip install ansible==2.4.0.0
+
 .PHONY: droplets
 droplets:
-	ansible -i $(INVENTORY)/digital_ocean.py $(DIMS_ANSIBLE_ARGS) --list-hosts all |\
+	ansible -i $(INVENTORY)/digital_ocean.py --list-hosts all $(DIMS_ANSIBLE_ARGS) |\
 	       sed 's/ *//g' |\
 	       tail -n +2
 
@@ -90,7 +99,7 @@ hosts:
 	$(MAKE) --always-make inventory/hosts 2>/dev/null
 
 inventory/hosts:
-	(echo "[droplets]"; ansible -i $(INVENTORY) $(DIMS_ANSIBLE_ARGS) --list-hosts do|sed 's/ *//g'|tail -n +2) |\
+	(echo "[droplets]"; ansible -i $(INVENTORY) --list-hosts do $(DIMS_ANSIBLE_ARGS)|sed 's/ *//g'|tail -n +2) |\
 		tee inventory/hosts
 
 .PHONY: etchosts
@@ -121,8 +130,8 @@ regions:
 .PHONY: provider
 provider:
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
-		create-provider.tf.yml
+		create-provider.tf.yml \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: plan
 plan: init provider
@@ -162,7 +171,6 @@ removepubkey:
 
 .PHONY: create
 create: init hosts provider
-	$(MAKE) insertpubkey && sleep 2
 	terraform apply $(TF_VARS) | tee -a terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)//keys.host.extract.sh
 	! grep -q "Error: Error applying plan:" terraform.log
 	$(MAKE) --always-make $(INVENTORY_GENERATED)
@@ -173,63 +181,70 @@ create: init hosts provider
 sshkeys:
 	cat terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)/keys.host.extract.sh > /dev/null
 
+.bootstrapped: bootstrap
+	touch .bootstrapped
+
 .PHONY: bootstrap
 bootstrap:
+	rm -f .bootstrapped
 	(terraform plan $(TF_VARS) | grep -q "No changes") || $(MAKE) create
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(PBR)/playbooks/bootstrap.yml \
-		-e host=do
+		-e host=do \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: installcerts
 installcerts:
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(PBR)/playbooks/certbot-installcert.yml \
-		-e host=do
+		-e host=do \
+		$(DIMS_ANSIBLE_ARGS)
 
+# TODO(dittrich): Remove the postgresql_backup_restorefrom after debugging. :(
 .PHONY: deploy
 deploy:
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
-		master.yml
+		-e postgresql_backup_restorefrom='' \
+		master.yml \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: update
 update:
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		--tags updates \
 		-e packages_upgrade=yes \
-		master.yml
+		master.yml \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: reboot
 reboot:
 	ansible -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		--become \
 		-m shell \
 		-a '/sbin/shutdown -r +1' \
-		do
+		do \
+		$(DIMS_ANSIBLE_ARGS)
+
 .PHONY: cancel
 cancel:
 	ansible -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		--become \
 		-m shell \
 		-a '/sbin/shutdown -c && echo "[+] Whew! That was close!"' \
-		do
+		do \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: addhostkeys
 addhostkeys:
 	@echo "[+] Adding host keys to known_hosts on localhost"
 	ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSILE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		$(PBR)/playbooks/do_rekey.yml \
-		-e known_hosts_root="$(shell pwd)/known_hosts"
+		-e known_hosts_root="$(shell pwd)/known_hosts" \
+		$(DIMS_ANSILE_ARGS)
 	@echo "[+] Adding host keys to known_hosts on droplets"
 	ansible-playbook -i $(INVENTORY) \
 		$(DIMS_ANSILE_ARGS) \
@@ -240,23 +255,27 @@ addhostkeys:
 .PHONY: removehostkeys
 removehostkeys:
 	-ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		$(PBR)/playbooks/do_rekey.yml \
-		-e remove_keys=true
+		-e remove_keys=true \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: dumpvars
 dumpvars:
 	ansible -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
-		-m debug -a "var=hostvars[inventory_hostname]" do |\
+		-m debug -a "var=hostvars[inventory_hostname]" do \
+		$(DIMS_ANSIBLE_ARGS) |\
 			pygmentize -ljson |\
 			less -R
+.PHONY: updatefacts
+updatefacts:
+	ansible -i $(INVENTORY) \
+		-m setup do \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: ping
 ping:
 	ansible -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		-m ping do
 
 .PHONY: pre.test
@@ -266,28 +285,36 @@ pre.test:
 .PHONY: post.test
 post.test:
 	ansible -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		-m shell \
 		-a 'test.runner --terse --tap' \
-		do || (echo '[!] Some test(s) failed' && exit 1)
+		do \
+		$(DIMS_ANSIBLE_ARGS) || (echo '[!] Some test(s) failed' && exit 1)
 	@echo '[+] All tests passed!'
 
-.PHONY: backup.postgresql
-backup.postgresql:
+.PHONY: backup.trident
+backup.trident:
 	-ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
-		$(PBR)/playbooks/postgresql_backup.yml
+		$(PBR)/playbooks/trident_backup.yml \
+		$(DIMS_ANSIBLE_ARGS)
+
+.PHONY: restore.trident
+restore.trident:
+	-ansible-playbook -i $(INVENTORY) \
+		$(ASK_SUDO_PASS) \
+		-e@~/.secrets/digital-ocean/secrets.yml \
+		$(PBR)/playbooks/trident_restore.yml \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: backup.letsencrypt
 backup.letsencrypt:
 	-ansible-playbook -i $(INVENTORY) \
-		$(DIMS_ANSIBLE_ARGS) \
 		$(ASK_SUDO_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		$(PBR)/playbooks/letsencrypt_backup.yml \
-		-e host=do
+		-e host=do \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: destroy
 destroy:
@@ -297,6 +324,7 @@ destroy:
 	-rm -f ansible-digital_ocean.cache
 	-rm -f inventory/hosts inventory/nodes-generated.yml
 	-rm -f provider.tf graph.png
+	-rm -f .bootstrapped
 	-$(MAKE) removepubkey
 
 .PHONY: spotless

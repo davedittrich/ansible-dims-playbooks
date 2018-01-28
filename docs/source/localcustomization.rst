@@ -156,16 +156,14 @@ you will find the following files and directories:
     │   │       │   └── .gitignore
     │   │       ├── templates
     │   │       │   └── .gitignore
-    │   │       ├── UW-logo-16x16.ico
-    │   │       ├── UW-logo-32x32.ico
-    │   │       ├── UW-logo.ico
-    │   │       └── UW-logo.png
+    │   │       ├── d2-logo.ico
+    │   │       └── d2-logo.png
     │   ├── README.rst
     │   └── VERSION
     └── hooks
         └── post_gen_project.sh
 
-    7 directories, 18 files
+    7 directories, 16 files
 
 ..
 
@@ -255,13 +253,11 @@ and files the new repo directory will have.
      │       ├── index.rst
      │       ├── license.rst
      │       ├── license.txt
-     │       ├── UW-logo-16x16.ico
-     │       ├── UW-logo-32x32.ico
-     │       ├── UW-logo.ico
-     │       └── UW-logo.png
+     │       ├── d2-logo.ico
+     │       └── d2-logo.png
      └── VERSION
 
-     4 directories, 10 files
+     4 directories, 8 files
 
 ..
 
@@ -362,11 +358,11 @@ up looking something like this:
 
     default_context:
       full_name: "Dave Dittrich"
-      email: "dittrich@u.washington.edu"
-      project_name: "DIMS Ansible Playbooks"
+      email: "dave.dittrich@gmail.com"
+      project_name: "D2 Ansible Playbooks"
       project_slug: "ansible-dims-playbooks"
-      project_short_description: "Ansible Playbooks for DIMS System Configuration"
-      project_copyright_name: "University of Washington"
+      project_short_description: "Ansible Playbooks for D2 System Configuration"
+      project_copyright_name: "David Dittrich"
 
 ..
 
@@ -445,15 +441,15 @@ to the defaults from the ``cookiecutter.json`` file:
 
    $ cd $GIT/dims-ci-utils/cookiecutter
    $ cookiecutter -o ~/ dims-new-repo/
-   full_name [DIMS User]: Megan Boggess
-   email []: mboggess@uw.edu
+   full_name [DIMS User]: Dave Dittrich
+   email []: dave.dittrich@gmail.com
    project_name [DIMS New Repo Boilerplate]: Test Repo
    project_short_description [DIMS New Repo Boilerplate contains docs/ setup, conf.py template, .bumpversion.cfg, LICENSE file, and other resources needed for instantiating a new repo.]: This is just a test
-   release_date [20YY-MM-DD]: 2015-10-29
+   release_date [20YY-MM-DD]: 2018-01-01
    project_version [1.0.0]:
    project_slug [test-repo]:
-   project_copyright_name [University of Washington]:
-   project_copyright_date [2014-2015]:
+   project_copyright_name [David Dittrich]:
+   project_copyright_date [2018]:
    $ cd ~/test-repo
    $ ls
    docs  VERSION
@@ -474,13 +470,11 @@ to the defaults from the ``cookiecutter.json`` file:
    │       │   └── .gitignore
    │       ├── templates
    │       │   └── .gitignore
-   │       ├── UW-logo-16x16.ico
-   │       ├── UW-logo-32x32.ico
-   │       ├── UW-logo.ico
-   │       └── UW-logo.png
+   │       ├── d2-logo.ico
+   │       └── d2-logo.png
    └── VERSION
 
-   3 directories, 14 files
+   3 directories, 12 files
 
 ..
 
@@ -522,14 +516,12 @@ also specified with an absolute path:
         │       ├── license.txt
         │       ├── _static
         │       ├── _templates
-        │       ├── UW-logo-16x16.ico
-        │       ├── UW-logo-32x32.ico
-        │       ├── UW-logo.ico
-        │       └── UW-logo.png
+        │       ├── d2-logo.ico
+        │       └── d2-logo.png
         ├── README.rst
         └── VERSION
 
-    6 directories, 12 files
+    6 directories, 10 files
 
 ..
 
@@ -645,11 +637,11 @@ deployment ``devtest``, thus creating a repository in a the directory named
 
     default_context:
       full_name: "Dave Dittrich"
-      email: "dittrich@u.washington.edu"
+      email: "dave.dittrich@gmail.com"
       project_name: "Deployment \"devtest\" private configuration"
       project_slug: "private-devtest"
       project_short_description: "Ansible playbooks private content for \"devtest\" deployment"
-      project_copyright_name: "University of Washington"
+      project_copyright_name: "David Dittrich"
 
 ..
 
@@ -697,10 +689,8 @@ private key files.
         │       │   └── .gitignore
         │       ├── _templates
         │       │   └── .gitignore
-        │       ├── UW-logo-16x16.ico
-        │       ├── UW-logo-32x32.ico
-        │       ├── UW-logo.ico
-        │       └── UW-logo.png
+        │       ├── d2-logo.ico
+        │       └── d2-logo.png
         ├── DO_NOT_PUBLISH_THIS_REPO
         ├── hooks
         │   ├── post-checkout
@@ -709,7 +699,7 @@ private key files.
         ├── README.rst
         └── VERSION
 
-        5 directories, 20 files
+        5 directories, 18 files
 
     ..
 

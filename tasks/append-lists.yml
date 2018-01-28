@@ -20,14 +20,18 @@
     - "{{ results.results }}"
   when: item.1.stdout is defined
 
-- debug: 'var=admins_dict1'
+- debug:
+    var: admins_dict1
+    verbosity: 2
 
 - name: Build dict with admin status
   set_fact: 
     admins_dict2: "{{ admins_dict2|default({})|combine({ item.item: item.stdout }) }}"
   with_items: "{{ results.results }}"
 
-- debug: 'var=admins_dict2'
+- debug:
+    var: admins_dict2
+    verbosity: 2
 
 - name: Extract subset of members w/sysadmin status
   set_fact:
@@ -35,6 +39,8 @@
   with_dict: "{{ admins_dict2 }}"
   when: item.value == "yes"
 
-- debug: 'var=admins_current'
+- debug:
+    var: admins_current
+    verbosity: 2
 
 #EOF

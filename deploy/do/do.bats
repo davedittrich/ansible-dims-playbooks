@@ -2,6 +2,10 @@
 #
 # vim: set ts=4 sw=4 tw=0 et :
 
+@test "[S][EV] terraform is found in \$PATH" {
+    which terraform
+}
+
 @test "[S][EV] Directory for secrets (~/.secrets/) exists" {
     [ -d ~/.secrets ]
 }
@@ -14,8 +18,12 @@
     [ -d ~/.secrets/digital-ocean ]
 }
 
-@test "[S][EV] DigitalOcean token is in ~/.secrets/digital-ocean/token" {
+@test "[S][EV] DigitalOcean token file (~/.secrets/digital-ocean/token) is not empty" {
     [ -s ~/.secrets/digital-ocean/token ]
+}
+
+@test "[S][EV] Secrets for DigitalOcean (~/.secrets/digital-ocean/secrets.yml) exist" {
+    [ -s ~/.secrets/digital-ocean/secrets.yml ]
 }
 
 @test "[S][EV] Variable DO_API_VERSION (dopy) is defined in environment" {
@@ -58,15 +66,11 @@
     [ ! -z "$TF_VAR_public_key" ]
 }
 
-@test "[S][EV] Variable TF_VAR_ssh_fingerprint (terraform) is defined in environment" {
-    [ ! -z "$TF_VAR_ssh_fingerprint" ]
-}
-
 @test "[S][EV] DO_API_TOKEN authentication succeeds" {
     ! bash -c "make images | grep 'Unable to authenticate you'"
 }
 
-@test "[S][EV] Variable TF_VAR_public_key (terraform .tf) is defined in environment" {
+@test "[S][EV] Variable TF_VAR_public_key (terraform) is defined in environment" {
     [ ! -z "$TF_VAR_public_key" ]
 }
 
@@ -74,7 +78,7 @@
     [ -r "$TF_VAR_public_key" ]
 }
 
-@test "[S][EV] Variable TF_VAR_private_key (terraform .tf) is defined in environment" {
+@test "[S][EV] Variable TF_VAR_private_key (terraform) is defined in environment" {
     [ ! -z "$TF_VAR_private_key" ]
 }
 
@@ -82,14 +86,15 @@
     [ -r "$TF_VAR_private_key" ]
 }
 
-@test "[S][EV] Variable TF_VAR_ssh_fingerprint (terraform .tf) is defined in environment" {
-    [ ! -z "$TF_VAR_ssh_fingerprint" ]
-}
-
 @test "[S][EV] DO_API_TOKEN authentication succeeds" {
     ! bash -c "make images | grep 'Unable to authenticate you'"
 }
 
-@test "[S][EV] terraform is found in \$PATH" {
-    which terraform
+@test "[S][EV] Git user.name is set" {
+    [ ! -z "$(git config user.name)" ]
 }
+
+@test "[S][EV] Git user.email is set" {
+    [ ! -z "$(git config user.email)" ]
+}
+

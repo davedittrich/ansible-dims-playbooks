@@ -154,9 +154,13 @@
   with_items: "{{ _templates_find.files|map(attribute='path')|list }}"
   when: _templates_find.files is defined
 
-- debug: 'var=bats_test_templates'
+- debug:
+    var: bats_test_templates
+    verbosity: 2
 
-#- debug: msg='{{ dims_tests }}/{{ bats_test_templates.0|regex_replace("\.j2","") }}'
+#- debug:
+#    msg: '{{ dims_tests }}/{{ bats_test_templates.0|regex_replace("\.j2","") }}'
+#    verbosity: 2
 #
 # TASK [docker : debug] *********************************************************
 # task path: /vm/run/gray/ansible-dims-playbooks/tasks/bats-tests.yml:122

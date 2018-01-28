@@ -17,6 +17,7 @@
   #  certbot_adminemail: '{{ dims_adminemail }}'
   vars_files:
    - "{{ playbooks_root }}/vars/global.yml"
+  gather_facts: true
 
   roles:
     - ansible-role-certbot

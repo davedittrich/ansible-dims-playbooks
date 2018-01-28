@@ -5,7 +5,7 @@ D2 Ansible playbooks
 ====================
 
 * GitHub repo: https://github.com/davedittrich/ansible-dims-playbooks/
-.. * Documentation: https://davedittrich.readthedocs.io/ansible-dims-playbooks
+* Documentation: https://davedittrich.readthedocs.io/projects/ansible-dims-playbooks/en/latest/
 * License: Apache 2.0/Berkeley Three Clause License
 
 Contact:

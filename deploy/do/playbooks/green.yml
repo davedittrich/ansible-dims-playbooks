@@ -4,6 +4,7 @@
 
 - name: Configure host "green"
   hosts: green
+  gather_facts: true
 
   vars:
     playbooks_root: "{{ lookup('env', 'PBR') }}"
@@ -16,11 +17,11 @@
 
   roles:
     - { role: base, packages_upgrade: true }
-    - { role: postfix }
     - { role: docker }
+    - { role: nginx }
+    - { role: postfix }
     - { role: consul }
     - { role: python-virtualenv, use_sphinx: true }
-    - { role: nginx }
     - { role: java8 }
     - { role: ansible-role-jenkins, tags: jenkins2 }
     - { role: jenkins2 }

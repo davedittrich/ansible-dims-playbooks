@@ -2,39 +2,40 @@
 
 # File: roles/bootstrap/tasks/ssh.yml
 
-- name: Assert ansible_ssh_private_key_file is defined and not null
-  assert:
-    that:
-      - ansible_ssh_private_key_file is defined
-      - ansible_ssh_private_key_file != ''
+- name: Define bootstrap_ssh_private_key_file
+  set_fact:
+    bootstrap_ansible_ssh_private_key_file: '{{ ansible_ssh_private_key_file }}'
+  when: bootstrap_ansible_ssh_private_key_file is not defined
   tags: [ always ]
 
-- block:
-  - name: Define bootstrap_ssh_private_key_file
-    set_fact:
-      bootstrap_ssh_private_key_file: '{{ lookup("dims_function", "get_ssh_private_key_file " + ansible_user) }}'
-    when: bootstrap_ssh_private_key_file is not defined
-    tags: [ always ]
+- name: Stat bootstrap_ansible_ssh_private_key_file
+  stat:
+    path: '{{ bootstrap_ansible_ssh_private_key_file }}'
+  delegate_to: '127.0.0.1'
+  become: no
+  register: _privkeystat
+  tags: [ always ]
 
-  rescue:
-  - name: Define bootstrap_ssh_private_key_file
-    set_fact:
-      bootstrap_ssh_private_key_file: '{{ ansible_ssh_private_key_file }}'
-    when: bootstrap_ssh_private_key_file is not defined
-    tags: [ always ]
+- name: Stat bootstrap_ansible_ssh_private_key_file + .pub
+  stat:
+    path: '{{ bootstrap_ansible_ssh_private_key_file }}.pub'
+  delegate_to: '127.0.0.1'
+  become: no
+  register: _pubkeystat
+  tags: [ always ]
 
-- name: Define variable with ansible public key
-  set_fact:
-    _public_key: '{{ bootstrap_ssh_private_key_file }}.pub'
-  tags: [ bootstrap ]
-  when: _public_key is not defined
+- name: Assert private and public keys exist
+  assert:
+    that:
+      - _privkeystat.stat.exists
+      - _pubkeystat.stat.exists
   tags: [ always ]
 
 - name: Ensure ansible public key in authorized_keys
   authorized_key:
     user: '{{ ansible_user }}'
     state: present
-    key: '{{ lookup("file", _public_key) }}'
+    key: '{{ lookup("file", bootstrap_ansible_ssh_private_key_file + ".pub" ) }}'
   tags: [ bootstrap ]
 
 # vim: ft=ansible :

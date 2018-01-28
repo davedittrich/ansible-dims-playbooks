@@ -1,0 +1,258 @@
+---
+
+# File: tasks/trident_restore.yml
+
+# This playbook will restore a backup of a Trident server
+# (i.e., postgresql database and ancillary files). It relies
+# on the variables defined in the trident inventory group.
+#
+# Controlling variables:
+# trident_backup_file - Absolute path to backup file to restore
+#                       (defaults to latest available backup)
+# postgresql_restore_data_only: - Use --data-only option. Implies not
+#                                 cleaning first. (true/false)
+# postgresql_restore_clean: - Use --clean. Drops database objects before
+#                             restoring them. (true/false)
+#
+# See https://www.postgresql.org/docs/current/static/app-pgrestore.html
+
+- name: Define (local) trident_backup_dir
+  set_fact:
+    trident_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
+  when: trident_backup_dir is not defined
+
+- name: Debug trident_backup_dir
+  debug:
+    var: trident_backup_dir
+    verbosity: 2
+
+- name: "Ensure exclude use of '--data-only' and '--clean'"
+  fail:
+    msg: 'Use "postgresql_restore_data_only" or "postgresql_restore_clean", not both'
+  when: (postgresql_restore_data_only is defined and postgresql_restore_data_only != '') and
+        (postgresql_restore_clean is defined and postgresql_restore_clean != '')
+
+- name: Define _restore_options using --data-only?
+  set_fact:
+    _restore_options: '--data-only'
+  when: postgresql_restore_data_only is defined and postgresql_restore_data_only|bool
+
+- name: Define _restore_options using --clean?
+  set_fact:
+    _restore_options: '--clean'
+  when: postgresql_restore_clean is not defined or
+        (postgresql_restore_clean is defined and postgresql_restore_clean|bool)
+
+- include_tasks: '{{ tasks_path }}/get_backups.yml'
+  vars:
+    backups_dir: '{{ trident_backup_dir }}'
+    backups_service: 'trident'
+  when: trident_backup_file is not defined
+
+- name: Default to latest backup file
+  set_fact:
+    trident_backup_file: '{{ backups_files.0 }}'
+  when: trident_backup_file is not defined and
+        backups_files.0 is defined
+
+- name: Debug trident_backup_file
+  debug:
+    var: trident_backup_file
+    verbosity: 2
+
+# TODO(dittrich): Switch to just setting to ''?
+
+- name: Require 'trident_backup_file' be set
+  fail:
+    msg: 'Please specify backup to restore with "trident_backup_file"'
+  when: trident_backup_file is not defined
+
+- name: Require backup file name ends with '.tar.bz2'
+  fail:
+    msg: 'Backup file name "{{ trident_backup_file }}" does not end with ".tar.bz2"'
+  when: not trident_backup_file.endswith('.tar.bz2')
+
+- name: Create remote temporary directory
+  shell: >
+    mktemp -d '{{ ansible_env["TMPDIR"] | default("/tmp", true) }}/ansible.XXXX'
+  register: mktemp_output
+  become: yes
+  become_user: postgres
+
+- name: Define _tmpdir variable
+  set_fact:
+    _tmpdir: '{{ mktemp_output.stdout }}'
+
+- name: Define _logfile variable
+  set_fact:
+    _logfile: '{{ _tmpdir }}/{{ trident_backup_file|basename|regex_replace(".tar.bz2","") }}.log'
+
+# This task assumes the full absolute path to the backup file is
+# given, so it uses basename to extract just the filename for later
+# operations.
+
+- name: Copy trident backup file
+  copy:
+    src: '{{ trident_backup_file }}'
+    dest: '{{ _tmpdir }}/{{ trident_backup_file|basename }}'
+    owner: root
+    group: root
+    mode: 0o770
+  no_log: '{{ nolog|default(true) }}'
+  become: yes
+
+- name: Extract sub-backup files
+  shell: >
+    bunzip2 -c {{ _tmpdir }}/{{ trident_backup_file|basename }} |
+    tar -xf -
+    chdir={{ _tmpdir }}
+  become: yes
+
+- name: Identify _postgresql_backup_file
+  find:
+    paths: '{{ _tmpdir }}'
+    patterns: 'postgresql_*.pgdmp.bz2'
+    file_type: 'file'
+    recurse: no
+    use_regex: no
+  become: yes
+  register: _find_pgdmp_results
+
+- name: Fail when _postgresql_backup_file cannot be found
+  fail:
+    msg: 'Cannot file a .pgdmp.bz2 file in {{ _tmpdir }}'
+  when: _find_pgdmp_results.files.0 is not defined
+
+- name: Define _postgresql_backup_file
+  set_fact:
+    _postgresql_backup_file: '{{ _find_pgdmp_results.files.0.path }}'
+  when: _find_pgdmp_results.files.0 is defined
+
+- name: Debug _postgresql_backup_file
+  debug:
+    var: _postgresql_backup_file
+    verbosity: 2
+
+- name: Identify _trident_ancillary_backup_file
+  find:
+    paths: '{{ _tmpdir }}'
+    patterns: 'trident_ancillary_*.tar.bz2'
+    file_type: 'file'
+    recurse: no
+    use_regex: no
+  become: yes
+  register: _find_tar_results
+
+- name: Fail when _trident_ancillary_backup_file cannot be found
+  fail:
+    msg: 'Cannot file a .tar.bz2 file in {{ _tmpdir }}'
+  when: _find_tar_results.files.0 is not defined
+
+- name: Define _trident_ancillary_backup_file
+  set_fact:
+    _trident_ancillary_backup_file: '{{ _find_tar_results.files.0.path }}'
+  when: _find_tar_results.files.0 is defined
+
+- name: Debug _trident_ancillary_backup_file
+  debug:
+    var: _trident_ancillary_backup_file
+    verbosity: 2
+
+- name: Restore backup of postgresql database
+  shell: >
+    chdir={{ _tmpdir }}
+    bunzip2 -c {{ _postgresql_backup_file|basename }} |
+    pg_restore
+    --host=localhost
+    --port=5432
+    --username=postgres
+    --dbname={{ trident_db_name }}
+    {{ _restore_options }} 2>&1 >> {{ _logfile }}
+  register: _restore_postgresql_status
+  become: yes
+  become_user: postgres
+
+# - name: Restore backup of postgresql database
+#   shell: >
+#     chdir={{ _tmpdir }}
+#     bunzip2 -c {{ _postgresql_backup_file|basename }} |
+#     psql
+#     --host=localhost
+#     --port=5432
+#     --no-psqlrc
+#     --quiet
+#     --variable=ON_ERROR_STOP=1
+#     --pset=pager=off
+#     --username=postgres
+#     --dbname={{ trident_db_name }}
+#     --log-file={{ _logfile }}
+#   environment:
+#     PGOPTIONS: '--client-min-messages=warning'
+#   register: _restore_postgresql_status
+#   become: yes
+#   become_user: postgres
+
+- name: Define _restored_postgresql
+  set_fact:
+    _restored_postgresql: '{{ (_restore_postgresql_status is defined and _restore_postgresql_status.rc|int == 0) }}'
+
+- name: Debug _restored_postgresql
+  debug:
+    var: _restored_postgresql
+    verbosity: 2
+
+- name: Ensure trident is stopped (systemd)
+  systemd:
+    name: trident
+    state: stopped
+  become: yes
+  notify: restart trident
+
+- name: Restore backup of trident ancillary file
+  shell: >
+    chdir={{ _tmpdir }}
+    bunzip2 -c {{ _trident_ancillary_backup_file|basename }}
+    | tar -C / -tvf - 2>&1 >> {{ _logfile }}
+  register: _restore_trident_status
+  become: yes
+
+- name: Define _restored_trident
+  set_fact:
+    _restored_trident: '{{ (_restore_trident_status is defined and _restore_trident_status.rc|int == 0) }}'
+
+- name: Debug _restored_trident
+  debug:
+    var: _restored_trident
+    verbosity: 2
+
+- name: Define overall restore_status
+  set_fact:
+    restore_status: '{{ _restored_postgresql and _restored_trident }}'
+
+- name: Debug restore_status
+  debug:
+    var: restored_status
+    verbosity: 2
+
+- name: Shred backups before deleting directory
+  shell: >
+    chdir={{ _tmpdir }}
+    shred -uz -n 5 {{ item }}
+  with_items:
+    - '{{ _postgresql_backup_file|basename }}'
+    - '{{ _trident_ancillary_backup_file|basename }}'
+    - '{{ trident_backup_file|basename }}'
+  when: restore_status is defined and restore_status|bool
+
+- name: Remove temporary directory
+  file:
+    path: '{{ _tmpdir }}'
+    state: absent
+  become: yes
+  when: restore_status is defined and restore_status|bool
+
+- name: Report failure and log file
+  fail: msg='Restore failed{% raw %}:{% endraw %} see log file {{ _logfile }}'
+  when: restore_status is not defined or not restore_status|bool
+
+# vim: ft=ansible :

@@ -6,9 +6,10 @@ Backups and Restoration
 A good part of ongoing system administration is producing backups of files and
 database content that is created after initial system setup and that cannot be
 replaced by simply running a playbook again.  Things like copies of Git
-repositories and the content of the PostgreSQL database used by the Trident
-portal are two primary sets of data that you will want to backup, and possibly
-more importantly to restore in case of a drive failure or accidental deletion.
+repositories and the content of the PostgreSQL database and ancillary files
+used by the Trident portal are two primary sets of data that you will want to
+backup, and possibly more importantly to restore in case of a drive failure or
+accidental deletion.
 
 Built into the playbooks for Letsencrypt certificate installation as part
 of the ``nginx`` role, and Trident database tables as part of the
@@ -75,10 +76,10 @@ use) that have initial content put in place by the ``trident-configure`` role.
 Creating a Backup
 -----------------
 
-The playbook ``playbooks/postgresql_backup.yml`` exists to easily perform the backup
+The playbook ``playbooks/trident_backup.yml`` exists to easily perform the backup
 operation using ``ansible-playbook``.  The playbook is very simple, as seen here:
 
-.. literalinclude:: ../../playbooks/postgresql_backup.yml
+.. literalinclude:: ../../playbooks/trident_backup.yml
 
 By default, the playbook is applied to the ``trident`` group:
 
@@ -88,16 +89,16 @@ By default, the playbook is applied to the ``trident`` group:
       hosts (2):
         yellow.devops.develop
         purple.devops.develop
-    $ ansible-playbook /opt/dims/git/ansible-dims-playbooks/playbooks/postgresql_backup.yml
+    $ ansible-playbook /opt/dims/git/ansible-dims-playbooks/playbooks/trident_backup.yml
 
-    PLAY [Backup trident postgresql database] *************************************
+    PLAY [Backup trident files ] **************************************************
 
     TASK [include] ****************************************************************
     Saturday 12 August 2017  20:50:29 -0700 (0:00:00.064)       0:00:00.064 *******
-    included: /opt/dims/git/ansible-dims-playbooks/tasks/postgresql_backup.yml for
+    included: /opt/dims/git/ansible-dims-playbooks/tasks/trident_backup.yml for
     yellow.devops.develop, purple.devops.develop
 
-    TASK [Define local postgresql backup directory] *******************************
+    TASK [Define local trident backup directory] **********************************
     Saturday 12 August 2017  20:50:30 -0700 (0:00:01.199)       0:00:01.264 *******
     ok: [yellow.devops.develop]
     ok: [purple.devops.develop]
@@ -105,10 +106,10 @@ By default, the playbook is applied to the ``trident`` group:
     TASK [debug] ******************************************************************
     Saturday 12 August 2017  20:50:31 -0700 (0:00:01.129)       0:00:02.394 *******
     ok: [yellow.devops.develop] => {
-        "postgresql_backup_dir": "/opt/dims/backups/yellow.devops.develop"
+        "trident_backup_dir": "/opt/dims/backups/yellow.devops.develop"
     }
     ok: [purple.devops.develop] => {
-        "postgresql_backup_dir": "/opt/dims/backups/purple.devops.develop"
+        "trident_backup_dir": "/opt/dims/backups/purple.devops.develop"
     }
 
     TASK [Define backup_ts timestamp] *********************************************
@@ -116,12 +117,12 @@ By default, the playbook is applied to the ``trident`` group:
     ok: [yellow.devops.develop]
     ok: [purple.devops.develop]
 
-    TASK [Define postgresql_backup_file] ******************************************
+    TASK [Define trident_backup_file] *********************************************
     Saturday 12 August 2017  20:50:34 -0700 (0:00:02.161)       0:00:05.681 *******
     ok: [yellow.devops.develop]
     ok: [purple.devops.develop]
 
-    TASK [Ensure local postgresql backup directory exists] ************************
+    TASK [Ensure local trident backup directory exists] ***************************
     Saturday 12 August 2017  20:50:35 -0700 (0:00:01.162)       0:00:06.843 *******
     changed: [purple.devops.develop -> 127.0.0.1]
     changed: [yellow.devops.develop -> 127.0.0.1]
@@ -141,7 +142,7 @@ By default, the playbook is applied to the ``trident`` group:
     changed: [purple.devops.develop]
     changed: [yellow.devops.develop]
 
-    TASK [Fetch postgresql backup file] *******************************************
+    TASK [Fetch trient backup file] ***********************************************
     Saturday 12 August 2017  20:50:42 -0700 (0:00:02.076)       0:00:13.148 *******
     changed: [purple.devops.develop]
     changed: [yellow.devops.develop]
@@ -165,13 +166,13 @@ By default, the playbook is applied to the ``trident`` group:
     Define backup_ts timestamp ---------------------------------------------- 2.16s
     Create backup of postgresql database ------------------------------------ 2.08s
     Create remote temporary directory --------------------------------------- 1.64s
-    Fetch postgresql backup file -------------------------------------------- 1.58s
-    Ensure local postgresql backup directory exists ------------------------- 1.46s
+    Fetch trident backup file ----------------------------------------------- 1.58s
+    Ensure local trident backup directory exists ---------------------------- 1.46s
     Remove temporary directory ---------------------------------------------- 1.34s
     Set backup ownership ---------------------------------------------------- 1.32s
     include ----------------------------------------------------------------- 1.20s
     Define postgresql_backup_file ------------------------------------------- 1.16s
-    Define local postgresql backup directory -------------------------------- 1.13s
+    Define local trident backup directory ----------------------------------- 1.13s
     Define _tmpdir variable ------------------------------------------------- 1.13s
     debug ------------------------------------------------------------------- 1.13s
 
@@ -184,9 +185,9 @@ The backups will now show up, each in their own host's directory tree:
     $ tree /opt/dims/backups/
     /opt/dims/backups/
     ├── purple.devops.develop
-    │   └── postgresql_2017-08-12T20:50:33PDT.pgdmp.bz2
+    │   └── trident_2017-08-12T20:50:33PDT.tar.bz2
     └── yellow.devops.develop
-        └── postgresql_2017-08-12T20:50:33PDT.pgdmp.bz2
+        └── trident_2017-08-12T20:50:33PDT.tar.bz2
 
     2 directories, 2 files
 
@@ -303,10 +304,10 @@ You will now have a backup of the Letsencrypt certificates for both
     /opt/dims/backups/
     ├── purple.devops.develop
     │   ├── letsencrypt_2017-08-12T22:55:32PDT.tgz
-    │   └── postgresql_2017-08-12T20:50:33PDT.pgdmp.bz2
+    │   └── trident_2017-08-12T20:50:33PDT.pgdmp.bz2
     └── yellow.devops.develop
         ├── letsencrypt_2017-08-12T22:55:32PDT.tgz
-        └── postgresql_2017-08-12T20:50:33PDT.pgdmp.bz2
+        └── trident_2017-08-12T20:50:33PDT.pgdmp.bz2
 
     2 directories, 4 files
 
@@ -317,16 +318,17 @@ You will now have a backup of the Letsencrypt certificates for both
 Restoring from a Backup
 -----------------------
 
-To restore the Trident PostgreSQL backups, use the playbook
-``playbooks/postgresql_restore.yml``.  This playbook is similar to the backup
-playbook, however it has no default (you must specify the host or group you
-want to restore explicitly).
+To restore the Trident PostgreSQL and ancillary files from a backup, use the
+playbook ``playbooks/tridenr_restore.yml``.  This playbook is similar to the
+backup playbook, however it has no default (you must specify the host or group
+you want to restore explicitly).
 
-.. literalinclude:: ../../playbooks/postgresql_restore.yml
+.. literalinclude:: ../../playbooks/trident_restore.yml
 
 To invoke this task file from within the ``trident-core`` role, which will
 pre-populate the Trident PostgreSQL database from a backup rather than
-running ``tsetup``, set the variable ``postgresql_backup_restorefrom``
+running ``tsetup``, as well as restore ancillary files (e.g., PGP keys
+and keyrings) set the variable ``trident_backup_restorefrom``
 to point to a specific backup file, or to ``latest`` to have the most recent
 backup be applied.
 
@@ -340,8 +342,8 @@ role is next applied.
 Scheduled Backups
 -----------------
 
-The last section showed how to manually trigger backups of Trident's
-PostgreSQL database or Letsencrypt certificates for NGINX, using
+The last section showed how to manually trigger backups of Trident's PostgreSQL
+database and ancillary files, or Letsencrypt certificates for NGINX, using
 playbooks.
 
 These tasks can be saved in ``crontab`` files to schedule backups for

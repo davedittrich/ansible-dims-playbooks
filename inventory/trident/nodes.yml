@@ -6,13 +6,13 @@ trident:
   vars:
       use_letsencrypt: no
       certbot_staging: yes
-      tridentFQDN: '{{ inventory_hostname }}'
+      trident_fqdn: '{{ inventory_hostname }}'
 
       # Default site settings. Over-ride specifics below
       trident_site_name: 'Trident Portal'
       trident_site_welcome_text: 'Trident'
-      trident_site_url_public: 'https://{{ tridentFQDN }}'
-      trident_site_email_domain: '{{ tridentFQDN }}'
+      trident_site_url_public: 'https://{{ trident_fqdn }}'
+      trident_site_email_domain: '{{ trident_fqdn }}'
       trident_site_people_domain: '{{ trident_site_email_domain }}'
       trident_site_logo_image: '/gfx/logo.png'
       trident_site_header_image: '/gfx/header_image.jpg'
@@ -23,17 +23,14 @@ trident:
       trident_site_adminemail: 'admin@{{ trident_site_email_domain }}'
       trident_site_admins: []
 
-      tridentHTTPPort: 8333
-      tridentSysAdminUser: 'trident'
-      tridentSysAdminPass: '{{ vault_tridentSysAdminPass }}'
+      trident_http_listen_port: 8333
+      trident_sysadmin_user: 'trident'
+      trident_sysadmin_pass: '{{ vault_trident_sysadmin_pass }}'
 
-      tridentDBName: 'trident'
-      tridentDBUser: 'trident'
-      tridentDBPass: '{{ vault_tridentDBPass }}'
-      tridentDBPort: 5432
-
-      tridentNginxHTTPPort: 80
-      tridentNginxHTTPSPort: 443
+      trident_db_name: 'trident'
+      trident_db_user: 'trident'
+      trident_db_pass: '{{ vault_trident_db_pass }}'
+      trident_db_listen_port: 5432
 
       # Several trident packages (server, cli, all) share the same
       # version number. Related packages are in the same directory, too.

@@ -30,6 +30,7 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+import errno
 import os
 from sh import bash
 
@@ -76,5 +77,11 @@ class LookupModule(LookupBase):
                 results = [line.strip() for line in bash(cmd, _iter=True)]
             except Exception as e:
                 raise e
+        else:
+            raise IOError(
+                errno.ENOENT,
+                os.strerror(errno.ENOENT),
+                _dims_function
+                )
 
         return results

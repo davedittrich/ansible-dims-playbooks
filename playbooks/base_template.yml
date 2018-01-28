@@ -29,7 +29,7 @@
   vars_files:
     - "{{ playbooks_root }}/vars/global.yml"
   hosts: "{{ host }}"
-  gather_facts: no
+  gather_facts: true
   tasks:
     - name: Ensure ansible_date_time.iso8601 is set
       set_fact:

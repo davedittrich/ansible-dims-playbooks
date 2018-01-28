@@ -30,7 +30,7 @@
 # Log in to tcli
 - name: Ensure administator is logged in
   shell: >
-    tcli system login trident {{ tridentSysAdminPass }} | grep -q "Login successful"
+    tcli system login trident {{ trident_sysadmin_pass }} | grep -q "Login successful"
   register: tcli_login
   no_log: '{{ nolog }}'
   when: ansible_lsb.codename == "jessie"
