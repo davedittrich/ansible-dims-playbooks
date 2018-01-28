@@ -17,7 +17,7 @@
   handlers:
     - name: restart trident
       systemd:
-        name: nginx
+        name: trident
         state: started
 
 # vim: ft=ansible :
