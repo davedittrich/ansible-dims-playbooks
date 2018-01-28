@@ -134,7 +134,7 @@ trident:
 #           nom_enabled: 'yes'
     'purple':
       # Specific site setting overrides
-      postgresql_backup_restorefrom: 'latest'
+      trident_backup_restorefrom: 'latest'
       trident_site_name: '{{ dims_domain }} DevTest Trident Portal'
       trident_site_welcome_text: '{{ dims_domain }} DevTest Trident'
       trident_logo: '{{ files }}/logo/d2-logo.png'

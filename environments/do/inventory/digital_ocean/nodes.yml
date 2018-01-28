@@ -16,8 +16,8 @@ do:
     http_proxy: ''
     https_proxy: ''
     certbot_staging: no
-    certbot_sitename: '{{ ansible_fqdn }}'
-    certbot_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
+    certbot_sitename: '{{ dims_fqdn }}'
+    certbot_backup_dir: '{{ dims_backups }}/{{ dims_fqdn }}'
     certbot_backup_restorefrom: 'latest'
     certbot_save_backups: yes
     dims_secrets_dir: '{{ lookup("env", "HOME") }}/.secrets/digital-ocean'
@@ -84,10 +84,10 @@ do:
     dns_txt_ttl: 360
     dns_mx:
       - name: '_spf'
-        value: '{{ hostvars[groups.postfix_mx.0].ansible_fqdn|default("mail" + dims_domain) }}'
+        value: '{{ hostvars[groups.postfix_mx.0].dims_fqdn|default("mail" + dims_domain) }}'
         priority: 10
       - name: '@'
-        value: '{{ hostvars[groups.postfix_mx.0].ansible_fqdn|default("mail" + dims_domain) }}'
+        value: '{{ hostvars[groups.postfix_mx.0].dims_fqdn|default("mail" + dims_domain) }}'
         priority: 10
     dns_mx_ttl: 360
     # Custom rules for default networks
@@ -122,13 +122,13 @@ do:
     #'blue':
     #  epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
     'green':
-      trident_fqdn: '{{ ansible_fqdn }}'
+      trident_fqdn: '{{ dims_fqdn }}'
       custom_rules: [
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
         ]
     'purple':
-      trident_fqdn: '{{ ansible_fqdn }}'
+      trident_fqdn: '{{ dims_fqdn }}'
       custom_rules: [
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
