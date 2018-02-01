@@ -111,6 +111,7 @@ do:
           dns_search: '{{ deployment }}'
           dns_servers: ''
           vagrant_net: 'private_network'
+    opendkim_selector: '201801'
     use_letsencrypt: yes
   hosts:
     'red':

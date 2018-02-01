@@ -7,14 +7,15 @@
       - dims_domain != ''
   tags: [ always ]
 
-- name: Define key base name
+- name: Define opendkim_selector
   set_fact:
-    _key_name: '{{ lookup("pipe","date +%Y%m") }}'
+    opendkim_selector: '{{ lookup("pipe","date +%Y%m") }}'
+  when: opendkim_selector is not defined
   tags: [ always ]
 
 - name: Define private key file name
   set_fact:
-    opendkim_private_key_file: '/etc/opendkim/keys/{{ dims_domain }}/{{ _key_name }}.private'
+    opendkim_private_key_file: '/etc/opendkim/keys/{{ dims_domain }}/{{ opendkim_selector }}.private'
   when: opendkim_private_key_file is not defined
   tags: [ always ]
 
@@ -26,7 +27,7 @@
 
 - name: Define local private key file name
   set_fact:
-    _local_private_key_file: '{{ dims_keys }}/opendkim/{{ dims_domain }}/{{ _key_name }}.private'
+    _local_private_key_file: '{{ dims_keys }}/opendkim/{{ dims_domain }}/{{ opendkim_selector }}.private'
   tags: [ always ]
 
 - name: Debug _local_private_key_file
@@ -72,7 +73,7 @@
      -b {{ opendkim_key_bits }}
      -h {{ opendkim_signature_algorithm }}
      -r
-     -s {{ _key_name }}
+     -s {{ opendkim_selector }}
      -d {{ dims_domain }}
      -v
   args:
@@ -94,7 +95,7 @@
   shell: >
      opendkim-testkey
      -d {{ dims_domain }}
-     -s {{ _key_name }}
+     -s {{ opendkim_selector }}
      -k {{ _local_private_key_file }}
      -vvv
   become: no
@@ -145,7 +146,7 @@
      opendkim-testkey
      -x /etc/opendkim.conf
      -d {{ dims_domain }}
-     -s {{ _key_name }}
+     -s {{ opendkim_selector }}
      -k {{ opendkim_private_key_file }}
      -vvv
   become: yes

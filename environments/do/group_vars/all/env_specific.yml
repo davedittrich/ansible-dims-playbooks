@@ -173,7 +173,6 @@ opendkim_key_bits: 2048
 opendkim_milters: 'inet:{{ opendkim_host }}:{{ opendkim_port }}'
 opendkim_port: 12301
 opendkim_requestreports: 'Yes'
-opendkim_selector: '201801'
 opendkim_sendreports: '{{ opendkim_requestreports }}'
 opendkim_signature_algorithm: 'rsa-sha256'
 opendkim_socket: 'inet:{{ opendkim_port }}@{{ opendkim_host }}'
