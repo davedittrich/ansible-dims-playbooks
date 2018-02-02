@@ -69,7 +69,6 @@ trident:
       # Specific site setting overrides
       trident_site_name: '{{ dims_domain }} Trident Portal'
       trident_site_welcome_text: '{{ dims_domain }} Trident'
-      trident_site_adminemail: 'admin@{{ trident_site_email_domain }}'
       # TODO(dittrich): Prototyping multi-TG settings
       # The primary trust group is the 0th element by convention.
       # Initial user defaults to person running ansible
