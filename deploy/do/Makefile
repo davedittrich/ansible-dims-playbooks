@@ -12,7 +12,7 @@ TF_VARS=-var 'ssh_fingerprint=$(SSH_FINGERPRINT)'
 
 # The following checks to see if local sudo requires a password. If so,
 # the flag is added to the command line when invoking Ansible.
-ASK_SUDO_PASS:=$(shell ansible -i localhost, -m shell -a date --become localhost -c local | grep -q "password is required" && echo "--ask-sudo-pass")
+ASK_BECOME_PASS:=$(shell ansible -i localhost, -m shell -a date --become localhost -c local | grep -q "password is required" && echo "--ask-become-pass")
 
 define get_domain_var
    $(shell ansible -i $(INVENTORY) -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line do | head -n 1 | cut -d^ -f 2)
@@ -204,7 +204,7 @@ installcerts:
 .PHONY: deploy
 deploy:
 	ansible-playbook -i $(INVENTORY) \
-		$(ASK_SUDO_PASS) \
+		$(ASK_BECOME_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		-e postgresql_backup_restorefrom='' \
 		master.yml \
@@ -241,7 +241,7 @@ cancel:
 addhostkeys:
 	@echo "[+] Adding host keys to known_hosts on localhost"
 	ansible-playbook -i $(INVENTORY) \
-		$(ASK_SUDO_PASS) \
+		$(ASK_BECOME_PASS) \
 		$(PBR)/playbooks/do_rekey.yml \
 		-e known_hosts_root="$(shell pwd)/known_hosts" \
 		$(DIMS_ANSILE_ARGS)
@@ -255,7 +255,7 @@ addhostkeys:
 .PHONY: removehostkeys
 removehostkeys:
 	-ansible-playbook -i $(INVENTORY) \
-		$(ASK_SUDO_PASS) \
+		$(ASK_BECOME_PASS) \
 		$(PBR)/playbooks/do_rekey.yml \
 		-e remove_keys=true \
 		$(DIMS_ANSIBLE_ARGS)
@@ -294,7 +294,7 @@ post.test:
 .PHONY: backup.trident
 backup.trident:
 	-ansible-playbook -i $(INVENTORY) \
-		$(ASK_SUDO_PASS) \
+		$(ASK_BECOME_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		$(PBR)/playbooks/trident_backup.yml \
 		$(DIMS_ANSIBLE_ARGS)
@@ -302,7 +302,7 @@ backup.trident:
 .PHONY: restore.trident
 restore.trident:
 	-ansible-playbook -i $(INVENTORY) \
-		$(ASK_SUDO_PASS) \
+		$(ASK_BECOME_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		$(PBR)/playbooks/trident_restore.yml \
 		$(DIMS_ANSIBLE_ARGS)
@@ -310,7 +310,7 @@ restore.trident:
 .PHONY: backup.letsencrypt
 backup.letsencrypt:
 	-ansible-playbook -i $(INVENTORY) \
-		$(ASK_SUDO_PASS) \
+		$(ASK_BECOME_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
 		$(PBR)/playbooks/letsencrypt_backup.yml \
 		-e host=do \
