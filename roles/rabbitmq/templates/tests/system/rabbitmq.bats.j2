@@ -36,12 +36,12 @@ function setup() {
 
 {% if rabbitmq_ssl_certfile is defined %}
 @test "[S][EV] SSL certificate {{ rabbitmq_ssl_certfile }} exists" {
-    [ -f {{ rabbitmq_ssl_certfile }} ]
+    sudo bash -c "[[ -f {{ rabbitmq_ssl_certfile }} ]]"
 }
 
 {% endif %}
 {% if rabbitmq_ssl_keyfile is defined %}
 @test "[S][EV] SSL private key {{ rabbitmq_ssl_keyfile }} exists" {
-    [ -f {{ rabbitmq_ssl_keyfile }} ]
+    sudo bash -c "[[ -f {{ rabbitmq_ssl_keyfile }} ]]"
 }
 {% endif %}
