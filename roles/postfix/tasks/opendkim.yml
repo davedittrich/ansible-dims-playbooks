@@ -137,8 +137,8 @@
   shell: >
     chown -R opendkim:opendkim /etc/opendkim &&
     chmod -R go-rw /etc/opendkim/keys
+    warn=no
   become: yes
-  warn: no
   tags: [ postfix, config, opendkim, opendkim_genkeys ]
 
 - name: Validate private key with opendkim-testkey
