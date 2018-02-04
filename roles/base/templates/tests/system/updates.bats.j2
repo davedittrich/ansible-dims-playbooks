@@ -25,10 +25,12 @@ function teardown() {
 }
 {% elif ansible_distribution == 'Debian' %}
 @test "[S][EV] All non-held APT packages are up to date ({{ ansible_distribution }})" {
+    bash -c "apt list --upgradable 2>/dev/null|fgrep -v -f $HELD_PACKAGES" 1>&2
     assert "Listing..." bash -c "apt list --upgradable 2>/dev/null|fgrep -v -f $HELD_PACKAGES"
 }
 
 @test "[S][EV] All held APT packages are up to date ({{ ansible_distribution }})" {
+    bash -c "apt list --upgradable 2>/dev/null| grep '^Listing...$' || apt list --upgradeable 2>/dev/null | fgrep -f $HELD_PACKAGES" 1>&2
     assert "Listing..." bash -c "apt list --upgradable 2>/dev/null| grep '^Listing...$' || apt list --upgradeable 2>/dev/null | fgrep -f $HELD_PACKAGES"
 }
 {% else %}
