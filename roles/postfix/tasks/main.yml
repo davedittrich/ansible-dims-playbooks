@@ -32,6 +32,10 @@
   become: yes
   tags: [ postfix, packages ]
 
+- name: enable postfix to start
+  service: name=postfix state=started enabled=yes
+  tags: [ postfix, config ]
+
 - name: Make related mail utilities present (yum)
   yum:
     name={{ item }}
@@ -54,6 +58,203 @@
   become: yes
   tags: [ postfix, packages ]
 
+- name: Make /etc/aliases file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/aliases
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ postfix_aliases }}'
+        - aliases.{{ inventory_hostname }}.j2
+        - aliases.{{ host_group }}.j2
+        - aliases.{{ postfix_group }}.j2
+        - aliases.deployment-{{ deployment }}.j2
+        - aliases.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/aliases/'
+        - aliases/
+  become: yes
+  force: true
+  notify:
+    - rebuild postfix aliases
+    - restart postfix
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/virtual file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/virtual
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ postfix_virtual }}'
+        - virtual.{{ inventory_hostname }}.j2
+        - virtual.{{ host_group }}.j2
+        - virtual.{{ postfix_group }}.j2
+        - virtual.deployment-{{ deployment }}.j2
+        - virtual.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/virtual/'
+        - virtual/
+  become: yes
+  force: true
+  notify:
+    - rebuild postfix virtual
+    - restart postfix
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/transport file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/transport
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ postfix_transport }}'
+        - transport.{{ inventory_hostname }}.j2
+        - transport.{{ host_group }}.j2
+        - transport.{{ postfix_group }}.j2
+        - transport.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/transport/'
+        - transport/
+  become: yes
+  force: true
+  notify:
+    - rebuild postfix transport
+    - restart postfix
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/generic file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/generic
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ postfix_generic }}'
+        - generic.{{ inventory_hostname }}.j2
+        - generic.{{ host_group }}.j2
+        - generic.{{ postfix_group }}.j2
+        - generic.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/generic/'
+        - generic/
+  become: yes
+  force: true
+  notify:
+    - rebuild postfix generic
+    - restart postfix
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/access file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/access
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ postfix_access }}'
+        - access.{{ inventory_hostname }}.j2
+        - access.{{ host_group }}.j2
+        - access.{{ postfix_group }}.j2
+        - access.deployment-{{ deployment }}.j2
+        - access.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/access/'
+        - access/
+  become: yes
+  force: true
+  notify:
+    - rebuild postfix access
+    - restart postfix
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/client_access file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/client_access
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ postfix_client_access }}'
+        - client_access.{{ inventory_hostname }}.j2
+        - client_access.{{ host_group }}.j2
+        - client_access.{{ postfix_group }}.j2
+        - client_access.deployment-{{ deployment }}.j2
+        - client_access.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/client_access/'
+        - client_access/
+  become: yes
+  force: true
+  notify:
+    - rebuild postfix client_access
+    - restart postfix
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/helo_access file present
+  template:
+    src: '{{ item }}'
+    dest: /etc/postfix/helo_access
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ postfix_helo_access }}'
+        - helo_access.{{ inventory_hostname }}.j2
+        - helo_access.{{ host_group }}.j2
+        - helo_access.{{ postfix_group }}.j2
+        - helo_access.deployment-{{ deployment }}.j2
+        - helo_access.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/helo_access/'
+        - helo_access/
+  become: yes
+  force: true
+  notify:
+    - rebuild postfix helo_access
+    - restart postfix
+  tags: [ postfix, config ]
+
+- name: Make /etc/postfix/relay_recipients file present
+  template:
+    src={{ item }}
+    dest=/etc/postfix/relay_recipients
+    owner={{ root_user }}
+    group={{ root_group }}
+    mode=0o644
+  with_first_found:
+    - files:
+        - "{{ postfix_relay_recipients }}"
+        - relay_recipients.{{ inventory_hostname }}.j2
+        - relay_recipients.{{ host_group }}.j2
+        - relay_recipients.{{ postfix_group }}.j2
+        - relay_recipients.deployment-{{ deployment }}.j2
+        - relay_recipients.j2
+      paths:
+        - relay_recipients/
+  become: yes
+  force: true
+  notify:
+    - rebuild postfix relay_recipients
+    - restart postfix
+  tags: [ postfix, config ]
+
 - name: Make /etc/postfix/main.cf present
   template:
     src: '{{ item }}'
@@ -72,6 +273,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/main.cf/'
         - main.cf/
+  become: yes
   notify:
     - restart postfix
   tags: [ postfix, config ]
@@ -93,203 +295,19 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/master.cf/'
         - master.cf/
+  become: yes
   notify:
     - restart postfix
   tags: [ postfix, config ]
 
-- name: Make /etc/aliases file present
-  template:
-    src: '{{ item }}'
-    dest: /etc/aliases
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-        - '{{ postfix_aliases }}'
-        - aliases.{{ inventory_hostname }}.j2
-        - aliases.{{ host_group }}.j2
-        - aliases.{{ postfix_group }}.j2
-        - aliases.deployment-{{ deployment }}.j2
-        - aliases.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/aliases/'
-        - aliases/
-  notify:
-    - rebuild postfix aliases
-    - reload postfix
-  tags: [ postfix, config ]
-
-- name: Make /etc/postfix/virtual file present
-  template:
-    src: '{{ item }}'
-    dest: /etc/postfix/virtual
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-        - '{{ postfix_virtual }}'
-        - virtual.{{ inventory_hostname }}.j2
-        - virtual.{{ host_group }}.j2
-        - virtual.{{ postfix_group }}.j2
-        - virtual.deployment-{{ deployment }}.j2
-        - virtual.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/virtual/'
-        - virtual/
-  notify:
-    - rebuild postfix virtual
-    - reload postfix
-  tags: [ postfix, config ]
-
-- name: Make /etc/postfix/transport file present
-  template:
-    src: '{{ item }}'
-    dest: /etc/postfix/transport
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-        - '{{ postfix_transport }}'
-        - transport.{{ inventory_hostname }}.j2
-        - transport.{{ host_group }}.j2
-        - transport.{{ postfix_group }}.j2
-        - transport.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/transport/'
-        - transport/
-  force: true
-  notify:
-    - rebuild postfix transport
-    - reload postfix
-  tags: [ postfix, config ]
-
-- name: Make /etc/postfix/generic file present
-  template:
-    src: '{{ item }}'
-    dest: /etc/postfix/generic
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-        - '{{ postfix_generic }}'
-        - generic.{{ inventory_hostname }}.j2
-        - generic.{{ host_group }}.j2
-        - generic.{{ postfix_group }}.j2
-        - generic.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/generic/'
-        - generic/
-  force: true
-  notify:
-    - rebuild postfix generic
-    - reload postfix
-  tags: [ postfix, config ]
-
-- name: Make /etc/postfix/access file present
-  template:
-    src: '{{ item }}'
-    dest: /etc/postfix/access
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-        - '{{ postfix_access }}'
-        - access.{{ inventory_hostname }}.j2
-        - access.{{ host_group }}.j2
-        - access.{{ postfix_group }}.j2
-        - access.deployment-{{ deployment }}.j2
-        - access.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/access/'
-        - access/
-  force: true
-  notify:
-    - rebuild postfix access
-    - reload postfix
-  tags: [ postfix, config ]
-
-- name: Make /etc/postfix/client_access file present
-  template:
-    src: '{{ item }}'
-    dest: /etc/postfix/client_access
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-        - '{{ postfix_client_access }}'
-        - client_access.{{ inventory_hostname }}.j2
-        - client_access.{{ host_group }}.j2
-        - client_access.{{ postfix_group }}.j2
-        - client_access.deployment-{{ deployment }}.j2
-        - client_access.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/client_access/'
-        - client_access/
-  force: true
-  notify:
-    - rebuild postfix client_access
-    - reload postfix
-  tags: [ postfix, config ]
-
-- name: Make /etc/postfix/helo_access file present
-  template:
-    src: '{{ item }}'
-    dest: /etc/postfix/helo_access
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-        - '{{ postfix_helo_access }}'
-        - helo_access.{{ inventory_hostname }}.j2
-        - helo_access.{{ host_group }}.j2
-        - helo_access.{{ postfix_group }}.j2
-        - helo_access.deployment-{{ deployment }}.j2
-        - helo_access.j2
-      paths:
-        - '{{ dims_private }}/roles/{{ role_name }}/templates/helo_access/'
-        - helo_access/
-  force: true
-  notify:
-    - rebuild postfix helo_access
-    - reload postfix
-  tags: [ postfix, config ]
-
-- name: Make /etc/postfix/relay_recipients file present
-  template:
-    src={{ item }}
-    dest=/etc/postfix/relay_recipients
-    owner={{ root_user }}
-    group={{ root_group }}
-    mode=0o644
-  with_first_found:
-    - files:
-        - "{{ postfix_relay_recipients }}"
-        - relay_recipients.{{ inventory_hostname }}.j2
-        - relay_recipients.{{ host_group }}.j2
-        - relay_recipients.{{ postfix_group }}.j2
-        - relay_recipients.deployment-{{ deployment }}.j2
-        - relay_recipients.j2
-      paths:
-        - relay_recipients/
-  force: true
-  notify:
-    - rebuild postfix relay_recipients
-    - restart postfix
-  tags: [ postfix, config ]
+#- name: restart postfix
+#  service:
+#    name: postfix
+#    state: restarted
+#  tags: [ postfix, config ]
 
 - include_tasks: "opendkim.yml"
   tags: [ postfix, config, opendkim, opendkim_genkeys ]
-
-- name: enable postfix to start
-  service: name=postfix state=started enabled=yes
-  tags: [ postfix, config ]
 
 - include: "{{ tasks_path }}/post_tasks.yml"
   tags: [ postfix, config, opendkim, packages, tests ]
