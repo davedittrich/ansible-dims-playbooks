@@ -230,19 +230,21 @@
   # Finally, backup cert if so desired (and if something
   # changed in renewal)
 
-- name: Get list of installed renewal-hook scripts
+- name: Get list of installed renewal-hooks/post scripts
   find:
-    path: /etc/letsencrypt/renewal-hooks
+    path: /etc/letsencrypt/renewal-hooks/post
     file_type: file
     patterns: "*"
     use_regex: false
+  become: true
   register: _find_hooks
 
 - name: Run renewal-hook scripts
   shell: >
     bash -x {{ item }}
-    with_items: '{{ _find_hooks.stdout_lines }}'
-  when: _find_hooks.stdout_lines is defined
+  with_items: '{{ _find_hooks.files|map(attribute="path")|list }}'
+  when: _find_hooks is defined and _find_hooks.files is defined
+  become: true
   register: _renewal_hooks_exec
 
 - name: Debug renewal-hook script execution
