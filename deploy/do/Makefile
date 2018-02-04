@@ -39,7 +39,7 @@ help:
 	@echo " updatefacts - run 'ansible -m setup' to refresh cached facts"
 	@echo " images - lists available DigitalOcean images"
 	@echo " regions - lists available DigitalOcean regions"
-	@echo " provider - generate terraform provider.tf file for creating nodes in group 'do'"
+	@echo " provider - generate terraform provider.tf and user-data file for creating nodes in group 'do'"
 	@echo " plan - show the terraform plan for the current state"
 	@echo " graph - generate terraform graph (output is 'graph.png')"
 	@echo " newkeypair - generate a new SSH user keypair"
@@ -320,7 +320,7 @@ backup.letsencrypt:
 destroy:
 	terraform destroy $(TF_VARS) --force
 	-$(MAKE) removehostkeys
-	-rm -rf fingerprints/ known_hosts/
+	-rm -rf fingerprints/ known_hosts/ user-data/
 	-rm -f ansible-digital_ocean.cache
 	-rm -f inventory/hosts inventory/nodes-generated.yml
 	-rm -f provider.tf graph.png
