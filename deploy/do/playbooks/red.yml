@@ -18,11 +18,11 @@
   roles:
     - { role: base }
     - { role: docker }
+    - { role: rabbitmq }
     - { role: nginx }
     - { role: postfix }
     - { role: consul }
     - { role: python-virtualenv, use_sphinx: false }
-    - { role: rabbitmq }
     - { role: postfix }
 
   handlers:
