@@ -120,7 +120,7 @@
 - name: Ensure postgresql is running and enabled
   service:
     name: postgresql
-    state: running
+    state: started
     enabled: yes
   become: yes
   tags: [ postgresql, packages ]
