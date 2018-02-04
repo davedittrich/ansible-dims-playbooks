@@ -23,9 +23,7 @@ do:
     dims_secrets_dir: '{{ lookup("env", "HOME") }}/.secrets/digital-ocean'
     dims_keys: '{{ lookup("env", "HOME") }}/.secrets/digital-ocean/keys'
     dims_backups: '{{ lookup("env", "HOME") }}/.secrets/digital-ocean/backups'
-    do_ssh_key_id: '{{ lookup("env", "TF_VAR_ssh_fingerprint") }}'
     do_api_token: '{{ lookup("env", "DO_API_TOKEN") }}'
-    do_region: '{{ lookup("env", "TF_VAR_region") }}'
     do_droplets:
       - name: 'red'
         region: '{{ do_region }}'
@@ -54,6 +52,10 @@ do:
         #image_id: 'fedora-27-x64'
         ssh_key_id: '{{ do_ssh_key_id }}'
         backups_enabled: 'no'
+    do_manage_etc_hosts: false
+    do_preserve_hostname: true
+    do_region: '{{ lookup("env", "TF_VAR_region") }}'
+    do_ssh_key_id: '{{ lookup("env", "TF_VAR_ssh_fingerprint") }}'
     dns_a_ttl: 360
     dns_cname:
       red:
