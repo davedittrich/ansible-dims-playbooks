@@ -17,7 +17,7 @@
 # require root.
 #
 #  $ ansible-playbook $PBR/playbooks/bootstrap.yml \
-#  > --ask-sudo-pass --ask-pass --become -e host=bootstrap
+#  > --ask-become-pass --ask-pass --become -e host=bootstrap
 
 - name: Ensure hardware-specific packages present
   include: 'hardware.yml'

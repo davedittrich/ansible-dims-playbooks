@@ -272,7 +272,7 @@ two hosts simultaneously.
 
 .. code-block:: none
 
-    $ ansible-playbook -i inventory/ $PBR/playbooks/bootstrap.yml --ask-sudo-pass --ask-pass --become -e host=bootstrap
+    $ ansible-playbook -i inventory/ $PBR/playbooks/bootstrap.yml --ask-become-pass --ask-pass --become -e host=bootstrap
     SSH password:
     SUDO password[defaults to SSH password]:
 

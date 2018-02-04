@@ -5,6 +5,7 @@
 - name: 'Generate provider.tf file for groups.do'
   vars:
     - playbooks_root: '{{ lookup("env", "PBR") }}'
+    - pwd: '{{ lookup("pipe", "pwd") }}'
   vars_files:
     - '{{ playbooks_root }}/vars/global.yml'
   hosts: do
@@ -15,8 +16,14 @@
   - name: "Template provider.tf file"
     template:
       src: 'provider.tf.j2'
-      dest: '{{ lookup("pipe", "pwd") }}/provider.tf'
+      dest: '{{ pwd }}/provider.tf'
     delegate_to: localhost
     run_once: true
+
+  - name: "Template user-data file"
+    template:
+      src: 'user-data.j2'
+      dest: '{{ pwd }}/user-data/{{ inventory_hostname }}'
+    delegate_to: localhost
 
 # vim: ft=ansible :

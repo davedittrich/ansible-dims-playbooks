@@ -14,6 +14,8 @@
 # postgresql_restore_clean: - Use --clean. Drops database objects before
 #                             restoring them. (true/false)
 #
+# Sets _trident_restore_success to "true" if successful
+#
 # See https://www.postgresql.org/docs/current/static/app-pgrestore.html
 
 - name: Define (local) trident_backup_dir
@@ -225,13 +227,13 @@
     var: _restored_trident
     verbosity: 2
 
-- name: Define overall restore_status
+- name: Define overall _trident_restore_status
   set_fact:
-    restore_status: '{{ _restored_postgresql and _restored_trident }}'
+    _trident_restore_status: '{{ _restored_postgresql and _restored_trident }}'
 
-- name: Debug restore_status
+- name: Debug _trident_restore_status
   debug:
-    var: restored_status
+    var: _trident_restore_status
     verbosity: 2
 
 - name: Shred backups before deleting directory
@@ -242,17 +244,17 @@
     - '{{ _postgresql_backup_file|basename }}'
     - '{{ _trident_ancillary_backup_file|basename }}'
     - '{{ trident_backup_file|basename }}'
-  when: restore_status is defined and restore_status|bool
+  when: _trident_restore_status is defined and _trident_restore_status|bool
 
 - name: Remove temporary directory
   file:
     path: '{{ _tmpdir }}'
     state: absent
   become: yes
-  when: restore_status is defined and restore_status|bool
+  when: _trident_restore_status is defined and _trident_restore_status|bool
 
 - name: Report failure and log file
   fail: msg='Restore failed{% raw %}:{% endraw %} see log file {{ _logfile }}'
-  when: restore_status is not defined or not restore_status|bool
+  when: _trident_restore_status is not defined or not _trident_restore_status|bool
 
 # vim: ft=ansible :

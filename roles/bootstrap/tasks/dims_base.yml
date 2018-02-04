@@ -10,6 +10,17 @@
   when: dims_groups is not defined
   tags: [ base, config ]
 
+  # Bootstrap with default hosts template from base role for consistency
+- name: Create base /etc/hosts file (Debian, RedHat, CoreOS)
+  template:
+    src: '{{ playbooks_root }}/roles/base/templates/hosts/hosts.j2'
+    dest: /etc/hosts
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  become: yes
+  tags: [ base, hosts, config ]
+
 # Use group= rather than groups= otherwise primary group is users [LP]
 - name: Ensure required groups exists
   group:

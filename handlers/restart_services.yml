@@ -14,14 +14,14 @@
 #
 # These handlers are just for restarting services. You should *not*
 # be using "enabled=yes" here. Instead, in the tasks file where a
-# service daemon is installed that needs to be running across reboots,
-# a task should be included to ensure it is running and enabled at
+# service daemon is installed that needs to be started across reboots,
+# a task should be included to ensure it is started and enabled at
 # the end of the role's playbook, like this:
 #
-# - name: Ensure someservice is running and enabled
+# - name: Ensure someservice is started and enabled
 #   service:
 #     name: someservice
-#     state: running
+#     state: started
 #     enabled: yes
 #   ...
 

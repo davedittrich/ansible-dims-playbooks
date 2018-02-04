@@ -136,8 +136,17 @@
 # this play, so it is being stored in a file in /tmp.
 
 - name: Verify APT repository and contents
-  shell: "apt-cache madison docker-ce | tee /tmp/docker-versions.txt"
+  shell: >
+    apt-cache madison docker-ce | tee /tmp/docker-versions.txt
   become: yes
+  register: _apt_cache
+  when: ansible_os_family == "Debian"
+  tags: [ docker, packages ]
+
+- name: Debug docker versions
+  debug:
+    var: _apt_cache.stdout
+    verbosity: 1
   when: ansible_os_family == "Debian"
   tags: [ docker, packages ]
 

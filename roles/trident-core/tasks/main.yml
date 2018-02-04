@@ -467,7 +467,7 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
-- name: Check tcli system name
+- name: tcli system get name
   shell: >
     tcli system get name
   register: _tcli_system_get_name
@@ -475,7 +475,13 @@
 
 - name: Define _trident_configured
   set_fact:
-    _trident_configured: '"Not Configured" not in _tcli_system_get_name.stdout'
+    _trident_configured: '{{ not (_tcli_system_get_name.stdout == "" or _tcli_system_get_name.stdout|search("Not Configured")) }}'
+  tags: [ trident-core, trident-configure, config ]
+
+- name: Debug _trident_configured
+  debug:
+    var: _trident_configured
+    verbosity: 2
   tags: [ trident-core, trident-configure, config ]
 
   # "trident" in pg_roles.  The value "1" means the roles
@@ -492,7 +498,8 @@
 
 - block:
   - name: Determine if trident user already exists in postgres
-    shell: "psql -U postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='trident'\""
+    shell: >
+      psql -U postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='trident'"
     become: yes
     become_user: 'postgres'
     register: _psql_result
@@ -503,29 +510,37 @@
       _trident_role_exists: '{{ _psql_result is defined and _psql_result.stdout == "1" }}'
     tags: [ trident-core ]
 
-  - debug: 'var=_trident_role_exists'
+  - debug:
+      var: _trident_role_exists
+      verbosity: 2
     tags: [ trident-core ]
 
   rescue:
   - name: Define _trident_role_exists
     set_fact:
-      _trident_role_exists: no
+      _trident_role_exists: false
     tags: [ trident-core ]
 
 - name: Ensure Trident user and database present
-  shell: "/usr/sbin/tsetup setup_db"
-  when: not _trident_role_exists or not _trident_configured
+  shell: >
+    /usr/sbin/tsetup setup_db
   become: yes
   become_user: 'postgres'
+  register: _tsetup_db
+  when: not _trident_role_exists
+  ignore_errors: true
+  tags: [ trident-core ]
+
+- name: Define default _trident_restore_status
+  set_fact:
+    _trident_restore_status: false
   tags: [ trident-core ]
 
   # Restore database from a previous backup if enabled and if first
   # time.
 - include_tasks: '{{ tasks_path }}/trident_restore.yml'
-  when:
-    - trident_backup_restorefrom is defined
-    - trident_backup_restorefrom != ''
-    - not _trident_role_exists
+  when: (trident_backup_restorefrom is defined and trident_backup_restorefrom != '')
+        and not _trident_configured
   tags: [ trident-core, trident-configure ]
 
 # Add initial sysadmin user. This step is necessary according to Linda's email
@@ -534,29 +549,52 @@
   shell: >
     /usr/sbin/tsetup adduser trident {{ trident_sysadmin_pass }}
   no_log: '{{ nolog }}'
-  when: ((trident_backup_restorefrom is not defined or trident_backup_restorefrom == '') and not _trident_role_exists)
-        or not _trident_configured
   become: yes
   become_user: 'postgres'
+  register: _tsetup
+  when: not _trident_restore_status|bool
+        and not _trident_role_exists|bool
+  changed_when: _tsetup.rc == 0 and _tsetup.stdout == ''
+  failed_when: _tsetup.rc != 0 and not _tsetup.stdout|search('duplicate key value violates unique constraint')
   tags: [ trident-core ]
 
-- name: Ensure trident administator is logged in
+- name: Ensure Trident user password is set
+  shell: >
+    /usr/sbin/tsetup setpassword trident {{ trident_sysadmin_pass }}
+  become: yes
+  become_user: 'postgres'
+  when: not _trident_restore_status|bool
+        and not _trident_role_exists
+  ignore_errors: true
+  tags: [ trident-core, trident-configure ]
+
+- name: Ensure trident administator can log in
   shell: >
     tcli system login trident {{ trident_sysadmin_pass }}
-  register: tcli_login
+  register: _tcli_login
   no_log: '{{ nolog }}'
-  tags: [ trident-core ]
-
-- fail: 
-    msg: "Failed to log in via trident: {{ tcli_login.stdout }}"
-  when: tcli_login.stdout != "Login successful"
-  tags: [ trident-core ]
+  failed_when: not _tcli_login.stdout|search('Login successful')
+  tags: [ trident-core, trident-configure ]
 
 - name: Ensure trident administator is logged out
   shell: >
     tcli system logout
   no_log: '{{ nolog }}'
   tags: [ trident-core ]
+
+- name: Ensure Trident state directories are present
+  file:
+    state: directory
+    path: '/var/lib/trident/webvar/{{ item }}'
+    owner: 'trident'
+    group: 'trident'
+    mode: 0o750
+  become: yes
+  with_items:
+    - ml_keys
+    - pgpkeys
+  tags: [ trident-core, trident-configure ]
+
 
 - include_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ trident-core, config, packages, tests ]

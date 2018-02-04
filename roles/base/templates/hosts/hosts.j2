@@ -6,7 +6,7 @@
 # from a reverse map request (that will be 127.0.1.1)
 
 127.0.0.1  localhost localhost.localdomain localhost4 localhost4.localdomain4
-127.0.1.1  {{ inventory_hostname_short }} {{ ansible_fqdn }} {{ inventory_hostname }}
+127.0.1.1  {{ dims_fqdn }} {{ inventory_hostname }}
 
 # The following lines are desirable for IPv6 capable hosts
 ::1     localhost localhost.localdomain localhost6 localhost6.localdomain6 ip6-localhost ip6-loopback

@@ -3,7 +3,7 @@ variable "region" { }
 variable "environment" { }
 variable "private_key" {}
 variable "public_key" {}
-variable "ssh_fingerprint" { }
+variable "ssh_fingerprint" { default = "" }
 variable "domain" { }
 variable "datacenter" { }
 variable "sub_domains" {
@@ -16,7 +16,7 @@ provider "digitalocean" {
 }
 
 module "do-keypair" {
-  keyname = "${var.environment}"
+  keyname = "{{ dims_domain|replace('.','_') }}"
   source = "./keypair"
   public_key_filename = "${var.public_key}"
 }
@@ -39,7 +39,7 @@ resource "digitalocean_droplet" "{{ d.name }}" {
       "${var.ssh_fingerprint}"
     ]
     #user_data = "{\"role\":\"${var.role}\",\"dc\":\"${var.datacenter}\"}"
-    user_data = "${chomp(file("{{ user_data|default("user-data") }}"))}"
+    user_data = "${chomp(file("user-data/{{ d.name }}"))}"
 
   connection {
       user = "root"

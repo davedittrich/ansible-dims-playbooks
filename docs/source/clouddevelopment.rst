@@ -149,6 +149,7 @@ configuration settings (including passwords) for your deployment.
 
       export PBR="${HOME}/path_to_where_you_put/ansible-dims-playbooks"
       export DIMS_DOMAIN="example.com"
+      export DIMS_SITE_ID="$(echo ${DIMS_DOMAIN} | sed 's/\./_/g')"
 
       # For dopy
       export DO_API_VERSION="2"
@@ -161,7 +162,7 @@ configuration settings (including passwords) for your deployment.
       export TF_VAR_environment="do"
       export TF_VAR_domain="${DIMS_DOMAIN}"
       export TF_VAR_datacenter="${TF_VAR_domain}"
-      export TF_VAR_private_key="${HOME}/.ssh/${TF_VAR_environment}"
+      export TF_VAR_private_key="${HOME}/.ssh/${DIMS_SITE_ID}"
       export TF_VAR_public_key="${TF_VAR_private_key}.pub"
 
   ..
@@ -340,6 +341,8 @@ satisfied, all tests will succeed. If any fail, resolve the issue and try again.
      ✓ [S][EV] Directory for DigitalOcean secrets (~/.secrets/digital-ocean/) exists
      ✓ [S][EV] DigitalOcean token file (~/.secrets/digital-ocean/token) is not empty
      ✓ [S][EV] Secrets for DigitalOcean (~/.secrets/digital-ocean/secrets.yml) exist
+     ✓ [S][EV] Variable DIMS_DOMAIN is defined in environment
+     ✓ [S][EV] Variable DIMS_SITE_ID is defined in environment
      ✓ [S][EV] Variable DO_API_VERSION (dopy) is defined in environment
      ✓ [S][EV] Variable DO_API_TOKEN (dopy) is defined in environment
      ✓ [S][EV] Variable DO_PAT (terraform) is defined in environment
@@ -351,15 +354,12 @@ satisfied, all tests will succeed. If any fail, resolve the issue and try again.
      ✓ [S][EV] Variable TF_VAR_private_key (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_public_key (terraform) is defined in environment
      ✓ [S][EV] DO_API_TOKEN authentication succeeds
-     ✓ [S][EV] Variable TF_VAR_public_key (terraform) is defined in environment
      ✓ [S][EV] File pointed to by TF_VAR_public_key exists and is readable
-     ✓ [S][EV] Variable TF_VAR_private_key (terraform) is defined in environment
      ✓ [S][EV] File pointed to by TF_VAR_private_key exists and is readable
-     ✓ [S][EV] DO_API_TOKEN authentication succeeds
      ✓ [S][EV] Git user.name is set
      ✓ [S][EV] Git user.email is set
 
-    24 tests, 0 failures
+    23 tests, 0 failures
 
 ..
 

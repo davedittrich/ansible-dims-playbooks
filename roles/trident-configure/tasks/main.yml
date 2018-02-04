@@ -6,6 +6,13 @@
   fail:
     msg: "Debian Jessie is required for running Trident."
   when: ansible_lsb.codename is undefined or ansible_lsb.codename != "jessie"
+  tags: [ always ]
+
+- name: Define trident_site_adminemail
+  set_fact:
+    trident_site_adminemail: '{{ dims_adminemail }}'
+  when: trident_site_adminemail is not defined
+  tags: [ always ]
 
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ trident-configure, config ]
