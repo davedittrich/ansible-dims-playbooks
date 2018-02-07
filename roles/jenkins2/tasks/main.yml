@@ -75,6 +75,13 @@
       - _pubkeystat.stat.exists
   tags: [ always ]
 
+- name: Assert jenkins_admin_password is defined and not null
+  assert:
+    that:
+      - jenkins_admin_password is defined
+      - jenkins_admin_password != ''
+  tags: [ always ]
+
 - include_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ jenkins2, jenkins2jobs, packages ]
 

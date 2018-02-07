@@ -14,6 +14,20 @@
   when: trident_site_adminemail is not defined
   tags: [ always ]
 
+- name: Assert trident_sysadmin_password is defined and not null
+  assert:
+    that:
+      - trident_sysadmin_password is defined
+      - trident_sysadmin_password != ''
+  tags: [ always ]
+
+- name: Assert trident_db_password is defined and not null
+  assert:
+    that:
+      - trident_db_password is defined
+      - trident_db_password != ''
+  tags: [ always ]
+
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ trident-configure, config ]
 

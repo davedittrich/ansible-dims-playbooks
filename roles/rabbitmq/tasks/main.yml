@@ -90,6 +90,20 @@
 #  when: rabbitmq_mgmt_stats_interval is not defined
 #  tags: [ rabbitmq ]
 
+- name: Assert rabbitmq_default_user_pass is defined and not null
+  assert:
+    that:
+      - rabbitmq_default_user_pass is defined
+      - rabbitmq_default_user_pass != ''
+  tags: [ always ]
+
+- name: Assert rabbitmq_admin_user_pass is defined and not null
+  assert:
+    that:
+      - rabbitmq_admin_user_pass is defined
+      - rabbitmq_admin_user_pass != ''
+  tags: [ always ]
+
 - include: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ rabbitmq ]
 

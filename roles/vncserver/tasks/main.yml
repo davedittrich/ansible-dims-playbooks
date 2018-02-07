@@ -5,6 +5,13 @@
 # Playbook based in part on this resource:
 # https://rbgeek.wordpress.com/2012/06/25/how-to-install-vnc-server-on-ubuntu-server-12-04/
 
+- name: Assert vnc_password is defined and not null
+  assert:
+    that:
+      - vnc_password is defined
+      - vnc_password != ''
+  tags: [ always ]
+
 - name: Define vncserver_packages
   set_fact:
     vncserver_packages: '{{ _vncserver_packages }}'
