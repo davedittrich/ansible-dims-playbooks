@@ -376,6 +376,7 @@
         - fail2ban/fail2ban.local/
   become: yes
   notify:
+    - "restart rsyslog ({{ ansible_service_mgr }})"
     - "restart fail2ban ({{ ansible_service_mgr }})"
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
