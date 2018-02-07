@@ -17,12 +17,6 @@
 - include: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ trident-configure, config ]
 
-- name: Load deployment secrets
-  include_vars: '{{ dims_private }}/group_vars/vault.yml'
-  no_log: '{{ nolog }}'
-  when: vault_trident_sysadmin_pass is not defined
-  tags: [ trident-configure, config ]
-
 - name: Ensure administator is logged in
   shell: >
     tcli system login trident {{ trident_sysadmin_pass }} | grep -q "Login successful"
