@@ -1,0 +1,9 @@
+#cloud-config
+#
+# {{ ansible_managed }}
+
+dc: {{ dims_domain|to_nice_json }}
+preserve_hostname: {{ do_preserve_hostname|to_nice_json }}
+manage_etc_hosts: {{ do_manage_etc_hosts|to_nice_json }}
+fqdn: {{ dims_fqdn|to_nice_json }}
+hostname: {{ dims_fqdn|to_nice_json }}
