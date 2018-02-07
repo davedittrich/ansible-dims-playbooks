@@ -71,9 +71,6 @@ dims_kibana_url: 'http://localhost:{{ dims_kibana_port }}/#/dashboards/UFW_Data.
 dims_owf_url: 'https://ops.local:{{ dims_ssl_port }}/owf/'
 dims_firefox_default_homepage: '{{ dims_owf_url }}'
 
-# file name of Vault password file. Path is created in Vagrantfile.
-dims_vault_password_file: '{{ dims_private }}/vault_pass.txt'
-
 #dimscli_version: 0.26.0
 
 dims_timezone: 'US/Pacific'
@@ -209,9 +206,7 @@ rabbitmq_mgmt_uses_ssl: false
 rabbitmq_server: '{{ groups.rabbitmq.0 }}'
 rabbitmq_vhost: '/'
 rabbitmq_default_user: 'rpc_user'
-#rabbitmq_default_user_pass: '{{ vault_rabbitmq_default_user_pass }}'
 rabbitmq_admin_user: 'hutchman'
-#rabbitmq_admin_user_pass: '{{ vault_rabbitmq_admin_user_pass }}'
 rabbitmq_exchange: ''
 rabbitmq_logexchange: 'logs'
 rabbitmq_queuebase: 'rpc'
