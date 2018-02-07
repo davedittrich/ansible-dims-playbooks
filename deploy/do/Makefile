@@ -167,7 +167,7 @@ insertpubkey:
 
 .PHONY: removepubkey
 removepubkey:
-	terraform destroy $(TF_VARS) -target=digitalocean_ssh_key.default --force
+	terraform destroy $(TF_VARS) -target=digitalocean_ssh_key.default
 
 .PHONY: create
 create: init hosts provider
