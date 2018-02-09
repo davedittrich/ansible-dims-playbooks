@@ -11,6 +11,43 @@ see:
   https://www.digitalocean.com/community/tutorials/how-to-use-terraform-with-digitalocean
   https://gist.github.com/thisismitch/91815a582c27bd8aa44d
 
+Initial Setup
+-------------
+
+A ``bats`` test exists to help guide you in performing initial setup
+steps that are described in the [Getting Started](https://davedittrich.readthedocs.io/projects/ansible-dims-playbooks/en/latest/clouddevelopment.html#getting-started)
+section of the documentation for this repo.
+
+When tests fail, some hints are provided to guide you towards the
+steps necessary to resolve the missing item.
+
+
+```
+$ bats do.bats
+ ✓ [S][EV] terraform is found in $PATH
+ ✗ [S][EV] Directory for secrets (~/.secrets/) exists
+   (in test file do.bats, line 12)
+     `[ -d ~/.secrets ]' failed
+       ==> Run "make init"
+ ✗ [S][EV] Directory for secrets (~/.secrets/) is mode 700
+   (in test file do.bats, line 17)
+     `[ $(stat -c %a ~/.secrets 2>&1) == "700" ]' failed with status 2
+       ==> Run "make init"
+   /Users/dittrich/tmp/bats.28127.src: line 17: [: too many arguments
+ ✗ [S][EV] Directory for DigitalOcean secrets (~/.secrets/digital-ocean/) exists
+   (in test file do.bats, line 22)
+     `[ -d ~/.secrets/digital-ocean ]' failed
+       ==> Run "make init"
+ ✗ [S][EV] DigitalOcean token file (~/.secrets/digital-ocean/token) is not empty
+   (in test file do.bats, line 27)
+     `[ -s ~/.secrets/digital-ocean/token ]' failed
+       ==> Generate API token via DigitalOcean panel and place in "~/.secrets/digital-ocean/token"
+ ✗ [S][EV] Secrets for DigitalOcean (~/.secrets/digital-ocean/secrets.yml) exist
+   (in test file do.bats, line 32)
+     `[ -s ~/.secrets/digital-ocean/secrets.yml ]' failed
+       ==> Create and edit "~/.secrets/digital-ocean/secrets.yml"
+ . . .
+```
 
 Ansible Inventory Management
 ----------------------------
