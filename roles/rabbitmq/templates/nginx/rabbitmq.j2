@@ -1,0 +1,44 @@
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# This NGINX configuration comes from the Jenkins web site:
+# https://wiki.rabbitmq-ci.org/display/JENKINS/Jenkins+behind+an+NGinX+reverse+proxy
+
+upstream rabbitmq {
+    server 127.0.0.1:{{ rabbitmq_mgmt_listen_port }};
+    keepalive 15;
+}
+
+server {
+  listen 443;
+  server_name {{ rabbitmq_fqdn }};
+
+  location /rabbitmq/ { 
+    if ($request_uri ~* "/rabbitmq/(.*)") {
+      proxy_pass http://127.0.0.1:{{ rabbitmq_mgmt_listen_port }}/$1;
+    }
+    proxy_pass http://127.0.0.1:{{ rabbitmq_mgmt_listen_port }};
+
+    sendfile off;
+
+    proxy_connect_timeout      90;
+    proxy_send_timeout         90;
+    proxy_read_timeout         90;
+    proxy_buffer_size          4k;
+    proxy_buffers              4 32k;
+    proxy_busy_buffers_size    64k;
+    proxy_temp_file_write_size 64k;
+    proxy_max_temp_file_size   0;
+
+    proxy_set_header Host $host:$server_port;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Real-IP 443;
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+
+    proxy_http_version 1.1;
+
+    client_max_body_size       10m;
+    client_body_buffer_size    128k;
+  }
+}
