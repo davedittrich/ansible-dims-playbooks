@@ -21,8 +21,6 @@
     url: '{{ rundeck_gpg_key_url }}'
     state: present
   become: yes
-  args:
-    warn: false
   when: ansible_os_family == "Debian"
   tags: [ rundeck, packages ]
 

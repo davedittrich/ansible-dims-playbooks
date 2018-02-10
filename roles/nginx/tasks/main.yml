@@ -115,7 +115,6 @@
   args:
     creates: '{{ ssl_dhparam_file }}'
   become: yes
-  warn: no
   tags: [ nginx, config ]
 
 - name: Configure Nginx

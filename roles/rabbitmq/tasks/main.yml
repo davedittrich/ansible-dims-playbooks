@@ -378,7 +378,6 @@
     http://127.0.0.1:{{ rabbitmq_mgmt_listen_port }}/cli/rabbitmqadmin
     > /usr/local/bin/rabbitmqadmin &&
     chmod +x /usr/local/bin/rabbitmqadmin
-  warn: no
   when: rabbitmq_mgmt_uses_ssl is not defined or
         not rabbitmq_mgmt_uses_ssl|bool
   become: yes
