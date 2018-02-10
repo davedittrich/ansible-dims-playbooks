@@ -3,7 +3,8 @@
 # File: inventory/swarm/nodes.yml
 
 swarm:
-  consul_server: '{{ inventory_hostname in groups.manager }}'
+  vars:
+    consul_server: '{{ inventory_hostname in groups.manager }}'
   hosts:
     'red':
     'blue':
