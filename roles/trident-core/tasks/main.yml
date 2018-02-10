@@ -58,13 +58,13 @@
   when: trident_initial_user_descr is not defined
   tags: [ always ]
 
-- email: "Determine user's email"
+- name: "Determine user's email"
   local_action: command git config user.email
   become: no
   register: _gituseremail
   tags: [ always ]
 
-- email: Define trident_initial_user_descr
+- name: Define trident_initial_user_descr
   set_fact:
     trident_initial_user_email: '{{ _gituseremail.stdout }}'
   when: trident_initial_user_email is not defined
