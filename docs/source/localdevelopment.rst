@@ -712,7 +712,7 @@ for a virtual machine manager host with development capabilities.
         - { role: apache-directory-studio }
 
       handlers:
-       - include: "{{ handlers_path }}/restart_services.yml"
+       - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
     # vim: ft=ansible :
 

@@ -154,7 +154,7 @@
   tags: [ base, config, updates ]
 
 - name: Ensure hostname is set
-  include_tasks: "{{ tasks_path }}/hostname.yml"
+  import_tasks: "{{ tasks_path }}/hostname.yml"
   tags: [ base, config ]
 
   # Must include tag for any task in this playbook that uses
@@ -507,11 +507,11 @@
   tags: [ base, services ]
 
 - name: Check proxy availability
-  include_tasks: "{{ tasks_path }}/proxy_check.yml"
+  import_tasks: "{{ tasks_path }}/proxy_check.yml"
   tags: [ base, config, packages, updates, triggers ]
 
 - name: Make CoreOS resources present
-  include: coreos.yml
+  import_tasks: coreos.yml
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, packages ]
 
@@ -919,7 +919,7 @@
 # TODO(mboggess): Tasks in dnsmasq.yml fail on CoreOS
 # added "when" statement
 - name: Make DNS service using dnsmasq present (Debian)
-  include: dnsmasq.yml
+  import_tasks: dnsmasq.yml
   when: ansible_os_family == "Debian" and manage_dnsmasq
   tags: [ base, packages ]
 
@@ -1022,7 +1022,7 @@
 
 # The Google shflags package is used by DIMS scripts
 - name: Make sure shflags is present
-  include: "{{ tasks_path }}/install-shflags.yml"
+  import_tasks: "{{ tasks_path }}/install-shflags.yml"
   tags: [ base, updates ]
 
 # Note: All scripts end up without extensions. In the directory, they
@@ -1155,7 +1155,7 @@
   tags: [ base, config ]
 
 - name: Ensure bashpass is present
-  include: "{{ tasks_path }}/install-bashpass.yml"
+  import_tasks: "{{ tasks_path }}/install-bashpass.yml"
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, packages, updates ]
@@ -1194,22 +1194,22 @@
   tags: [ base, config ]
 
 - name: Ensure bats is present
-  include: "{{ tasks_path }}/install-bats.yml"
+  import_tasks: "{{ tasks_path }}/install-bats.yml"
   become: yes
   tags: [ base, packages, updates ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks_path }}/install-bats-tests.yml"
+  import_tasks: "{{ tasks_path }}/install-bats-tests.yml"
   become: yes
   tags: [ base, tests ]
 
 - name: Make defined triggers present
-  include: "{{ tasks_path }}/triggers.yml"
+  import_tasks: "{{ tasks_path }}/triggers.yml"
   become: yes
   tags: [ base, triggers ]
 
 - name: Make CoreOS resources present
-  include: coreos.yml
+  import_tasks: coreos.yml
   become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, packages ]

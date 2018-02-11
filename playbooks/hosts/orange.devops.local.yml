@@ -29,6 +29,6 @@
     - { role: jenkins2 }
 
   handlers:
-   - include: "{{ handlers_path }}/restart_services.yml"
+   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 # vim: ft=ansible :

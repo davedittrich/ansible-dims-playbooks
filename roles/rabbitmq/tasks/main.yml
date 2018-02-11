@@ -104,7 +104,7 @@
       - rabbitmq_admin_user_pass != ''
   tags: [ always ]
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ rabbitmq ]
 
 - name: Add rabbitmq repo signing key
@@ -430,7 +430,7 @@
   failed_when: not _import.stdout|search("Imported definitions")
   tags: [ rabbitmq, config ]
 
-- include: '{{ tasks_path }}/post_tasks.yml'
+- import_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ rabbitmq ]
 
 # vim: ft=ansible :

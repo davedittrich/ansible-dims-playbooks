@@ -20,43 +20,43 @@
 #  > --ask-become-pass --ask-pass --become -e host=bootstrap
 
 - name: Ensure hardware-specific packages present
-  include: 'hardware.yml'
+  import_tasks: 'hardware.yml'
   tags: [ 'bootstrap', 'hardware' ]
 
 - name: Ensure required packages are present
-  include: 'packages.yml'
+  import_tasks: 'packages.yml'
   tags: [ 'bootstrap', 'packages' ]
 
 - name: Ensure timezone set
-  include: 'timezone.yml'
+  import_tasks: 'timezone.yml'
   tags: [ 'bootstrap', 'timezone' ]
 
 - name: Ensure NTP sync set up
-  include: 'ntpcheck.yml'
+  import_tasks: 'ntpcheck.yml'
   tags: [ 'bootstrap', 'ntpcheck' ]
 
 - name: Establish sudo access
-  include: 'sudo.yml'
+  import_tasks: 'sudo.yml'
   tags: [ 'bootstrap', 'sudo' ]
 
 - name: Ensure hostname is set consistent with base role
-  include_tasks: '{{ tasks_path }}/hostname.yml'
+  import_tasks: '{{ tasks_path }}/hostname.yml'
   tags: [ 'bootstrap', 'hostname' ]
 
 - name: Ensure DIMS-specific resources present
-  include: dims_base.yml
+  import_tasks: dims_base.yml
   tags: [ 'bootstrap', 'dims_base' ]
 
 - name: Set up SSH access for Ansible control
-  include: 'ssh.yml'
+  import_tasks: 'ssh.yml'
   tags: [ 'bootstrap', 'ssh' ]
 
 - name: Set up monitoring features
-  include: 'monitoring.yml'
+  import_tasks: 'monitoring.yml'
   tags: [ 'bootstrap', 'monitoring' ]
 
 - name: Display diagnostic and validation information
-  include: 'info.yml'
+  import_tasks: 'info.yml'
   tags: [ 'bootstrap', 'info' ]
 
 # vim: ft=ansible :

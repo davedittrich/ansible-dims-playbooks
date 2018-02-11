@@ -11,7 +11,7 @@
     dimsenv_activate: "{{ ansible_env.WORKON_HOME|default('/opt/dims/envs') }}/dimsenv/bin/activate"
 
 - name: PRE_TASK - Check proxy availability
-  include: "{{ tasks_path }}/proxy_check.yml"
+  import_tasks: "{{ tasks_path }}/proxy_check.yml"
 
 - name: PRE_TASK - Log start of role
   shell: >
@@ -43,6 +43,6 @@
   when: role_name is defined
 
 - name: PRE_TASK - Make defined bats tests present
-  include: "{{ tasks_path }}/install-bats-tests.yml"
+  import_tasks: "{{ tasks_path }}/install-bats-tests.yml"
 
 # vim: ft=ansible :

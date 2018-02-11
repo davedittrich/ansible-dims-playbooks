@@ -6,17 +6,12 @@
 # files from dims-ci-utils/jira to
 # this role.
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ pycharm, packages ]
 
   # finish...
 
-- name: Make defined bats tests present
-  include: "{{ tasks_path }}/install-bats-tests.yml"
-  ignore_errors: yes
-  tags: [ pycharm, tests ]
-
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ pycharm, packages ]
 
 # vim: ft=ansible :

@@ -31,7 +31,7 @@
   when: dims_ansible_version is not defined
   tags: [ always ]
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ python-virtualenv, packages, config ]
 
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
@@ -360,7 +360,7 @@
         _unit_test_result is defined and not _unit_test_result|failed
   tags: [ python-virtualenv ]
 
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ python-virtualenv, packages, configs, tests ]
 
 # vim: ft=ansible :

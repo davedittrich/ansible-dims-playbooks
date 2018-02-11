@@ -1,0 +1,29 @@
+---
+
+# File: deploy/do/playbooks/localhost.yml
+
+# This playbook is designed to facilitate bootstrapping a new
+# computer, be it a server to act as a baremetal host, a developer
+# laptop, or even a new virtual machine. This playbook is modelled
+# on playbooks/bootstrap.yml.
+#
+# Example usage:
+#
+# $ ansible-playbook -i $PBR/environments/do/inventory \
+# > playbooks/localhost.yml ...
+
+- name: Bootstrapping localhost
+  vars:
+   - playbooks_root: '{{ lookup("env", "PBR") }}'
+   - _debug: false
+  vars_files:
+   - '{{ playbooks_root }}/vars/global.yml'
+  hosts: localhost
+  become: yes
+  gather_facts: true
+
+  roles:
+  - { role: bootstrap }
+  - { role: ansible-server }
+
+# vim: ft=ansible :

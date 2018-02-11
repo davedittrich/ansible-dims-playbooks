@@ -6,7 +6,7 @@
     postfix_postmaster: '{{ dims_adminemail|default(ansible_user_id + "@" + ansible_fqdn) }}'
   tags: [ always ]
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ postfix, config, opendkim, packages, tests ]
 
 - name: Only "update_cache=yes" if >3600s since last update
@@ -306,10 +306,10 @@
 #    state: restarted
 #  tags: [ postfix, config ]
 
-- include_tasks: "opendkim.yml"
+- import_tasks: "opendkim.yml"
   tags: [ postfix, config, opendkim, opendkim_genkeys ]
 
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ postfix, config, opendkim, packages, tests ]
 
 # vim: ft=ansible :

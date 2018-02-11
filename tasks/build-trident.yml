@@ -30,7 +30,7 @@
   register: go_test
 
 - name: Ensure go compiler is present
-  include: "{{ tasks_path }}/install-go.yml"
+  import_tasks: "{{ tasks_path }}/install-go.yml"
   become: yes
   when: go_test.stat.exists == false
 

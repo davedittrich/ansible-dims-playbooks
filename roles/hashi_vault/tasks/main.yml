@@ -4,7 +4,7 @@
 
 # Install Vault on Linux 
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ vault, packages ]
 
 - name: Get vault zip 
@@ -59,12 +59,7 @@
 - debug: msg="{{ keys }}"
   tags: [ vault, config ]
 
-- name: Make defined bats tests present
-  include: "{{ tasks_path }}/install-bats-tests.yml"
-  ignore_errors: yes
-  tags: [ vault, tests ]
-
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ vault, packages ]
 
 # vim: ft=ansible :

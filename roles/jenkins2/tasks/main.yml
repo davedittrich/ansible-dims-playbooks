@@ -82,7 +82,7 @@
       - jenkins_admin_password != ''
   tags: [ always ]
 
-- include_tasks: '{{ tasks_path }}/pre_tasks.yml'
+- import_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ jenkins2, jenkins2jobs, packages ]
 
 - name: Run system test for required Java8 installation
@@ -206,7 +206,7 @@
 
   # Use the cli_config.yml task file from https://github.com/karlmdavis/ansible-jenkins2.git
 
-- include_tasks: 'cli_config.yml'
+- import_tasks: 'cli_config.yml'
   tags: [ jenkins2 ]
 
 - name: Get plugin version numbers
@@ -459,7 +459,7 @@
   become_user: jenkins
   tags: [ jenkins2, jenkins2jobs ]
 
-- include_tasks: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ jenkins2, jenkins2jobs, packages ]
 
 # vim: ft=ansible :

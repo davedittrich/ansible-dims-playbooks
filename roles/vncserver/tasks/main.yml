@@ -58,7 +58,7 @@
 - debug: var=vncserver_users_indexed
   tags: [ vncserver ]
 
-- include: '{{ tasks_path }}/pre_tasks.yml'
+- import_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ vncserver ]
 
 - name: Ensure vncserver is stopped
@@ -185,7 +185,7 @@
         - default/
   tags: [ vncserver ]
 
-- include: '{{ tasks_path }}/post_tasks.yml'
+- import_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ vncserver ]
 
 # vim: ft=ansible :

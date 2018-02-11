@@ -4,7 +4,7 @@
 
 # Prepare system for using Vagrant
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ vagrant, packages ]
 
 - name: Get vagrant deb file 
@@ -70,12 +70,7 @@
   become: yes
   tags: [ vagrant ]
 
-- name: Make defined bats tests present
-  include: "{{ tasks_path }}/install-bats-tests.yml"
-  ignore_errors: yes
-  tags: [ vagrant ]
-
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ vagrant, packages ]
 
 # vim: ft=ansible :

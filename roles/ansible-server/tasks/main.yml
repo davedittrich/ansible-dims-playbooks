@@ -49,7 +49,7 @@
       - _pubkeystat.stat.exists
   tags: [ always ]
 
-- include: '{{ tasks_path }}/pre_tasks.yml'
+- import_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ ansible-server ]
 
 - name: Make sure directory exists for ansible configurations
@@ -176,7 +176,7 @@
   become: yes
   tags: [ ansible-server ]
 
-- include: '{{ tasks_path }}/post_tasks.yml'
+- import_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ ansible-server ]
 
 # vim: ft=ansible :

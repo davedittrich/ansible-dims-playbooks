@@ -95,7 +95,7 @@
       - trident_db_password != ''
   tags: [ always ]
 
-- include_tasks: '{{ tasks_path }}/pre_tasks.yml'
+- import_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ trident-core, config, packages, tests ]
 
 - name: Install required perl libraries
@@ -545,7 +545,7 @@
 
   # Restore database from a previous backup if enabled and if first
   # time.
-- include_tasks: '{{ tasks_path }}/trident_restore.yml'
+- import_tasks: '{{ tasks_path }}/trident_restore.yml'
   when: (trident_backup_restorefrom is defined and trident_backup_restorefrom != '')
         and not _trident_configured
   tags: [ trident-core, trident-configure ]
@@ -602,8 +602,7 @@
     - pgpkeys
   tags: [ trident-core, trident-configure ]
 
-
-- include_tasks: '{{ tasks_path }}/post_tasks.yml'
+- import_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ trident-core, config, packages, tests ]
 
 # vim: ft=ansible :

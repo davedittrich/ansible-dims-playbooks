@@ -15,11 +15,11 @@
 # See also $PBR/playbooks/hosts/vmhost.devops.local.yml and related
 # host_vars file for doing this more easily via a playbook.
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ dns, dnsfiles, packages, config ]
 
 # Install dnsmasq consistently from source.
-- include: "{{ tasks_path }}/dnsmasq.yml"
+- import_tasks: "{{ tasks_path }}/dnsmasq.yml"
   tags: [ dns, packages, config ]
 
 - name: Make sure additional user-supplied config directory exists
@@ -180,7 +180,7 @@
     - restart dnsmasq
   tags: [ dns, dnsfiles, config ]
 
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ dns, packages, config ]
 
 # vim: ft=ansible :

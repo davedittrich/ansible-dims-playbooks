@@ -9,15 +9,15 @@
         and '"source" in nginx_locations'
   tags: [ always ]
 
-- include_tasks: '{{ tasks_path }}/pre_tasks.yml'
+- import_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ nginx, packages, config ]
 
 # Letsencrypt support
-- include_tasks: '{{ tasks_path }}/install-certbot-auto.yml'
+- import_tasks: '{{ tasks_path }}/install-certbot-auto.yml'
   when: use_letsencrypt is defined and use_letsencrypt|bool
   tags: [ nginx, packages ]
 
-- include_tasks: '{{ tasks_path }}/install-certbot-certs.yml'
+- import_tasks: '{{ tasks_path }}/install-certbot-certs.yml'
   when: use_letsencrypt is defined and use_letsencrypt|bool
   tags: [ nginx, packages ]
 
@@ -159,7 +159,6 @@
   # inclusion behavior.
 - name: Install sites in nginx_sites_available
   include_tasks: 'install-site-available.yml'
-  static: no
   with_items:
     - '{{ nginx_sites_available }}'
   loop_control:
@@ -232,12 +231,12 @@
 
   # We only need to worry about bootstrapping the source directory
   # to serve source when this is meant to be a source server. Duh.
-- include_tasks: 'bootstrap-source.yml'
+- import_tasks: 'bootstrap-source.yml'
   when: (nginx_locations is defined and "source" in nginx_locations)
         and nginx_source_bootstrap_dir is defined
   tags: [ nginx ]
 
-- include_tasks: '{{ tasks_path }}/post_tasks.yml'
+- import_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ nginx, packages, config ]
 
 # vim: ft=ansible :

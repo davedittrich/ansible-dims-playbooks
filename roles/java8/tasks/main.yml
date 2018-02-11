@@ -5,7 +5,7 @@
 # Jenkins 2 requires Java8. This simple role ensures that
 # Java8 is present and that Java 7 is not.
 
-- include: '{{ tasks_path }}/pre_tasks.yml'
+- import_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ java8, packages ]
 
 - name: Ensure PPA for Java 8 is present
@@ -45,12 +45,7 @@
   become: yes
   tags: [ java8, packages ]
 
-- name: Make defined bats tests present
-  include: '{{ tasks_path }}/install-bats-tests.yml'
-  tags: [ java8, tests ]
-
-
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ java8, packages ]
 
 # vim: ft=ansible :
