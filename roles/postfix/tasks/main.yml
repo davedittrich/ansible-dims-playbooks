@@ -300,11 +300,20 @@
     - restart postfix
   tags: [ postfix, config ]
 
-#- name: restart postfix
-#  service:
-#    name: postfix
-#    state: restarted
-#  tags: [ postfix, config ]
+- name: Force postmap where necessary
+  shell: >
+    [ -f '{{ item }}' && -f '{{ item }}'.db ] || postmap '{{ item }}'
+    chdir=/etc/postfix
+  with_items:
+    - access
+    - client_access
+    - generic
+    - helo_access
+    - transport
+    - virtual
+  notify:
+    - restart postfix
+  tags: [ postfix, config ]
 
 - import_tasks: "opendkim.yml"
   tags: [ postfix, config, opendkim, opendkim_genkeys ]
