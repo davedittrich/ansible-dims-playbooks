@@ -145,7 +145,7 @@
 
 - name: Debug docker versions
   debug:
-    var: _apt_cache.stdout
+    var: _apt_cache.stdout_lines
     verbosity: 1
   when: ansible_os_family == "Debian"
   tags: [ docker, packages ]
