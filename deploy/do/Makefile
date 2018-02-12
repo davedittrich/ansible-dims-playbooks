@@ -206,13 +206,13 @@ installcerts:
 		-e host=do \
 		$(DIMS_ANSIBLE_ARGS)
 
-# TODO(dittrich): Remove the postgresql_backup_restorefrom after debugging. :(
+# TODO(dittrich): Remove the trident_backup_restorefrom after debugging. :(
 .PHONY: deploy
 deploy:
 	ansible-playbook -i $(INVENTORY) \
 		$(ASK_BECOME_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
-		-e postgresql_backup_restorefrom='' \
+		-e trident_backup_restorefrom='' \
 		master.yml \
 		$(DIMS_ANSIBLE_ARGS)
 
