@@ -31,334 +31,43 @@
   when: dims_ansible_version is not defined
   tags: [ always ]
 
-- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
-  tags: [ python-virtualenv, packages, config ]
-
-- name: Only "update_cache=yes" if >3600s since last update (Debian)
-  apt: update_cache=yes cache_valid_time=3600
-  when: ansible_os_family == "Debian"
-  become: yes
-  tags: [ python-virtualenv, packages ]
-
-- name: Ensure prerequisites packages present (apt)
-  apt:
-    name={{ item }}
-    state=present
-    force=yes
-  with_items:
-    - autoconf
-    - build-essential
-    - gettext
-    - graphviz
-    - libbz2-dev
-    - libcurl4-gnutls-dev
-    - libffi-dev
-    - libgdbm-dev
-    - libgraphviz-dev
-    - libncurses-dev
-    - libreadline-dev
-    - libsqlite3-dev
-    - libssl-dev
-    - libxml2-dev
-    - libxslt1-dev
-    - libyaml-dev
-    - pkg-config
-    - python-tk
-    - python2.7-dev
-    - xsltproc
-  when: ansible_pkg_mgr == "apt"
-  become: yes
-  tags: [ python-virtualenv, packages ]
-
-- name: Ensure prerequisites packages present (yum)
-  yum:
-    name: '{{ item }}'
-    state: present
-    update_cache: yes
-  with_items:
-    - autoconf
-    - bzip2-devel
-    - bzip2-libs
-    - gcc-c++
-    - gettext
-    - gnutls-devel
-    - graphviz
-    - graphviz-devel
-    - graphviz-python
-    - libxml2
-    - libxml2-devel
-    - libxslt
-    - libxslt-devel
-    - libyaml-devel
-    - ncurses-devel
-    - openssl-devel
-    - perl-devel
-    - php-common
-    - readline-devel
-  when: ansible_pkg_mgr == "yum"
-  become: yes
-  tags: [ python-virtualenv, packages ]
-
-- name: Ensure required Sphinx prerequisites present (apt)
-  apt:
-    state=present
-    name={{ item }}
-    force=yes
-  with_items:
-    - texlive-latex-base
-    - texlive-latex-extra
-    - texlive-latex-recommended
-    - texlive-extra-utils
-    - texlive-fonts-recommended
-    - texlive-fonts-extra
-  when: ansible_pkg_mgr == "apt" and (use_sphinx is defined and use_sphinx|bool)
-  become: yes
-  tags: [ python-virtualenv, packages ]
-
-- name: Ensure required Sphinx prerequisites present (yum)
-  yum:
-    name: '{{ item }}'
-    state: present
-    update_cache: yes
-  with_items:
-    - texlive
-    - 'texlive-*.noarch'
-  when: ansible_pkg_mgr == "yum" and (use_sphinx is defined and use_sphinx|bool)
-  become: yes
-  tags: [ python-virtualenv, packages ]
-
-#- name: Ensure required MacOS X prerequisites present
-#  script: macos-virtualenv-prereqs.sh
-#  when: ansible_os_family == "Darwin" and install_mode == "system"
-#  become: yes
-#  become_user: '{{ dims_user }}'
-#  tags: [ python-virtualenv ]
-
-- name: Create {{ venv_name }}-requirements.txt file
-  template:
-    src=pip/{{ venv_name }}-requirements.txt.j2
-    dest={{ dims_etc }}/{{ venv_name }}-requirements.txt
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o644
-  become: yes
-  tags: [ python-virtualenv ]
-
-- name: Create {{ venv_name }}.build script
-  template:
-    src=scripts/{{ venv_name }}.build.j2
-    dest={{ dims_bin }}/{{ venv_name }}.build
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o755
-  become: yes
-  tags: [ python-virtualenv, config ]
-
-- name: Make {{ venv_name }}.update script present
-  template:
-    src=scripts/{{ venv_name }}.update.j2
-    dest={{ dims_bin }}/{{ venv_name }}.update
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o755
-  become: yes
-  tags: [ python-virtualenv, config ]
-
-- name: Ensure source for Python is present
-  get_url:
-    url={{ python_dist_url }}
-    sha256sum={{ python_sha256_sum }}
-    dest={{ dims_src }}/{{ python_archive }}
-  become: yes
-  become_user: '{{ dims_user }}'
-  tags: [ python-virtualenv ]
-
-- name: Ensure get-pip.py is present
-  git:
-    repo: 'https://github.com/pypa/get-pip.git'
-    dest: '{{ dims_src }}/get-pip'
-    force: yes
-  become: yes
-  become_user: '{{ dims_user }}'
-  tags: [ python-virtualenv ]
-
-- name: Ensure prisem-rpc source is present
-  git:
-    repo: '{{ prisem_rpc_repo_url }}'
-    version: '{{ prisem_rpc_version }}'
-    dest: '{{ dims_src }}/prisem-rpc'
-    force: yes
-  become: yes
-  become_user: '{{ dims_user }}'
-  when: prisem_rpc_repo_url is defined
-  ignore_errors: yes
-  tags: [ python-virtualenv ]
-
-#- name: Ensure prisem-rpc source is present
-#  get_url:
-#    url={{ prisem_rpc_dist_url }}
-#    dest={{ dims_src }}/{{ prisem_rpc_archive }}
-#  become: yes
-#  become_user: '{{ dims_user }}'
-#  when: prisem_rpc_repo_url is not defined and
-#        prisem_rpc_dist_url is defined
-#  ignore_errors: yes
-#  tags: [ python-virtualenv ]
-
-- name: Ensure source for Git is present
-  git:
-    repo=https://github.com/git/git.git
-    version={{ git_version }}
-    dest={{ dims_src }}/git
-    force=yes
-  become: yes
-  become_user: '{{ dims_user }}'
-  tags: [ python-virtualenv ]
-
-- name: Ensure source for 'hub-flow' is present
-  git:
-    repo: 'https://github.com/datasift/gitflow'
-    dest: '{{ dims_src }}/gitflow'
-    recursive: false
-    track_submodules: false
-    force: yes
-  become: yes
-  become_user: '{{ dims_user }}'
-  tags: [ python-virtualenv ]
-
-- name: Ensure source for 'git-crypt' is present
-  git:
-    repo=https://github.com/AGWA/git-crypt.git
-    dest={{ dims_src }}/git-crypt
-    force=yes
-  become: yes
-  become_user: '{{ dims_user }}'
-  tags: [ python-virtualenv ]
-
-- name: Ensure source for 'git-big-picture' is present
-  git:
-    repo=https://github.com/esc/git-big-picture.git
-    dest={{ dims_src }}/git-big-picture
-    force=yes
-  become: yes
-  become_user: '{{ dims_user }}'
-  tags: [ python-virtualenv ]
-
-- name: Ensure bashrc additions for virtual environments are present
-  template:
-    src={{ item }}
-    dest={{ dims_etc_bashrc }}/{{ item | basename | regex_replace('\.j2','') }}
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o644
-  with_fileglob:
-   - ../templates/bashrc.d/*.bash.j2
-  become: yes
-  tags: [ python-virtualenv, config ]
-
-- name: Ensure virtual environment bin directory is group writable
-  file:
-    path={{ dims }}/envs/{{ venv_name }}/bin
-    state=directory
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o2775
-  become: yes
-  tags: [ python-virtualenv ]
-
 - name: Define venv path
   set_fact:
     _venv_path: '{{ dims }}/envs/{{ venv_name }}/bin'
-  tags: [ python-virtualenv ]
+  tags: [ always ]
 
-# The following is done to prevent removing a Python interpreter that is
-# actively being used
-- name: Check for processes actively using virtualenv
-  shell: 'ps auxwww'
-  ignore_errors: true
-  register: _result
-  tags: [ python-virtualenv ]
+- name: Stat venv path
+  stat:
+    path: '{{ _venv_path|dirname }}'
+  register: _stat
+  tags: [ always ]
 
-- debug:
-    msg: '{{ _result.stdout }}'
-  when: _result.stdout|search(_venv_path)
-  tags: [ python-virtualenv ]
+- name: Define dims_virtualenv_build
+  set_fact:
+    dims_virtualenv_build: '{{ not _stat.stat.exists }}'
+  when: dims_virtualenv_build is not defined
+  tags: [ always ]
 
-- name: Stop supervisor service if it is using this virtual environment
-  service:
-    name: supervisor
-    state: stopped
-  become: yes
-  notify: restart supervisor
-  when: _result is defined and _result.stdout|search(_venv_path)
-  ignore_errors: yes
-  tags: [ python-virtualenv ]
+- name: Debug dims_virtualenv_build
+  debug:
+    var: dims_virtualenv_build
+    verbosity: 2
+  tags: [ always ]
 
-  # The output from the build script can be thousands of lines,
-  # since so much is being done. For that reason, nothing is
-  # logged during the build itself. You can get stdout by
-  # using "-vv" (or higher) and you always get stdout when
-  # the script fails. On success, it is now quite quiet.
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
+  tags: [ python-virtualenv, packages, config ]
 
-- block:
-  - name: Run {{ venv_name }}.build script
-    command:
-      bash {{ dims_bin }}/{{ venv_name }}.build --verbose 2>&1
-    args:
-      chdir={{ deploy_dir }}/{{ role_name }}
-    environment:
-      DIMS: '{{ dims }}'
-      GIT: '{{ dims_git }}'
-      PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
-    become: yes
-    register: _build_result
-    no_log: true
-    tags: [ python-virtualenv ]
+- name: Do not build virtualenv
+  debug:
+    msg: "Refusing to rebuild existing Python virtualenv. Set 'dims_virtualenv_build=true' to force rebuilding."
+    verbosity: 2
+  when: not dims_virtualenv_build
+  tags: [ python-virtualenv, packages, config ]
 
-  - name: Run unit test for Python virtualenv
-    command: '{{ dims_bin }}/test.runner --tap --level unit --match python-virtualenv'
-    environment:
-      DIMS: '{{ dims }}'
-      PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
-    register: _unit_test_result
-    tags: [ python-virtualenv ]
-
-  rescue:
-  - name: Debug build (stdout)
-    debug:
-      var: _build_result.stdout_lines
-    when: _build_result is defined and _build_result|failed
-    tags: [ python-virtualenv ]
-
-  - name: Debug unit test output
-    debug:
-      var: _unit_test_result.stdout_lines
-    when: _unit_test_result is defined and _unit_test_result|failed
-    tags: [ python-virtualenv ]
-
-  - name: Debug build (stderr)
-    debug:
-      var: _build_result.stderr_lines
-    when:  _build_result is defined and _build_result|failed
-    tags: [ python-virtualenv ]
-
-  - fail:
-      msg: |
-        Running {{ dims_bin }}/{{ venv_name }}.build failed.
-    tags: [ python-virtualenv ]
-
-  # This marker is checked in the dimsenv.build.j2 script template
-- name: Mark build completion on success
-  file:
-    path: '{{ dims }}/envs/{{ venv_name }}/.built'
-    state: touch
-    owner: '{{ dims_user }}'
-    group: '{{ dims_group }}'
-    mode: 0o755
-  become: yes
-  when: _build_result is defined and not _build_result|failed and
-        _unit_test_result is defined and not _unit_test_result|failed
-  tags: [ python-virtualenv ]
+- name: Build virtualenv
+  import_tasks: build.yml
+  when: dims_virtualenv_build
+  tags: [ python-virtualenv, packages, config ]
 
 - import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ python-virtualenv, packages, configs, tests ]
