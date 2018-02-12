@@ -1,5 +1,11 @@
 ---
 
+# Use "--tags opendkim-genkey" to generate the private key for the
+# specified selector on the Ansible host. The .txt file is necessary
+# for creating the DNS TXT record that will be used by the
+# 'opendkim-testkey' program, which must be done (and inserted
+# using "terraform apply") before any test will succeed.
+
 - name: Assert dims_domain is defined and non-null
   assert:
     that:
@@ -55,7 +61,7 @@
   with_items:
     - '/etc/opendkim'
     - '/etc/opendkim/keys/{{ dims_domain }}'
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+  tags: [ postfix, config, opendkim ]
 
 - name: 'Ensure directory for _local_private_key_file is present'
   file:
@@ -65,9 +71,9 @@
   become: no
   delegate_to: 127.0.0.1
   run_once: true
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+  tags: [ postfix, config, opendkim, opendkim-genkey ]
 
-- name: Generate keys on first postfix_mx host
+- name: Generate key on Ansible host
   shell: >
      opendkim-genkey
      -b {{ opendkim_key_bits }}
@@ -83,13 +89,13 @@
   delegate_to: 127.0.0.1
   run_once: true
   register: _private_key_gen
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+  tags: [ postfix, config, opendkim, opendkim-genkey ]
 
 - name: Debug opendkim key generation
   debug:
     var: _private_key_gen
     verbosity: 2
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+  tags: [ postfix, config, opendkim, opendkim-genkey ]
 
 - name: Validate private key with opendkim-testkey
   shell: >
@@ -102,13 +108,13 @@
   delegate_to: 127.0.0.1
   run_once: true
   when: _private_key_gen.changed
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+  tags: [ postfix, config, opendkim ]
 
 - name: Define opendkim_dns_txt_record
   set_fact:
     opendkim_dns_txt_record: '{{ lookup("dkim_txt_record", _local_private_key_file|regex_replace(".private",".txt")) }}'
   when: opendkim_dns_txt_record is not defined
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+  tags: [ postfix, config, opendkim, opendkim-genkey ]
 
 - name: Get private key for postfix hosts
   set_fact:
@@ -117,7 +123,7 @@
   become: no
   delegate_to: 127.0.0.1
   run_once: true
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+  tags: [ postfix, config, opendkim ]
 
   # The 'content' option of 'copy' module has a "won't fix" bug
   # that strips the newline character from the file we are attempting
@@ -131,7 +137,7 @@
   args:
     creates: '{{ opendkim_private_key_file }}'
   become: yes
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+  tags: [ postfix, config, opendkim ]
 
 - name: Ensure proper private key permissions
   shell: >
@@ -139,7 +145,7 @@
     chmod -R go-rw /etc/opendkim/keys
     warn=no
   become: yes
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+  tags: [ postfix, config, opendkim ]
 
 - name: Validate private key with opendkim-testkey
   shell: >
@@ -153,7 +159,7 @@
   register: _opendkim_testkey
   failed_when: not _opendkim_testkey.stdout|search("key OK") or
                _opendkim_testkey.stdout|search("unsafe permissions")
-  tags: [ postfix, config, opendkim, opendkim_genkeys ]
+  tags: [ postfix, config, opendkim ]
 
 - name: Make /etc/default/opendkim present
   template:
