@@ -192,6 +192,12 @@ bootstrap:
 		$(PBR)/playbooks/bootstrap.yml \
 		-e host=do \
 		$(DIMS_ANSIBLE_ARGS)
+	ansible-playbook -i $(INVENTORY) \
+		$(ASK_BECOME_PASS) \
+		-e@~/.secrets/digital-ocean/secrets.yml \
+		--tags opendkim-genkey \
+		master.yml \
+		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: installcerts
 installcerts:
