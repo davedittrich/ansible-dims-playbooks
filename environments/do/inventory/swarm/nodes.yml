@@ -10,12 +10,8 @@ swarm:
     'blue':
     'green':
     'purple':
-#  children:
-#    manager:
-#      vars:
-#      hosts:
-#    worker:
-#      vars:
-#      hosts:
+  children:
+    manager:
+    worker:
 
 # vim: ft=ansible :
