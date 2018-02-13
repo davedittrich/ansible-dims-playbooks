@@ -29,7 +29,7 @@
 # scratch. This note may change if the Trident developers
 # define an appropriate method for upgrading the database.
 # At that time, we will upgrade this playbook.
-
+#
 # Until then, run:
 #  $ sudo apt-get purge postgresql-*
 # before running this playbook.
@@ -69,11 +69,6 @@
     trident_initial_user_email: '{{ _gituseremail.stdout }}'
   when: trident_initial_user_email is not defined
   tags: [ always ]
-
-  # TODO(dittrich): Figure out why adding GPG is not working and add logic to add it
-  # Validate GPG key:
-  #  $ gpg --list-packets --verbose dittrich.asc 2>/dev/null | grep "user ID packet"
-  # :user ID packet: "Dave Dittrich <dave.dittrich@gmail.com>"
 
 - name: Validate Debian Jessie is being used.
   fail:
@@ -117,7 +112,7 @@
   become: yes
   tags: [ trident-core, packages ]
 
-- name: Make pg_hba.conf present
+- name: Ensure pg_hba.conf present
   template:
     src: '{{ item }}'
     dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
@@ -137,7 +132,8 @@
   become: yes
   tags: [ trident-core, config ]
 
-  # NOTE: Must be restarted before Trident starts so can't use handler.
+# NOTE: Must be restarted before Trident starts so cannot use handler.
+
 - name: Apply configuration change
   service:
     name: postgresql
@@ -145,18 +141,26 @@
   become: yes
   tags: [ trident-core, config ]
 
-- name: Make core Trident packages present
+- name: Ensure core Trident packages present
   get_url:
     url: '{{ item.url }}'
     sha256sum: '{{ item.sha256sum }}'
     dest: '{{ deploy_dir }}/{{ role_name }}/{{ item.url | basename }}'
   with_items: "{{ trident_dist_bundle }}"
+  register: _trident_install
   become: yes
   tags: [ trident-core, packages ]
 
-  # NOTE: trident-perl package is from private source currently,
-  # so must retrieve from our cache, not the github debs source.
-- name: Make trident-perl package present
+- name: Debug trident package install
+  debug:
+    var: _trident_install
+    verbosity: 2
+  tags: [ trident-core, packages ]
+
+# NOTE: trident-perl package is from private source currently,
+# so must retrieve from our cache, not the github debs source.
+
+- name: Ensure trident-perl package present
   get_url:
     url: '{{ trident_perl_disturl }}'
     sha256sum: '{{ trident_perl_sha256sum }}'
@@ -164,14 +168,14 @@
   become: yes
   tags: [ trident-core ]
 
-- name: Make trident group present
+- name: Ensure trident group present
   group:
     name: trident
     state: present
   become: yes
   tags: [ trident-core ]
 
-- name: Make trident user present
+- name: Ensure trident user present
   user:
     name: trident
     groups: trident,{{ dims_group }}
@@ -181,7 +185,7 @@
   become: yes
   tags: [ trident-core ]
 
-- name: Make dims user present in trident group
+- name: Ensure dims user present in trident group
   user:
     name: '{{ dims_user }}'
     groups: trident
@@ -191,7 +195,7 @@
   become: yes
   tags: [ trident-core ]
 
-- name: Make postgres user present in trident group
+- name: Ensure postgres user present in trident group
   user:
     name: postgres
     groups: trident
@@ -250,9 +254,20 @@
   shell: >
     sh {{ deploy_dir }}/{{ role_name }}/trident-perl_DEBIAN/postinst
   become: yes
+  register: _postinst
   tags: [ trident-core, packages ]
 
-- name: Make Trident init.d defaults present
+- name: Define _trident_user_exists
+  set_fact:
+    _trident_user_exists: '{{ _postinst.stdout|search("trident user already exists") }}'
+  tags: [ trident-core, packages ]
+
+- name: Debug _trident_user_exists
+  debug:
+    var: _trident_user_exists
+  tags: [ trident-core, packages ]
+
+- name: Ensure Trident init.d defaults present
   template:
     src: '{{ item }}'
     dest: /etc/default/trident
@@ -299,9 +314,10 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
-# NOTE: Make sure configuration matches between the
+# NOTE: Take care that configuration matches between the
 # /etc/trident/trident.conf file and the following file.
 # Tight coupling of variable settings.
+
 - name: Ensure /var/lib/trident/siteconfig is present
   template:
     src: '{{ item }}'
@@ -326,7 +342,7 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
-- name: Make /etc/nginx/sites-available/trident present
+- name: Ensure /etc/nginx/sites-available/trident present
   template:
     src: '{{ item }}'
     dest: /etc/nginx/sites-available/trident
@@ -350,7 +366,7 @@
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
-- name: Make /etc/nginx/sites-enabled/trident present
+- name: Ensure /etc/nginx/sites-enabled/trident present
   file:
     src: '/etc/nginx/sites-available/trident'
     dest: '/etc/nginx/sites-enabled/trident'
@@ -359,118 +375,6 @@
   notify:
     - restart trident
     - restart nginx
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
-
-- name: Ensure 'logo.png' is present
-  copy:
-    src: '{{ item }}'
-    dest: /usr/share/pitchfork/webroot/{{ trident_site_logo_image }}
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-       - '{{ trident_logo }}'
-       - logo.png.{{ inventory_hostname }}
-       - logo.png.category-{{ category }}
-       - logo.png.deployment-{{ deployment }}
-       - logo.png
-      paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/files/logo.png/'
-       - files/logo.png/
-      skip: true
-  become: yes
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
-
-- name: Ensure 'favicon.ico' is present
-  copy:
-    src: '{{ item }}'
-    dest: /usr/share/pitchfork/webroot/{{ trident_site_favicon_image }}
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-       - '{{ trident_favicon }}'
-       - favicon.ico.{{ inventory_hostname }}
-       - favicon.ico.category-{{ category }}
-       - favicon.ico.deployment-{{ deployment }}
-       - favicon.ico
-      paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/files/favicon.ico/'
-       - files/favicon.ico/
-      skip: true
-  become: yes
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
-
-- name: Ensure header_image is present
-  copy:
-    src: '{{ item }}'
-    dest: /usr/share/trident/webroot/{{ trident_site_header_image }}
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-       - '{{ trident_header }}'
-       - header_image.jpg.{{ inventory_hostname }}
-       - header_image.jpg.category-{{ category }}
-       - header_image.jpg.deployment-{{ deployment }}
-       - header_image.jpg
-      paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/files/header_image.jpg/'
-       - files/header_image.jpg/
-      skip: true
-  become: yes
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
-
-# NOTE: The command to set unknown person image is called "unknown_image"
-# but the default file is named "unknown_person.jpg". Beware.
-- name: Ensure unknown_person.jpg is present
-  copy:
-    src: '{{ item }}'
-    dest: /usr/share/pitchfork/webroot/{{ trident_site_unknown_person }}
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-       - '{{ trident_unknown_person }}'
-       - unknown_person.jpg.{{ inventory_hostname }}
-       - unknown_person.jpg.category-{{ category }}
-       - unknown_person.jpg.deployment-{{ deployment }}
-       - unknown_person.jpg
-      paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/files/unknown_person.jpg/'
-       - files/unknown_person.jpg/
-      skip: true
-  become: yes
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
-
-- name: Ensure cascading style sheet is present (tsetup)
-  template:
-    src: '{{ item }}'
-    dest: /usr/share/trident/webroot/css/trident.css
-    owner: '{{ root_user }}'
-    group: '{{ root_group }}'
-    mode: 0o644
-  with_first_found:
-    - files:
-       - '{{ trident_css }}'
-       - trident.css.{{ inventory_hostname }}.j2
-       - trident.css.category-{{ category }}.j2
-       - trident.css.deployment-{{ deployment }}.j2
-       - trident.css.j2
-      paths:
-       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/trident.css/'
-       - trident/trident.css/
-      skip: true
-  become: yes
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
@@ -491,76 +395,31 @@
     verbosity: 2
   tags: [ trident-core, trident-configure, config ]
 
-  # "trident" in pg_roles.  The value "1" means the roles
-  # exists (which implies that the setup tasks below
-  # have already been applied.) If not, it is safe to
-  # restore the database prior to applying the rest of
-  # the configuration tasks.
-  #
-  # $ psql -U postgres -tAc "SELECT * FROM pg_roles"
-  # postgres|t|t|t|t|t|t|t|-1|***********|||10
-  # trident|f|t|f|f|f|t|f|-1|************|||16384
-  # $ psql -U postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='trident'"
-  # 1
-
-- block:
-  - name: Determine if trident user already exists in postgres
-    shell: >
-      psql -U postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='trident'"
-    become: yes
-    become_user: 'postgres'
-    register: _psql_result
-    tags: [ trident-core ]
-
-  - name: Define _trident_role_exists
-    set_fact:
-      _trident_role_exists: '{{ _psql_result is defined and _psql_result.stdout == "1" }}'
-    tags: [ trident-core ]
-
-  - debug:
-      var: _trident_role_exists
-      verbosity: 2
-    tags: [ trident-core ]
-
-  rescue:
-  - name: Define _trident_role_exists
-    set_fact:
-      _trident_role_exists: false
-    tags: [ trident-core ]
-
 - name: Ensure Trident user and database present
   shell: >
     /usr/sbin/tsetup setup_db
   become: yes
   become_user: 'postgres'
   register: _tsetup_db
-  when: not _trident_role_exists
   ignore_errors: true
   tags: [ trident-core ]
 
-- name: Define default _trident_restore_status
+- name: Define _trident_initial_setup
   set_fact:
-    _trident_restore_status: false
+    _trident_initial_setup: "{{ not _tsetup_db.stdout|search('role \"trident\" already exists') }}"
   tags: [ trident-core ]
 
-  # Restore database from a previous backup if enabled and if first
-  # time.
-- import_tasks: '{{ tasks_path }}/trident_restore.yml'
-  when: (trident_backup_restorefrom is defined and trident_backup_restorefrom != '')
-        and not _trident_configured
-  tags: [ trident-core, trident-configure ]
+# Add initial sysadmin user. This step is necessary according to email from
+# Linda and Trident documentation (last sentence of "tsetup" section).
 
-# Add initial sysadmin user. This step is necessary according to Linda's email
-# and Trident documentation (last sentence of ``tsetup`` section).
-- name: Make initial sysadmin user present
+- name: Ensure initial sysadmin user present
   shell: >
     /usr/sbin/tsetup adduser trident {{ trident_sysadmin_pass }}
   no_log: '{{ nolog }}'
   become: yes
   become_user: 'postgres'
   register: _tsetup
-  when: not _trident_restore_status|bool
-        and not _trident_role_exists|bool
+  when: _trident_initial_setup
   changed_when: _tsetup.rc == 0 and _tsetup.stdout == ''
   failed_when: _tsetup.rc != 0 and not _tsetup.stdout|search('duplicate key value violates unique constraint')
   tags: [ trident-core ]
@@ -570,10 +429,54 @@
     /usr/sbin/tsetup setpassword trident {{ trident_sysadmin_pass }}
   become: yes
   become_user: 'postgres'
-  when: not _trident_restore_status|bool
-        and not _trident_role_exists
-  ignore_errors: true
   tags: [ trident-core, trident-configure ]
+
+# NOTE(dittrich): All files in /use/share/pitchfork,
+# /var/lib/trident, etc. are now included in a backup.
+# See tasks/trident_backup.yml
+
+- name: Ensure Trident state directories are present
+  file:
+    state: directory
+    path: '/var/lib/trident/webvar/{{ item }}'
+    owner: 'trident'
+    group: 'trident'
+    mode: 0o750
+  become: yes
+  with_items:
+    - ml_keys
+    - pgpkeys
+  tags: [ trident-core, trident-configure ]
+
+# On first installation, the system configuration must come from
+# one of two sources: a pre-existing backup, or inventory/role
+# variables. If trident_backup_restorefrom is set and a backup
+# can be located, use it. Otherwise, configure explicitly.
+
+- name: Define default _trident_restore_status
+  set_fact:
+    _trident_restore_status: false
+  tags: [ trident-core ]
+
+# Restore database from a previous backup if enabled and if first
+# time.
+
+- import_tasks: '{{ tasks_path }}/trident_restore.yml'
+  when:
+    - (trident_backup_restorefrom is defined and trident_backup_restorefrom != '')
+    - not _trident_user_exists
+    - not _trident_configured
+  tags: [ trident-core, trident-configure ]
+
+# Configure explicitly if Trident was not configured and could not
+# be restored from a backup.
+
+- import_tasks: configure.yml
+  when:
+    - not _trident_configured
+    - not _trident_restore_status
+
+# Validate Trident is functional
 
 - name: Ensure trident administator can log in
   shell: >
@@ -588,19 +491,6 @@
     tcli system logout
   no_log: '{{ nolog }}'
   tags: [ trident-core ]
-
-- name: Ensure Trident state directories are present
-  file:
-    state: directory
-    path: '/var/lib/trident/webvar/{{ item }}'
-    owner: 'trident'
-    group: 'trident'
-    mode: 0o750
-  become: yes
-  with_items:
-    - ml_keys
-    - pgpkeys
-  tags: [ trident-core, trident-configure ]
 
 - import_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ trident-core, config, packages, tests ]
