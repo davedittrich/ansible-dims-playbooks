@@ -4,7 +4,13 @@
 
 # Requires:
 # certbot_backup_dir - Directory to store backup (defaults to
-#                      directory using ansible_fqdn in path)
+#                      directory using dims_fqdn in path)
+
+- name: Assert dims_fqdn is defined and not null
+  assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
 
 - name: Identify user running ansible-playbook
   local_action: command whoami
@@ -26,7 +32,7 @@
 
 - name: Define _default_backups_dir
   set_fact:
-    certbot_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
+    certbot_backup_dir: '{{ dims_backups }}/{{ dims_fqdn }}'
   when: certbot_backup_dir is not defined
 
 - block:

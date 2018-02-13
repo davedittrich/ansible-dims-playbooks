@@ -18,9 +18,14 @@
 #
 # See https://www.postgresql.org/docs/current/static/app-pgrestore.html
 
+- assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
+
 - name: Define (local) trident_backup_dir
   set_fact:
-    trident_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
+    trident_backup_dir: '{{ dims_backups }}/{{ dims_fqdn }}'
   when: trident_backup_dir is not defined
 
 - name: Debug trident_backup_dir

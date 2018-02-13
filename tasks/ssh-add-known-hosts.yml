@@ -7,6 +7,12 @@
 # host key checking enabled. Apply this task prior to first use of
 # SSH commands (e.g., with the Jenkins SSH-based CLI).
 
+- name: Assert dims_fqdn is defined and not null
+  assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
+
 - name: Define ssh_hosts
   set_fact:
     ssh_hosts: groups.do
@@ -24,7 +30,7 @@
     when: ssh_known_hosts_files is not defined
 
 - name: Remove old SSH host keys
-  local_action: known_hosts path={{ item }} host={{ ansible_fqdn }} state=absent
+  local_action: known_hosts path={{ item }} host={{ dims_fqdn }} state=absent
   ignore_errors: yes
   with_items:
     - '{{ ssh_known_hosts_files }}'
@@ -37,7 +43,7 @@
   with_items: '{{ ssh_hosts }}'
 
 - name: Ensure new SSH host key present
-  local_action: known_hosts path={{ item }} key="{{ hostkey.stdout }}" host={{ ansible_fqdn }} state=present
+  local_action: known_hosts path={{ item }} key="{{ hostkey.stdout }}" host={{ dims_fqdn }} state=present
   ignore_errors: yes
   with_items:
     - '{{ ssh_known_hosts_files }}'

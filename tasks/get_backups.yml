@@ -24,6 +24,12 @@
 #     "changed": false
 # }
 
+- name: Assert dims_fqdn is defined and not null
+  assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
+
 - name: Define host
   set_fact:
     host: '{{ inventory_hostname }}'
@@ -31,7 +37,7 @@
 
 - name: Define backups_dir
   set_fact:
-    backups_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
+    backups_dir: '{{ dims_backups }}/{{ dims_fqdn }}'
   when: backups_dir is not defined
 
 - fail: msg="'backups_service' must be defined to select service backups"

@@ -14,7 +14,13 @@
 # certbot_staging - Controls use of staging area to avoid throttle.
 # certbot_sitename - Domain name for certificate
 # certbot_adminemail - Email address for cert (may differ from
-#                      ansible_fqdn if NAT in use).
+#                      dims_fqdn if NAT in use).
+
+- name: Assert dims_fqdn is defined and not null
+  assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
 
 - name: Define _certbot_staging option
   set_fact:

@@ -14,14 +14,20 @@
 - fail: msg="use_letsencrypt is not enabled"
   when: use_letsencrypt is not defined or not use_letsencrypt|bool
 
+- name: Assert dims_fqdn is defined and not null
+  assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
+
 - name: Define certbot_sitename
   set_fact:
-    certbot_sitename: '{{ ansible_fqdn }}'
+    certbot_sitename: '{{ dims_fqdn }}'
   when: certbot_sitename is not defined
 
 - name: Define certbot_adminemail
   set_fact:
-    certbot_adminemail: '{{ root_user }}@{{ ansible_fqdn }}'
+    certbot_adminemail: '{{ root_user }}@{{ dims_fqdn }}'
   when: certbot_adminemail is not defined
 
 - name: Default certbot_save_backups false
@@ -71,7 +77,7 @@
 - block:
   - name: Define _default_backups_dir
     set_fact:
-      _default_backups_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
+      _default_backups_dir: '{{ dims_backups }}/{{ dims_fqdn }}'
     when: certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
