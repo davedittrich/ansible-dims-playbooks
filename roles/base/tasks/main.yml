@@ -602,14 +602,14 @@
 # on the CoreOS nodes to funnel logs back to their central holding place.
 # Adding "when" statements to make these all Debian-only tasks.
 
-- name: Stop rsyslogd
-  service:
-    name: rsyslog
-    state: stopped
-  notify: restart rsyslog
-  when: ansible_os_family != "Container Linux by CoreOS"
-  ignore_errors: yes
-  tags: [ base, config, rsyslogd ]
+#- name: Stop rsyslogd
+#  service:
+#    name: rsyslog
+#    state: stopped
+#  notify: restart rsyslog
+#  when: ansible_os_family != "Container Linux by CoreOS"
+#  ignore_errors: yes
+#  tags: [ base, config, rsyslogd ]
 
 - name: Add group for rsyslog
   group:
