@@ -39,8 +39,8 @@
 - name: Define trident_backups_paths
   set_fact:
     trident_backups_paths:
+      - '/etc/trident'
       - '/var/lib/trident'
-      - '/usr/share/nginx'
       - '/usr/share/trident'
       - '/usr/share/pitchfork'
   when: trident_backups_paths is not defined
