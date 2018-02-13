@@ -110,7 +110,7 @@ nolog: true
 # Set a default timezone so that the common role works properly.
 # Override on the command line for local install with '-e dims_timezone="US/New_York"'
 dims_timezone: 'US/Pacific'
-dims_version: '3.2.3'
+dims_version: '3.2.4'
 dims_guid: '{{ ansible_cmdline.root }}'
 dims_marker: '{{ dims_deploy }}/LAST_PROVISIONED'
 dims_user: 'dims'
