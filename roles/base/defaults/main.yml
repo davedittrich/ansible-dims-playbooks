@@ -12,7 +12,7 @@ fail2ban_syslog_target: '/var/log/fail2ban.log'
 fail2ban_syslog_facility: 1
 fail2ban_socket: '/var/run/fail2ban/fail2ban.sock'
 fail2ban_pidfile: '/var/run/fail2ban/fail2ban.pid'
-fail2ban_logpath: '/var/log/dims/{{ ansible_fqdn }}.log'
+fail2ban_logpath: '/var/log/dims/{{ dims_fqdn }}.log'
 fail2ban_sendername: 'Fail2ban'
 # Items in list can be IP address, CIDR block, or DNS entry
 fail2ban_ignoreips:
@@ -21,7 +21,7 @@ fail2ban_bantime: 600
 fail2ban_maxretry: 3
 fail2ban_findtime: 600
 fail2ban_backend: 'polling'
-fail2ban_destemail: 'root@{{ ansible_fqdn }}'
+fail2ban_destemail: 'root@{{ dims_fqdn }}'
 fail2ban_banaction: 'iptables-allports'
 fail2ban_mta: 'sendmail'
 fail2ban_protocol: 'tcp'

@@ -7,6 +7,6 @@
 
 server {
   listen *:{{ nginx_health_check_port }};
-  server_name {{ ansible_fqdn }};
+  server_name {{ dims_fqdn }};
   root /var/www/health_check;
 }

@@ -42,7 +42,7 @@
   with_first_found:
     - files:
         - '{{ dnsmasq_defaults }}'
-        - dnsmasq.{{ ansible_fqdn }}.j2
+        - dnsmasq.{{ dims_fqdn }}.j2
         - dnsmasq.category-{{ category }}.j2
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
@@ -65,7 +65,7 @@
   with_first_found:
     - files:
         - '{{ dnsmasq_conf }}'
-        - dnsmasq.conf.{{ ansible_fqdn }}.j2
+        - dnsmasq.conf.{{ dims_fqdn }}.j2
         - dnsmasq.conf.category-{{ category }}.j2
         - dnsmasq.conf.deployment-{{ deployment }}.j2
       paths:
@@ -88,7 +88,7 @@
   with_first_found:
     - files:
         - '{{ dnsmasq_default }}'
-        - dnsmasq.{{ ansible_fqdn }}.j2
+        - dnsmasq.{{ dims_fqdn }}.j2
         - dnsmasq.category-{{ category }}.j2
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
@@ -111,7 +111,7 @@
   with_first_found:
     - files:
         - '{{ dnsmasq_init }}'
-        - dnsmasq.{{ ansible_fqdn }}.j2
+        - dnsmasq.{{ dims_fqdn }}.j2
         - dnsmasq.category-{{ category }}.j2
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2

@@ -21,7 +21,7 @@
 
 - name: Define jenkins_fqdn
   set_fact:
-    jenkins_fqdn: '{{ ansible_fqdn }}'
+    jenkins_fqdn: '{{ dims_fqdn }}'
   when: jenkins_fqdn is not defined
   tags: [ always ]
 
@@ -301,6 +301,8 @@
   with_fileglob:
     - "../templates/scripts/*.j2"
   tags: [ jenkins2, jenkins2jobs, scripts ]
+
+  # TODO(dittrich): Use find, set_fact, then with_items
 
 - name: Ensure (non-templated) scripts are present
   copy:

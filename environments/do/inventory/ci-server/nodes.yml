@@ -15,7 +15,7 @@ ci_server:
       - 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGSvmiyX+S5GcV2aK9/6QXSnk9pHJrMC5+mBTJ6/IvgmZjX8dp3NrA9ibsnQvpYOkIIEAW8KMm9yQ+BA1qMCSLkY6ETZs92tL7umv+F6DZOqrGW4tXkEAb+U9Gf+FgFnUnhxJQVA0Jp/3p5fJ9VGbx09I2MG1nil+999cZtv4m61VFpt9qrtV3Psz/zDwrZfPRUhQ+5wLzMJEhqRmXyYAOQ1D7bXUs2FXXuhbM4ESR/gpfz4N0mUqFY9zxIE1zSzVznGizRdbQVks7wF6uJ2eywii/FRIbToWFJP+DBctnekEiK7u+Vm8Yzqq7q5pJ+nmpCi7SFSIQBgv4ZrwFmTsh DIMS key for dittrich'
     git_mailing_list: '{{ devops_email_list }}'
     git_announce_list: '{{ devops_email_list }}'
-    git_envelopesender: 'dims@{{ ansible_fqdn }}'
+    git_envelopesender: 'dims@{{ dims_fqdn }}'
     git_emailprefix: '[Git]'
     git_required_repos:
       - name: 'prisem'

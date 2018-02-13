@@ -473,7 +473,7 @@
   with_first_found:
     - files:
         - '{{ dims_environment }}'
-        - environment.{{ ansible_fqdn }}.j2
+        - environment.{{ dims_fqdn }}.j2
         - environment.category-{{ category }}.j2
         - environment.deployment-{{ deployment }}.j2
         - environment.j2
@@ -525,7 +525,7 @@
   with_first_found:
     - files:
         - '{{ dims_bashrc }}'
-        - bash.bashrc.{{ ansible_fqdn }}.j2
+        - bash.bashrc.{{ dims_fqdn }}.j2
         - bash.bashrc.category-{{ category }}.j2
         - bash.bashrc.deployment-{{ deployment }}.j2
         - bash.bashrc.j2
@@ -546,7 +546,7 @@
   with_first_found:
     - files:
         - '{{ dims_profile }}'
-        - dims.sh.{{ ansible_fqdn }}.j2
+        - dims.sh.{{ dims_fqdn }}.j2
         - dims.sh.category-{{ category }}.j2
         - dims.sh.deployment-{{ deployment }}.j2
         - dims.sh.j2
@@ -577,7 +577,7 @@
   with_first_found:
     - files:
         - '{{ dims_bashrc_dims }}'
-        - bashrc.dims.{{ ansible_fqdn }}.j2
+        - bashrc.dims.{{ dims_fqdn }}.j2
         - bashrc.dims.category-{{ category }}.j2
         - bashrc.dims.deployment-{{ deployment }}.j2
         - bashrc.dims.j2
