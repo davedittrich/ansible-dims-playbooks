@@ -475,6 +475,7 @@
   when:
     - not _trident_configured
     - not _trident_restore_status
+  tags: [ trident-core, trident-configure ]
 
 # Validate Trident is functional
 
