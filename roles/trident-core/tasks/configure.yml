@@ -6,21 +6,18 @@
   set_fact:
     trident_site_adminemail: '{{ dims_adminemail }}'
   when: trident_site_adminemail is not defined
-  tags: [ always ]
 
 - name: Assert trident_sysadmin_pass is defined and not null
   assert:
     that:
       - trident_sysadmin_pass is defined
       - trident_sysadmin_pass != ''
-  tags: [ always ]
 
 - name: Assert trident_db_pass is defined and not null
   assert:
     that:
       - trident_db_pass is defined
       - trident_db_pass != ''
-  tags: [ always ]
 
 - name: Ensure 'logo.png' is present
   copy:
@@ -41,8 +38,6 @@
        - files/logo.png/
       skip: true
   become: yes
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
 
 - name: Ensure 'favicon.ico' is present
   copy:
@@ -63,8 +58,6 @@
        - files/favicon.ico/
       skip: true
   become: yes
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
 
 - name: Ensure header_image is present
   copy:
@@ -85,8 +78,6 @@
        - files/header_image.jpg/
       skip: true
   become: yes
-  # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
 
 # NOTE: The command to set unknown person image is called "unknown_image"
 # but the default file is named "unknown_person.jpg". Beware.
@@ -111,7 +102,6 @@
       skip: true
   become: yes
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
 
 - name: Ensure cascading style sheet is present (tsetup)
   template:
@@ -133,5 +123,4 @@
       skip: true
   become: yes
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
-  tags: [ trident-core, trident-configure, config ]
 
