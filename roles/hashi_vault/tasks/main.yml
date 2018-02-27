@@ -1,11 +1,136 @@
 ---
 
-# File: roles/vault/tasks/main.yml
+# File: roles/hashi_vault/tasks/main.yml
 
-# Install Vault on Linux 
+- name: Define hashi_vault_version
+  set_fact:
+    hashi_vault_version: '{{ _hashi_vault_version }}'
+  when: hashi_vault_version is not defined
+  tags: [ always ]
+
+- name: Define hashi_vault_archive
+  set_fact:
+    hashi_vault_archive: '{{ _hashi_vault_archive }}'
+  when: hashi_vault_archive is not defined
+  tags: [ always ]
+
+- name: Define hashi_vault_dist_url
+  set_fact:
+    hashi_vault_dist_url: '{{ _hashi_vault_dist_url }}'
+  when: hashi_vault_dist_url is not defined
+  tags: [ always ]
+
+- name: Define hashi_vault_sha256_sum
+  set_fact:
+    hashi_vault_sha256_sum: '{{ _hashi_vault_sha256_sum }}'
+  when: hashi_vault_sha256_sum is not defined
+  tags: [ always ]
+
+- name: Define hashi_vault_key_shares
+  set_fact:
+    hashi_vault_key_shares: '{{ _hashi_vault_key_shares }}'
+  when: hashi_vault_key_shares is not defined
+  tags: [ always ]
+
+- name: Define hashi_vault_key_threshold
+  set_fact:
+    hashi_vault_key_threshold: '{{ _hashi_vault_key_threshold }}'
+  when: hashi_vault_key_threshold is not defined
+  tags: [ always ]
+
+  # This role uses the variable "_hashi_vault_mode" to simplify logic later on.
+  # It installs Vault in "dev" mode if both of the variable hashi_vault_key_shares
+  # and hashi_vault_key_threshold are set to 0. If they are both set to something
+  # greater than 1, Vault is installed in "full" mode as recommended, with the
+  # key distribution process and unsealing left as a manual processes.
+  # If both of these variables set to 1, Vault is installed in "simple" mode,
+  # which is more like a production installation, but with automatic unsealing
+  # so it is ready to be used by the "ansible" account similar to "dev" mode.
+
+- name: Define _hashi_vault_mode
+  set_fact:
+    _hashi_vault_mode: '{{ (hashi_vault_key_shares|int == 1 and hashi_vault_key_threshold|int == 1)|ternary("simple","full") }}'
+  when: _hashi_vault_mode is not defined and
+        (hashi_vault_key_shares|int > 1 and hashi_vault_key_threshold|int > 1)
+  tags: [ always ]
+
+- name: Define _hashi_vault_mode
+  set_fact:
+    _hashi_vault_mode: 'dev'
+  when: _hashi_vault_mode is not defined
+  tags: [ always ]
+
+- name: Debug _hashi_vault_mode
+  debug:
+    var: _hashi_vault_mode
+    verbosity: 2
+  tags: [ always ]
+
+- name: Define hashi_vault_bind_interface
+  set_fact:
+    hashi_vault_bind_interface: '{{ _hashi_vault_bind_interface }}'
+  when: hashi_vault_bind_interface is not defined
+  tags: [ always ]
+
+- name: Define hashi_vault_storage
+  set_fact:
+    hashi_vault_storage: '{{ _hashi_vault_storage }}'
+  when: hashi_vault_storage is not defined
+  tags: [ always ]
+
+- name: Define hashi_vault_storage_path
+  set_fact:
+    hashi_vault_storage_path: '{{ _hashi_vault_storage_path }}'
+  when: hashi_vault_storage_path is not defined
+  tags: [ always ]
+
+- name: Define hashi_vault_user
+  set_fact:
+    hashi_vault_user: '{{ _hashi_vault_user }}'
+  when: hashi_vault_user is not defined
+  tags: [ always ]
+
+- name: Define hashi_vault_group
+  set_fact:
+    hashi_vault_group: '{{ _hashi_vault_group }}'
+  when: hashi_vault_group is not defined
+  tags: [ always ]
+
+- name: Define hashi_vault_addr
+  set_fact:
+    hashi_vault_addr: "{{ hashi_vault_scheme }}://{{ ansible_fqdn }}:{{ hashi_vault_listen_port }}"
+  when: hashi_vault_addr is not defined
+  tags: [ always ]
 
 - import_tasks: "{{ tasks_path }}/pre_tasks.yml"
-  tags: [ vault, packages ]
+  tags: [ hashi_vault, packages, config ]
+
+- name: Ensure vault group is present
+  group:
+    name: '{{ hashi_vault_group }}'
+    state: present
+    system: no
+  become: yes
+  tags: [ hashi_vault, packages ]
+
+- name: Ensure vault user is present
+  user:
+    name: '{{ hashi_vault_user }}'
+    group: '{{ hashi_vault_group }}'
+    state: present
+    shell: '/bin/true'
+  become: yes
+  tags: [ hashi_vault, packages ]
+
+- name: Ensure vault storage path is present
+  file:
+    path: '{{ hashi_vault_storage_path }}'
+    state: directory
+    owner: '{{ hashi_vault_user }}'
+    group: '{{ hashi_vault_group }}'
+    mode: 0o700
+  become: yes
+  tags: [ hashi_vault, packages ]
 
 - name: Get vault zip 
   get_url:
@@ -15,21 +140,40 @@
     validate_certs: true
   become: yes
   when: ansible_system == "Linux"
-  tags: [ vault, packages ]
+  tags: [ hashi_vault, packages ]
 
-- name: Unpack vault archive file
+- name: Unpack Vault archive file
   unarchive:
     src: "{{ dims_deploy }}/{{ role_name }}/{{ hashi_vault_archive }}"
+    dest: "{{ dims_deploy }}/{{ role_name }}"
+    owner: "{{ dims_user }}"
+    group: "{{ dims_group }}"
+    mode: 0o755
+    remote_src: True
+  creates: "{{ dims_bin }}/vault"
+  become: yes
+  when: ansible_system == "Linux"
+  tags: [ hashi_vault, packages ]
+
+- name: Ensure binary installed in dims_bin
+  copy:
+    src: "{{ dims_deploy }}/{{ role_name }}/vault"
     dest: "{{ dims_bin }}"
     owner: "{{ dims_user }}"
     group: "{{ dims_group }}"
     mode: 0o755
     remote_src: True
   become: yes
-  when: ansible_system == "Linux"
-  tags: [ vault, packages ]
+  register: _install
+  tags: [ hashi_vault, packages ]
 
-- name: Configure vault
+- name: Set capability for vault to use memlock
+  shell: "setcap cap_ipc_lock=+ep {{ dims_bin }}/vault"
+  become: yes
+  when: _install.changed
+  tags: [ hashi_vault, packages ]
+
+- name: Configure Vault
   template:
     src: '{{ item }}'
     dest: '{{ dims_etc }}/{{ item | basename | regex_replace("\.j2$","") }}'
@@ -47,19 +191,256 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/vaultconfig/'
         - vaultconfig/
   become: yes
-  tags: [ vault, config ]
+  tags: [ hashi_vault, config ]
 
-- name: Initialize vault
-  shell: "{{ dims_bin }}/vault init"
-  register: keys
+- name: Ensure letsencrypt hook for hashi_vault is present
+  template:
+    src: '{{ item }}'
+    dest: /etc/letsencrypt/renewal-hooks/post/hashi_vault
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o640
+  become: yes
+  with_first_found:
+    - files:
+        - '{{ letsencrypt_hashi_vault_hook }}'
+        - renewal-hook.hashi_vault.{{ inventory_hostname }}
+        - renewal-hook.hashi_vault.category-{{ category }}.j2
+        - renewal-hook.hashi_vault.deployment-{{ deployment }}.j2
+        - renewal-hook.hashi_vault.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/letsencrypt/'
+        - letsencrypt/
+  when: use_letsencrypt is defined and use_letsencrypt|bool
+  tags: [ hashi_vault, config ]
+
+- name: Ensure Letsencrypt certificates are present
+  shell: >
+    bash -x /etc/letsencrypt/renewal-hooks/post/hashi_vault
+  register: _renewal_hooks_exec
+  become: true
+  when: use_letsencrypt is defined and use_letsencrypt|bool
+  tags: [ hashi_vault, config ]
+
+- name: Debug renewal-hook script execution
+  debug:
+    var: _renewal_hooks_exec.stdout_lines
+    verbosity: 2
+  when: _renewal_hooks_exec.stdout_lines is defined
+  tags: [ hashi_vault, config ]
+
+- name: Make vault.service unit present (systemd)
+  template:
+    src: '{{ item }}'
+    dest: /etc/systemd/system/vault.service
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ base_hosts }}'
+        - 'vault.service.{{ inventory_hostname }}.j2'
+        - 'vault.service.category-{{ category }}.j2'
+        - 'vault.service.deployment-{{ deployment }}.j2'
+        - 'vault.service.j2'
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/systemd/'
+        - systemd/
+  when: ansible_service_mgr == "systemd"
+  become: yes
+  register: _service
+  tags: [ hashi_vault, config ]
+
+- name: Ensure service reload when changed
+  systemd:
+    name: vault
+    state: restarted
+    daemon_reload: yes
+  become: yes
+  when: _install.changed or _service.changed
+  tags: [ hashi_vault, packages, config ]
+
+- name: Stat vault token directory
+  stat:
+    path: '{{ hashi_vault_storage_path }}/sys/token'
+  register: _vault_token
+  become: yes
+  tags: [ hashi_vault, packages ]
+
+- name: Debug _vault_token
+  debug:
+    var: _vault_token
+    verbosity: 2
+  tags: [ hashi_vault, packages ]
+
+- name: Define _hashi_vault_initialized
+  set_fact:
+    _hashi_vault_initialized: '{{ _vault_token.stat.exists }}'
+  tags: [ hashi_vault, packages ]
+
+- name: Debug _hashi_vault_initialized
+  debug:
+    var: _hashi_vault_initialized
+    verbosity: 2
+  tags: [ hashi_vault, packages ]
+
+- name: "Initialize Vault (dev mode)"
+  shell: "{{ dims_bin }}/vault operator init -dev"
   environment:
-    VAULT_ADDR: "http://127.0.0.1:8200"
-  tags: [ vault, config ]
+    VAULT_ADDR: "{{ hashi_vault_addr }}"
+  register: keys
+  no_log: '{{ nolog }}'
+  when: _hashi_vault_mode == "dev" and not _hashi_vault_initialized
+  tags: [ hashi_vault, config ]
 
-- debug: msg="{{ keys }}"
-  tags: [ vault, config ]
+- name: Initialize Vault
+  shell: >
+    {{ dims_bin }}/vault operator init
+    -key-shares={{ hashi_vault_key_shares }}
+    -key-threshold={{ hashi_vault_key_threshold }}
+  environment:
+    VAULT_ADDR: "{{ hashi_vault_addr }}"
+  register: _keys
+  no_log: '{{ nolog }}'
+  when: _hashi_vault_mode == "simple" and not _hashi_vault_initialized
+  changed_when: _keys.stdout|search("Unseal Key")
+  tags: [ hashi_vault, config ]
+
+- debug:
+    msg: "{{ _keys }}"
+    verbosity: 2
+  no_log: '{{ nolog }}'
+  when: _keys is defined
+  tags: [ hashi_vault, config ]
+
+- name: Extract unseal keys
+  set_fact:
+    hashi_vault_keys: '{{ hashi_vault_keys|default([]) + [item.split(": ")[1]] }}'
+  with_items: '{{ _keys.stdout_lines|default([]) }}'
+  when: _keys is defined and item|search('Unseal Key')
+  no_log: '{{ nolog }}'
+  tags: [ hashi_vault, config ]
+
+- name: Debug hashi_vault_keys
+  debug:
+    var: hashi_vault_keys
+    verbosity: 2
+  no_log: '{{ nolog }}'
+  when: _keys is defined
+  tags: [ hashi_vault, config ]
+
+- name: Extract root token
+  set_fact:
+    hashi_vault_root_token: '{{ hashi_vault_root_token|default([]) + [item.split(": ")[1]] }}'
+  with_items: '{{ _keys.stdout_lines|default([]) }}'
+  when: _keys is defined and item|search('Initial Root Token')
+  no_log: '{{ nolog }}'
+  tags: [ hashi_vault, config ]
+
+- name: Debug hashi_vault_root_token
+  debug:
+    var: hashi_vault_root_token
+    verbosity: 2
+  no_log: '{{ nolog }}'
+  when: _keys is defined
+  tags: [ hashi_vault, config ]
+
+  # TODO(dittrich): Save unseal keys to secrets directory
+  # Create list with paths to existing key files.
+  # Replace contents of any existing key files (for i in 0:(hashi_vault_key_shares-1))
+  # Delete any existing keys (file[i] for i >= hashi_vault_key_shares)
+
+#- name: Save unseal keys to secrets directory
+
+
+# SECURITY NOTE: Hashicorp supports automated unsealing using GPG/PGP and/or Keybase.io
+# for obtaining public keys. They caution against using "dev mode" (-dev) as it
+# unseals without use of keys at all, as well as using the least secure defaults.
+# A middle ground for more secure development is to set the number of shards and
+# key threshold both to 1. Any unseal keys that are generated are extracted by
+# this role, so the first (and only, if threshold == 1) key can be used when
+# this role is applied to automatically unseal the vault.
+#
+# For initialization using GPG/PGP, see:
+# https://github.com/hashicorp/vault/blob/ec8befbaacd6903025cc124074ceee0de722424a/website/source/docs/concepts/pgp-gpg-keybase.html.md
+
+- name: Unseal vault
+  shell: >
+    {{ dims_bin }}/vault operator unseal {{ hashi_vault_keys[0] }}
+  environment:
+    VAULT_ADDR: "{{ hashi_vault_addr }}"
+  become: yes
+  become_user: '{{ hashi_vault_user }}'
+  register: _unseal
+  when: _hashi_vault_mode == "simple" and
+        hashi_vault_key_threshold == 1 and
+        hashi_vault_keys is defined
+  tags: [ hashi_vault, config ]
+
+- name: Debug unseal operation
+  debug:
+    var: _unseal.stdout_lines
+    verbosity: 2
+  when: _hashi_vault_mode == "simple" and
+        hashi_vault_key_threshold == 1 and
+        _unseal is defined
+  tags: [ hashi_vault, config ]
+
+- name: Authenticate ansible account
+  shell: >
+    {{ dims_bin }}/vault auth -no-verify {{ hashi_vault_root_token[0] }}
+  environment:
+    VAULT_ADDR: "{{ hashi_vault_addr }}"
+  register: _auth
+  when: _hashi_vault_mode == "simple" and
+        hashi_vault_key_threshold == 1 and
+        hashi_vault_keys is defined
+  tags: [ hashi_vault, config ]
+
+- name: Debug auth operation
+  debug:
+    var: _auth.stdout_lines
+    verbosity: 2
+  when: _hashi_vault_mode == "simple" and
+        hashi_vault_key_threshold == 1 and
+        _auth is defined
+  tags: [ hashi_vault, config ]
+
+- name: Test authentication
+  shell: >
+    {{ dims_bin }}/vault status
+  environment:
+    VAULT_ADDR: "{{ hashi_vault_addr }}"
+  register: _status
+  when: _hashi_vault_mode == "simple"
+  tags: [ hashi_vault, config ]
+
+- name: Ensure VAULT_ADDR set for proper SSL access
+  lineinfile:
+    path: ~ansible/.bashrc
+    line: 'export VAULT_ADDR={{ hashi_vault_addr }}'
+    regexp: ^export VAULT_ADDR=
+    insertafter: complete .* vault
+    state: present
+  become: yes
+  tags: [ hashi_vault, config ]
+
+- name: Debug status operation
+  debug:
+    var: _status.stdout_lines
+    verbosity: 2
+  when: _hashi_vault_mode == "simple"
+  tags: [ hashi_vault, config ]
+
+- name: Ensure bash auto-complete is present for ansible account
+  shell: "{{ dims_bin }}/vault -autocomplete-install || true"
+  become: yes
+  become_user: ansible
+  register: _autocomplete
+  changed_when: not _autocomplete.stderr|search("already installed in")
+  tags: [ hashi_vault, config ]
 
 - import_tasks: "{{ tasks_path }}/post_tasks.yml"
-  tags: [ vault, packages ]
+  tags: [ hashi_vault, packages, config ]
 
 # vim: ft=ansible :

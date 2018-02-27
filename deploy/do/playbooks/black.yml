@@ -1,9 +1,9 @@
 ---
 
-# File: playbooks/hosts/orange.yml
+# File: playbooks/hosts/black.yml
 
-- name: Configure host "orange"
-  hosts: orange
+- name: Configure host "black"
+  hosts: black
   gather_facts: true
 
   vars:
@@ -22,9 +22,7 @@
     - { role: postfix }
     - { role: consul }
     - { role: python-virtualenv, use_sphinx: true }
-    - { role: java8 }
-    - { role: ansible-role-jenkins, tags: jenkins2 }
-    - { role: jenkins2 }
+    - { role: hashi_vault }
 
   handlers:
    - import_tasks: "{{ handlers_path }}/restart_services.yml"
