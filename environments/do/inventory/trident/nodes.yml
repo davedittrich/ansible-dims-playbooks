@@ -16,7 +16,6 @@ trident:
 
       # Several trident packages (server, cli, all) share the same
       # version number. Related packages are in the same directory, too.
-      trident_version: '1.4.5'
       trident_download_dir: 'https://github.com/tridentli/trident/releases/download/v{{ trident_version }}'
 
       # Trident components are all loaded at once as a bundle

@@ -39,6 +39,12 @@ do:
         image_id: 'debian-8-x64'
         ssh_key_id: '{{ do_ssh_key_id }}'
         backups_enabled: 'no'
+      - name: 'black'
+        region: '{{ do_region }}'
+        size: '1gb'
+        image_id: 'debian-8-x64'
+        ssh_key_id: '{{ do_ssh_key_id }}'
+        backups_enabled: 'no'
       - name: 'purple'
         region: '{{ do_region }}'
         size: '1gb'
@@ -65,6 +71,8 @@ do:
         - jenkins
       purple:
         - trident
+      black:
+        - vault
     dns_cname_ttl: 360
     dns_subdomains: '' # e.g., '.subdomain'
     dns_txt:
@@ -137,5 +145,13 @@ do:
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
         ]
       trident_perl_disturl: 'https://staff.washington.edu/dittrich/{{ trident_perl_archive }}'
+    'black':
+      hashi_vault_key_shares: 1
+      hashi_vault_key_threshold: 1
+      hashi_vault_mode: 'simple'
+      custom_rules: [
+        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
+        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
+        ]
 
 # vim: ft=ansible :

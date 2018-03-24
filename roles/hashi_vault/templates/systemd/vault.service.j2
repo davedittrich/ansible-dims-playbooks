@@ -1,14 +1,19 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}
 [Unit]
-Description=Hashicopr vault server
+Description=Hashicorp vault server
 Requires=network-online.target
-After=network-online.target
+After=network-online.target {% if hashi_vault_storage == 'consul' %}consul.service{% endif %}
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/vault
+LimitMEMLOCK=infinity
 Environment=GOMAXPROCS=2
+Environment=VAULT_ADDR={{ hashi_vault_addr }}
 Restart=on-failure
-ExecStart={{ dims_bin }}/vault.run vault
+User=vault
+Group=vault
+ExecStart={{ dims_bin }}/vault server $OPTIONS -config={{ dims_etc }}/vaultconfig.hcl
+ExecStop={{ dims_bin }}/vault operator step-down
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGTERM
 

@@ -1,9 +1,24 @@
-backend "consul" {
-  address = "127.0.0.1:8500"
-  path = "vault"
+{% if hashi_vault_storage == "file" %}
+storage "file" {
+  path = "{{ hashi_vault_storage_path }}"
 }
+{% endif %}
+{% if hashi_vault_storage == "consul" %}
+storage "consul" {
+  address = "{{ hashi_vault_listen_address }}:{{ consul_ui_port }}"
+  path = "{{ hashi_vault_storage_path }}"
+}
+{% endif %}
 
 listener "tcp" {
- address = "127.0.0.1:8200"
- tls_disable = 1
+  address = "{{ hashi_vault_listen_address }}:{{ hashi_vault_listen_port }}"
+{% if hashi_vault_scheme == 'https' %}
+  tls_disable = 0
+  tls_cert_file = "{{ hashi_vault_ssl_fullchainfile }}"
+  tls_key_file = "{{ hashi_vault_ssl_keyfile }}"
+  tls_client_ca_file = "{{ hashi_vault_ssl_cacertfile }}"
+  tls_min_version = "tls12"
+{% else %}
+  tls_disable = 1
+{% endif %}
 }

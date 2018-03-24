@@ -50,7 +50,7 @@ ci_server:
     jenkins_repo_url: "deb https://pkg.jenkins.io/debian-stable binary/"
     jenkins_repo_key_url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
     jenkins_pkg_url: https://pkg.jenkins.io/debian-stable/binary
-    jenkins_version: '2.89.4'
+    jenkins_version: '2.107.1'
     jenkins_package_state: present
     jenkins_connection_delay: 5
     jenkins_connection_retries: 60
@@ -153,18 +153,18 @@ ci_server:
       'pitchfork':
         project_url: 'https://github.com/tridentli/pitchfork'
         repo_url: 'https://github.com/tridentli/pitchfork.git'
-        repo_branch: 'DEV_1.4.6'
+        repo_branch: '{{ pitchfork_repo_branch }}'
         repo_credentials: ''
       'pitchfork-data':
         project_url: 'https://github.com/tridentli/pitchfork'
         repo_url: 'https://github.com/tridentli/pitchfork.git'
-        repo_branch: 'DEV_1.4.6'
+        repo_branch: '{{ trident_repo_branch }}'
         repo_credentials: ''
       'trident':
         project_url: 'https://github.com/tridentli/trident'
         repo_url: 'https://github.com/tridentli/trident.git'
         #repo_url: '/opt/git/trident.git'
-        repo_branch: 'DEV_1.4.6'
+        repo_branch: '{{ trident_repo_branch }}'
         repo_credentials: ''
       'trident-ext-src':
         project_url: 'https://github.com/tridentli/trident-ext-src'
@@ -173,7 +173,7 @@ ci_server:
         repo_credentials: ''
     jenkins_bootstrap_jobs:
       - 'build build-parameterized -p REPO={{ jenkins_job_params["build-rpc-develop"].repo_url }} -p BRANCH={{ jenkins_job_params["build-rpc-develop"].repo_branch }}'
-      - 'build pitchfork-data'
+      - 'build pitchfork'
   hosts:
     'green':
       nginx_source_dir: '/var/www/source'

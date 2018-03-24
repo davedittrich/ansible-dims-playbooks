@@ -160,8 +160,8 @@ ci_server:
         project_url: 'https://github.com/tridentli/trident'
         #repo_url: 'https://github.com/tridentli/trident.git'
         repo_url: '/opt/git/trident.git'
-        #repo_branch: 'DEV_1.4.6'
-        repo_branch: 'develop'
+        repo_branch: 'DEV_1.4.6'
+        #repo_branch: 'develop'
         repo_credentials: ''
       'trident-ext-src':
         project_url: 'https://github.com/tridentli/trident-ext-src'

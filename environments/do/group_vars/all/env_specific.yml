@@ -190,6 +190,16 @@ prisem_rpc_version: '1.1.1'
 prisem_rpc_archive: 'prisem-rpc-{{ prisem_rpc_version }}.tar.gz'
 prisem_rpc_dist_url: '{{ artifacts_url }}/{{ prisem_rpc_archive }}'
 
+hashi_vault_scheme: 'https'
+hashi_vault_listen_address: '0.0.0.0'
+hashi_vault_listen_port: 8200
+hashi_vault_addr: "{{ hashi_vault_scheme }}://{{ ansible_fqdn }}:{{ hashi_vault_listen_port }}"
+hashi_vault_ssl_dir: '{{ dims_data }}/vault'
+hashi_vault_ssl_fullchainfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_ssl_fullchainfile|basename }}'
+hashi_vault_ssl_cacertfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_ssl_cacertfile|basename }}'
+hashi_vault_ssl_certfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_ssl_certfile|basename }}'
+hashi_vault_ssl_keyfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_ssl_keyfile|basename }}'
+
 rabbitmq_tcp_listen_port: 5672
 rabbitmq_ssl_listen_port: 5671
 rabbitmq_use_ssl: true
@@ -250,6 +260,10 @@ letsencrypt_ssl_cacertfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/chain.pem'
 letsencrypt_ssl_fullchainfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/fullchain.pem'
 letsencrypt_ssl_certfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/cert.pem'
 letsencrypt_ssl_keyfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/privkey.pem'
+
+trident_version: '1.4.6'
+trident_repo_branch: 'DEV_1.4.6'
+pitchfork_repo_branch: '{{ trident_repo_branch }}'
 
 swarm:
   service_delay_seconds: 30
