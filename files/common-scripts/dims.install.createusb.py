@@ -71,7 +71,7 @@ from sh import udisksctl
 from sh import Command
 
 # Managed by bumpversion
-VERSION = "3.2.5"
+VERSION = "3.3.0"
 
 # Define a globals class
 class mem(object):
