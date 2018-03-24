@@ -28,6 +28,16 @@
   become: yes
   when: ansible_distribution == "Debian"
 
+- name: Ensure kernel has domain name set (Debian)
+  sysctl:
+    name: kernel.domainname
+    value: '{{ dims_domain }}'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  become: yes
+  when: ansible_distribution == "Debian"
+
 - name: Ensure kernel uses FQDN hostname (Debian)
   sysctl:
     name: kernel.hostname
