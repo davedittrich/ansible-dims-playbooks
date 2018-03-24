@@ -12,6 +12,6 @@
   vars_files:
     - "{{ playbooks_root }}/vars/global.yml"
   tasks:
-    - include: '{{ tasks_path }}/trident_backup.yml'
+    - include_tasks: '{{ tasks_path }}/trident_backup.yml'
 
 # vim: ft=ansible :

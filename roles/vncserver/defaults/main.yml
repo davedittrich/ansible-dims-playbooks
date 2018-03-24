@@ -10,7 +10,6 @@ _vncserver_packages:
   - metacity
   - nautilus
   - gnome-terminal
-_vncserver_default_password: '{{ vault_vncserver_password|default("vncserver") }}'
 _vncserver_resolution: "1152x864"
 _vncserver_xterm_geometry: "120x32+10+10"
 _vncserver_depth: 24

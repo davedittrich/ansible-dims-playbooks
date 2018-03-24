@@ -10,7 +10,7 @@
 # restarting services (i.e., installs or alters configuration files
 # for a service daemon) as follows:
 #
-# - include: "{{ handlers_path }}/restart_services.yml"
+# - import_tasks: "{{ handlers_path }}/restart_services.yml"
 #
 # These handlers are just for restarting services. You should *not*
 # be using "enabled=yes" here. Instead, in the tasks file where a
@@ -115,6 +115,9 @@
 
 - name: restart consul
   service: name=consul state=restarted
+
+- name: restart vault
+  service: name=vault state=restarted
 
 - name: restart rundeckd
   service: name=rundeckd state=restarted

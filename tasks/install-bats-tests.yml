@@ -25,13 +25,17 @@
       - playbooks_root is defined
       - playbooks_root != ""
 
-- name: Set _base_path
+- name: Set _base_templates_path
   set_fact:
-    _base_path: '{{ playbooks_root }}/roles/{{ role_name }}/templates/tests'
+    _base_templates_path: '{{ playbooks_root }}/roles/{{ role_name }}/templates/tests'
+
+- name: Set _base_files_path
+  set_fact:
+    _base_files_path: '{{ playbooks_root }}/roles/{{ role_name }}/files/tests'
 
 - name: Determine if tests may exist
   find:
-    path: '{{ _base_path }}'
+    path: '{{ _base_templates_path }}'
     file_type: directory
     recurse: true
   delegate_to: '127.0.0.1'
@@ -45,7 +49,7 @@
 
 - name: Set fact with list of test directories
   set_fact:
-    test_directories: '{{ test_directories|default([]) + [item|regex_replace(_base_path,"")|regex_replace("^/","")] }}'
+    test_directories: '{{ test_directories|default([]) + [item|regex_replace(_base_templates_path,"")|regex_replace("^/","")] }}'
   with_items: "{{ _tests_find.files|map(attribute='path')|list }}"
   when: _tests_find.files is defined
 
@@ -62,7 +66,6 @@
     group: '{{ dims_group }}'
     mode: 0o755
   with_items: '{{ test_directories }}'
-  when: test_directories is defined
 
 # This playbook assumes that all Bats helpers and
 # bash scripts are kept at the top level of the
@@ -70,16 +73,83 @@
 # created at each subordinate level to allow simpler
 # loading of helpers in a consistent manner.
 
-- name: Make bats functions present
+- name: Find bats library templates
+  find:
+    path: '{{ _base_templates_path }}'
+    file_type: file
+    patterns: '*.bash.j2'
+    use_regex: false
+    recurse: true
+  delegate_to: '127.0.0.1'
+  become: no
+  ignore_errors: true
+  register: _find_templates
+
+- block:
+  - name: Record template names
+    set_fact:
+      _templates: '{{ _templates|default([]) + [item] }}'
+    with_items: '{{ _find_templates.files|map(attribute="path")|list }}'
+
+  rescue:
+  - name: Record template names (rescue)
+    set_fact:
+      _templates: []
+
+- name: Debug _templates
+  debug:
+    var: _templates
+    verbosity: 2
+  when: _templates is defined
+
+- name: Find bats library files
+  find:
+    path: '{{ _base_files_path }}'
+    file_type: file
+    patterns: '*.bash'
+    use_regex: false
+    recurse: true
+  delegate_to: '127.0.0.1'
+  become: no
+  ignore_errors: true
+  register: _find_files
+
+- block:
+  - name: Record files names
+    set_fact:
+      _files: '{{ _files|default([]) + [item] }}'
+    with_items: '{{ _find_files.files|map(attribute="path")|list }}'
+
+  rescue:
+  - name: Record file names (rescue)
+    set_fact:
+      _files: []
+
+- name: Debug _files
+  debug:
+    var: _files
+    verbosity: 2
+  when: _files is defined
+
+- name: Ensure templated bats libraries present
   template:
     src: '{{ item }}'
-    dest: '{{ dims_tests }}/{{ item|basename|regex_replace("\.j2","") }}'
+    dest: '{{ dims_tests }}/{{ item|basename|regex_replace("\.j2","")] }}'
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'
     mode: 0o755
-  with_fileglob:
-   - ../templates/tests/*.bash.j2
-  when: test_directories is defined
+  with_items: '{{ _templates }}'
+  when: _templates is defined
+
+- name: Ensure non-templated bats libraries present
+  copy:
+    src: '{{ item }}'
+    dest: '{{ dims_tests }}/{{ item|basename }}'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o755
+  with_items: '{{ _files }}'
+  when: _files is defined
 
 - name: Set fact with list of .bash scripts in top level tests directory
   find:
@@ -111,7 +181,7 @@
 
 - name: Identify bats test templates
   find:
-    path: '{{ _base_path }}'
+    path: '{{ _base_templates_path }}'
     recurse: true
     file_type: file
     patterns: "*.bats.j2"
@@ -150,7 +220,7 @@
 
 - name: Set fact with list of test templates
   set_fact:
-    bats_test_templates: '{{ bats_test_templates + [item|regex_replace(_base_path,"")|regex_replace("^/","")] }}'
+    bats_test_templates: '{{ bats_test_templates + [item|regex_replace(_base_templates_path,"")|regex_replace("^/","")] }}'
   with_items: "{{ _templates_find.files|map(attribute='path')|list }}"
   when: _templates_find.files is defined
 
@@ -173,7 +243,7 @@
 
 - name: Make defined bats tests present
   template:
-    src: '{{ _base_path }}/{{ item }}'
+    src: '{{ _base_templates_path }}/{{ item }}'
     dest: '{{ dims_tests }}/{{ item|regex_replace("\.j2","") }}'
     owner: '{{ dims_user }}'
     group: '{{ dims_group }}'

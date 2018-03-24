@@ -3,7 +3,7 @@
 # See /usr/share/postfix/main.cf.dist for a commented, more complete version
 
 {% if smtp_hostname is not defined %}
-{% set smtp_hostname = ansible_fqdn -%}
+{% set smtp_hostname = dims_fqdn -%}
 {% endif -%}
 {% if smtp_domain is not defined %}
 {% set smtp_domain = ansible_domain -%}

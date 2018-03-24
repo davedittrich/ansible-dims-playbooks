@@ -3,10 +3,10 @@
 # File: roles/postfix/tasks/main.yml
 - name: Define postfix_postmaster
   set_fact:
-    postfix_postmaster: '{{ dims_adminemail|default(ansible_user_id + "@" + ansible_fqdn) }}'
+    postfix_postmaster: '{{ dims_adminemail|default(ansible_user_id + "@" + dims_fqdn) }}'
   tags: [ always ]
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ postfix, config, opendkim, packages, tests ]
 
 - name: Only "update_cache=yes" if >3600s since last update
@@ -300,16 +300,25 @@
     - restart postfix
   tags: [ postfix, config ]
 
-#- name: restart postfix
-#  service:
-#    name: postfix
-#    state: restarted
-#  tags: [ postfix, config ]
+- name: Force postmap where necessary
+  shell: >
+    [ -f '{{ item }}' && -f '{{ item }}'.db ] || postmap '{{ item }}'
+    chdir=/etc/postfix
+  with_items:
+    - access
+    - client_access
+    - generic
+    - helo_access
+    - transport
+    - virtual
+  notify:
+    - restart postfix
+  tags: [ postfix, config ]
 
-- include_tasks: "opendkim.yml"
+- import_tasks: "opendkim.yml"
   tags: [ postfix, config, opendkim, opendkim_genkeys ]
 
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ postfix, config, opendkim, packages, tests ]
 
 # vim: ft=ansible :

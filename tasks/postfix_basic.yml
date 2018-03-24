@@ -2,6 +2,12 @@
 
 # File: tasks/postfix_basic.yml
 
+- name: Assert dims_fqdn is defined and not null
+  assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
+
 - name: install postfix
   action: yum pkg=postfix state=present
   tags: [ postfix, packages ]
@@ -10,7 +16,7 @@
   action: copy src={{ item }} dest=/etc/postfix/main.cf
   with_first_found:
     - "{{ postfix_maincf }}"
-    - "{{ roles_path }}/base/files/postfix/main.cf/main.cf.{{ ansible_fqdn }}"
+    - "{{ roles_path }}/base/files/postfix/main.cf/main.cf.{{ dims_fqdn }}"
     - "{{ roles_path }}/base/files/postfix/main.cf/main.cf.{{ inventory_hostname }}"
     - "{{ roles_path }}/base/files/postfix/main.cf/main.cf.{{ host_group }}"
     - "{{ roles_path }}/base/files/postfix/main.cf/main.cf.{{ postfix_group }}"

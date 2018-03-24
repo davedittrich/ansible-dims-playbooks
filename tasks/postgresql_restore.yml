@@ -17,9 +17,15 @@
 #
 # See https://www.postgresql.org/docs/current/static/app-pgrestore.html
 
+- name: Assert dims_fqdn is defined and not null
+  assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
+
 - name: Define local postgresql backup directory
   set_fact:
-    postgresql_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
+    postgresql_backup_dir: '{{ dims_backups }}/{{ dims_fqdn }}'
   when: postgresql_backup_dir is not defined
 
 - name: Debug postgresql_backup_dir

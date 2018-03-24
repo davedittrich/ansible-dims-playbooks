@@ -16,7 +16,7 @@
 
 option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;
 
-send host-name = {{ ansible_fqdn }}
+send host-name = {{ dims_fqdn }}
 supersede domain-name "{{ ansible_domain }}";
 prepend domain-name-servers 127.0.0.1
 {% if groups['nameserver'] is defined %}

@@ -12,7 +12,7 @@
   vars_files:
     - "{{ playbooks_root }}/vars/global.yml"
   tasks:
-    - include: '{{ tasks_path }}/trident_restore.yml'
+    - include_tasks: '{{ tasks_path }}/trident_restore.yml'
 
   handlers:
     - name: restart trident

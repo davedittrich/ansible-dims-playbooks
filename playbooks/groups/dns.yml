@@ -4,7 +4,7 @@
 
 # create a new dns server
 
-- include: "/opt/dims/ansible/playbooks/include/virt-create.yml myhosts=dns"
+- import_tasks: "/opt/dims/ansible/playbooks/include/virt-create.yml myhosts=dns"
 
 - name: make the box be real
   hosts: dns
@@ -24,10 +24,10 @@
   - dns
 
   tasks:
-  - include: "{{ tasks_path }}/aptrepos.yml"
-  - include: "{{ tasks_path }}/yumrepos.yml"
-#  - include: "{{ tasks_path }}/2fa_client.yml"
-  - include: "{{ tasks_path }}/motd.yml"
+  - import_tasks: "{{ tasks_path }}/aptrepos.yml"
+  - import_tasks: "{{ tasks_path }}/yumrepos.yml"
+#  - import_tasks: "{{ tasks_path }}/2fa_client.yml"
+  - import_tasks: "{{ tasks_path }}/motd.yml"
 
   handlers:
-  - include: "{{ handlers_path }}/restart_services.yml"
+  - import_tasks: "{{ handlers_path }}/restart_services.yml"

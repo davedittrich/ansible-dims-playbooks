@@ -20,6 +20,13 @@
     delegate_to: localhost
     run_once: true
 
+  - name: Ensure user-data directory exists
+    file:
+      path: user-data
+      state: directory
+    delegate_to: localhost
+    run_once: true
+
   - name: "Template user-data file"
     template:
       src: 'user-data.j2'

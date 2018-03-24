@@ -12,6 +12,6 @@
   vars_files:
     - "{{ playbooks_root }}/vars/global.yml"
   tasks:
-    - include: '{{ tasks_path }}/postgresql_restore.yml'
+    - include_tasks: '{{ tasks_path }}/postgresql_restore.yml'
 
 # vim: ft=ansible :

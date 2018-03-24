@@ -3,7 +3,7 @@
 # File: roles/trident-core/defaults/main.yml
 
 trident_domain: '{{ dims_domain|default(ansible_domain) }}'
-trident_fqdn: '{{ dims_fqdn|default(ansible_fqdn) }}'
+trident_fqdn: '{{ dims_fqdn|default(dims_fqdn) }}'
 trident_site_adminname: 'Trident Administrator'
 trident_site_adminemail: '{{ dims_adminemail|default("admin@" + trident_site_email_domain) }}'
 trident_site_admins: []

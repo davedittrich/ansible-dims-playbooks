@@ -1,0 +1,126 @@
+---
+
+# File: roles/trident-core/tasks/configure.yml
+
+- name: Define trident_site_adminemail
+  set_fact:
+    trident_site_adminemail: '{{ dims_adminemail }}'
+  when: trident_site_adminemail is not defined
+
+- name: Assert trident_sysadmin_pass is defined and not null
+  assert:
+    that:
+      - trident_sysadmin_pass is defined
+      - trident_sysadmin_pass != ''
+
+- name: Assert trident_db_pass is defined and not null
+  assert:
+    that:
+      - trident_db_pass is defined
+      - trident_db_pass != ''
+
+- name: Ensure 'logo.png' is present
+  copy:
+    src: '{{ item }}'
+    dest: /usr/share/pitchfork/webroot/{{ trident_site_logo_image }}
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+       - '{{ trident_logo }}'
+       - logo.png.{{ inventory_hostname }}
+       - logo.png.category-{{ category }}
+       - logo.png.deployment-{{ deployment }}
+       - logo.png
+      paths:
+       - '{{ dims_private }}/roles/{{ role_name }}/files/logo.png/'
+       - files/logo.png/
+      skip: true
+  become: yes
+
+- name: Ensure 'favicon.ico' is present
+  copy:
+    src: '{{ item }}'
+    dest: /usr/share/pitchfork/webroot/{{ trident_site_favicon_image }}
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+       - '{{ trident_favicon }}'
+       - favicon.ico.{{ inventory_hostname }}
+       - favicon.ico.category-{{ category }}
+       - favicon.ico.deployment-{{ deployment }}
+       - favicon.ico
+      paths:
+       - '{{ dims_private }}/roles/{{ role_name }}/files/favicon.ico/'
+       - files/favicon.ico/
+      skip: true
+  become: yes
+
+- name: Ensure header_image is present
+  copy:
+    src: '{{ item }}'
+    dest: /usr/share/trident/webroot/{{ trident_site_header_image }}
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+       - '{{ trident_header }}'
+       - header_image.jpg.{{ inventory_hostname }}
+       - header_image.jpg.category-{{ category }}
+       - header_image.jpg.deployment-{{ deployment }}
+       - header_image.jpg
+      paths:
+       - '{{ dims_private }}/roles/{{ role_name }}/files/header_image.jpg/'
+       - files/header_image.jpg/
+      skip: true
+  become: yes
+
+# NOTE: The command to set unknown person image is called "unknown_image"
+# but the default file is named "unknown_person.jpg". Beware.
+
+- name: Ensure unknown_person.jpg is present
+  copy:
+    src: '{{ item }}'
+    dest: /usr/share/pitchfork/webroot/{{ trident_site_unknown_person }}
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+       - '{{ trident_unknown_person }}'
+       - unknown_person.jpg.{{ inventory_hostname }}
+       - unknown_person.jpg.category-{{ category }}
+       - unknown_person.jpg.deployment-{{ deployment }}
+       - unknown_person.jpg
+      paths:
+       - '{{ dims_private }}/roles/{{ role_name }}/files/unknown_person.jpg/'
+       - files/unknown_person.jpg/
+      skip: true
+  become: yes
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+
+- name: Ensure cascading style sheet is present (tsetup)
+  template:
+    src: '{{ item }}'
+    dest: /usr/share/trident/webroot/css/trident.css
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+       - '{{ trident_css }}'
+       - trident.css.{{ inventory_hostname }}.j2
+       - trident.css.category-{{ category }}.j2
+       - trident.css.deployment-{{ deployment }}.j2
+       - trident.css.j2
+      paths:
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/trident.css/'
+       - trident/trident.css/
+      skip: true
+  become: yes
+  # TODO(dittrich): Move this to trident-configure role; use tag for now.
+

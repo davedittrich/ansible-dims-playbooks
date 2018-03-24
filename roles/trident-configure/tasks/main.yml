@@ -14,13 +14,21 @@
   when: trident_site_adminemail is not defined
   tags: [ always ]
 
-- include: '{{ tasks_path }}/pre_tasks.yml'
-  tags: [ trident-configure, config ]
+- name: Assert trident_sysadmin_pass is defined and not null
+  assert:
+    that:
+      - trident_sysadmin_pass is defined
+      - trident_sysadmin_pass != ''
+  tags: [ always ]
 
-- name: Load deployment secrets
-  include_vars: '{{ dims_private }}/group_vars/vault.yml'
-  no_log: '{{ nolog }}'
-  when: vault_trident_sysadmin_pass is not defined
+- name: Assert trident_db_pass is defined and not null
+  assert:
+    that:
+      - trident_db_pass is defined
+      - trident_db_pass != ''
+  tags: [ always ]
+
+- import_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ trident-configure, config ]
 
 - name: Ensure administator is logged in
@@ -231,7 +239,7 @@
     PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
   tags: [ trident-configure, config ]
 
-- include: '{{ tasks_path }}/post_tasks.yml'
+- import_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ trident-configure, config ]
 
 # vim:ft=ansible:

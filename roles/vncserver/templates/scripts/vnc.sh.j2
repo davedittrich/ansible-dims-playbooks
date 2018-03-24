@@ -34,11 +34,11 @@
 . $DIMS/bin/dims_functions.sh
 
 # Tracks with bumpversion
-DIMS_VERSION=3.2.0
+DIMS_VERSION=3.3.0
 
 ANSIBLE_USER=${ANSIBLE_USER:-{{ hostvars[inventory_hostname].ansible_user }}}
 SSH_PORT=${SSH_PORT:-{{ hostvars[inventory_hostname].ansible_port }}}
-SSH_HOST=${SSH_HOST:-{{ ansible_fqdn }}}
+SSH_HOST=${SSH_HOST:-{{ dims_fqdn }}}
 PRIVATE_KEY=${PRIVATE_KEY:-$(get_ssh_private_key_file ${ANSIBLE_USER} ${DIMS_PRIVATE:-''})}
 TUNNEL_PORT="${TUNNEL_PORT:-5901}"
 TUNNEL_HOST="${TUNNEL_HOST:-127.0.0.1}"

@@ -4,12 +4,18 @@
 #
 # Ensure hostname is set to FQDN, domain name is set.
 #
-- name: Ensure ansible_fqdn is really FQDN
+- name: Assert dims_fqdn is defined and not null
+  assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
+
+- name: Define dims_fqdn
   set_fact:
     dims_fqdn: '{{ inventory_hostname }}.{{ dims_domain }}'
   when: dims_fqdn is not defined
 
-- debug: msg=System "{{ inventory_hostname }} ({{ ansible_fqdn }})"
+- debug: msg=System "{{ inventory_hostname }} ({{ dims_fqdn }})"
   when: verbose
 
 - name: Make /etc/hostname present
@@ -19,6 +25,16 @@
 
 - name: Set hostname (runtime) (Debian)
   shell: 'hostname -b -F /etc/hostname'
+  become: yes
+  when: ansible_distribution == "Debian"
+
+- name: Ensure kernel has domain name set (Debian)
+  sysctl:
+    name: kernel.domainname
+    value: '{{ dims_domain }}'
+    sysctl_set: yes
+    state: present
+    reload: yes
   become: yes
   when: ansible_distribution == "Debian"
 

@@ -13,7 +13,7 @@
 # http://michlstechblog.info/blog/openvpn-set-a-static-ip-address-for-a-client/
 # http://beenje.github.io/blog/posts/installing-openvpn-on-a-raspberry-pi-with-ansible/
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ openvpn-client ]
 
 # Tasks for setting up an OpenVPN service endpoint.
@@ -21,7 +21,7 @@
 # ...
 
 
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ openvpn-client ]
 
 # vim: ft=ansible :

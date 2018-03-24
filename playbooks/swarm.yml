@@ -19,10 +19,10 @@
    - "{{ playbooks_root }}/vars/global.yml"
 
   tasks:
-  - include: "{{ tasks_path }}/debug-dump-vars.yml"
+  - include_tasks: "{{ tasks_path }}/debug-dump-vars.yml"
     when: debug
 
-- include: "{{ imported_roles }}/swarm-ansible-playbook/swarm.yml"
+- include_tasks: "{{ imported_roles }}/swarm-ansible-playbook/swarm.yml"
 
 # NOTE: Cluster state restoration test may be done here
 

@@ -10,87 +10,121 @@
   set_fact:
     rabbitmq_plugins: '{{ _rabbitmq_plugins }}'
   when: rabbitmq_plugins is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define rabbitmq_apt_key
   set_fact:
     rabbitmq_apt_key: '{{ _rabbitmq_apt_key }}'
   when: rabbitmq_apt_key is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define rabbitmq_apt_repo
   set_fact:
     rabbitmq_apt_repo: '{{ _rabbitmq_apt_repo }}'
   when: rabbitmq_apt_repo is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define rabbitmq_listen_address
   set_fact:
     rabbitmq_listen_address: '{{ _rabbitmq_listen_address }}'
   when: rabbitmq_listen_address is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define rabbitmq_listen_port
   set_fact:
     rabbitmq_listen_port: '{{ _rabbitmq_listen_port }}'
   when: rabbitmq_listen_port is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define rabbitmq_ssl_listen_address
   set_fact:
     rabbitmq_ssl_listen_address: '{{ _rabbitmq_ssl_listen_address }}'
   when: rabbitmq_ssl_listen_address is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define rabbitmq_ssl_listen_port
   set_fact:
     rabbitmq_ssl_listen_port: '{{ _rabbitmq_ssl_listen_port }}'
   when: rabbitmq_ssl_listen_port is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define rabbitmq_mgmt_listen_address
   set_fact:
     rabbitmq_mgmt_listen_address: '{{ _rabbitmq_mgmt_listen_address }}'
   when: rabbitmq_mgmt_listen_address is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define rabbitmq_mgmt_listen_port
   set_fact:
     rabbitmq_mgmt_listen_port: '{{ _rabbitmq_mgmt_listen_port }}'
   when: rabbitmq_mgmt_listen_port is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define rabbitmq_etc_default
   set_fact:
     rabbitmq_etc_default: '{{ _rabbitmq_etc_default }}'
   when: rabbitmq_etc_default is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define rabbitmq_fqdn
   set_fact:
-    rabbitmq_fqdn: '{{ ansible_fqdn }}'
+    rabbitmq_fqdn: '{{ dims_fqdn }}'
   when: rabbitmq_fqdn is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define erlang_apt_key
   set_fact:
     erlang_apt_key: '{{ _erlang_apt_key }}'
   when: erlang_apt_key is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
 
 - name: Define erlang_apt_repo
   set_fact:
     erlang_apt_repo: '{{ _erlang_apt_repo }}'
   when: erlang_apt_repo is not defined
-  tags: [ rabbitmq ]
+  tags: [ always ]
+
+- name: Debug facts
+  debug:
+    var: '{{ item }}'
+    verbosity: 2
+  with_items:
+    - rabbitmq_plugins
+    - rabbitmq_apt_key
+    - rabbitmq_apt_repo
+    - rabbitmq_listen_address
+    - rabbitmq_listen_port
+    - rabbitmq_ssl_listen_address
+    - rabbitmq_ssl_listen_port
+    - rabbitmq_mgmt_listen_address
+    - rabbitmq_mgmt_listen_port
+    - rabbitmq_etc_default
+    - rabbitmq_fqdn
+    - erlang_apt_key
+    - erlang_apt_repo
+  tags: [ always ]
 
 #- name: Define rabbitmq_mgmt_stats_interval
 #  set_fact:
 #    rabbitmq_mgmt_stats_interval: '{{ _rabbitmq_mgmt_stats_interval }}'
 #  when: rabbitmq_mgmt_stats_interval is not defined
-#  tags: [ rabbitmq ]
+#  tags: [ always ]
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- name: Assert rabbitmq_default_user_pass is defined and not null
+  assert:
+    that:
+      - rabbitmq_default_user_pass is defined
+      - rabbitmq_default_user_pass != ''
+  tags: [ always ]
+
+- name: Assert rabbitmq_admin_user_pass is defined and not null
+  assert:
+    that:
+      - rabbitmq_admin_user_pass is defined
+      - rabbitmq_admin_user_pass != ''
+  tags: [ always ]
+
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ rabbitmq ]
 
 - name: Add rabbitmq repo signing key
@@ -175,7 +209,7 @@
   systemd:
     name: rabbitmq-server
     enabled: yes
-  when: ansible_service_mgr != "systemd"
+  when: ansible_service_mgr == "systemd"
   tags: [ rabbitmq ]
 
 - name: Ensure nginx sites directories exist
@@ -364,7 +398,8 @@
     http://127.0.0.1:{{ rabbitmq_mgmt_listen_port }}/cli/rabbitmqadmin
     > /usr/local/bin/rabbitmqadmin &&
     chmod +x /usr/local/bin/rabbitmqadmin
-  warn: no
+    warn=no
+    creates=/usr/local/bin/rabbitmqadmin
   when: rabbitmq_mgmt_uses_ssl is not defined or
         not rabbitmq_mgmt_uses_ssl|bool
   become: yes
@@ -417,7 +452,7 @@
   failed_when: not _import.stdout|search("Imported definitions")
   tags: [ rabbitmq, config ]
 
-- include: '{{ tasks_path }}/post_tasks.yml'
+- import_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ rabbitmq ]
 
 # vim: ft=ansible :

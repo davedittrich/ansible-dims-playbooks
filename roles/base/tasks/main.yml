@@ -154,7 +154,7 @@
   tags: [ base, config, updates ]
 
 - name: Ensure hostname is set
-  include_tasks: "{{ tasks_path }}/hostname.yml"
+  import_tasks: "{{ tasks_path }}/hostname.yml"
   tags: [ base, config ]
 
   # Must include tag for any task in this playbook that uses
@@ -376,6 +376,7 @@
         - fail2ban/fail2ban.local/
   become: yes
   notify:
+    - "restart rsyslog"
     - "restart fail2ban ({{ ansible_service_mgr }})"
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
@@ -472,7 +473,7 @@
   with_first_found:
     - files:
         - '{{ dims_environment }}'
-        - environment.{{ ansible_fqdn }}.j2
+        - environment.{{ dims_fqdn }}.j2
         - environment.category-{{ category }}.j2
         - environment.deployment-{{ deployment }}.j2
         - environment.j2
@@ -506,11 +507,11 @@
   tags: [ base, services ]
 
 - name: Check proxy availability
-  include_tasks: "{{ tasks_path }}/proxy_check.yml"
+  import_tasks: "{{ tasks_path }}/proxy_check.yml"
   tags: [ base, config, packages, updates, triggers ]
 
 - name: Make CoreOS resources present
-  include: coreos.yml
+  import_tasks: coreos.yml
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, packages ]
 
@@ -524,7 +525,7 @@
   with_first_found:
     - files:
         - '{{ dims_bashrc }}'
-        - bash.bashrc.{{ ansible_fqdn }}.j2
+        - bash.bashrc.{{ dims_fqdn }}.j2
         - bash.bashrc.category-{{ category }}.j2
         - bash.bashrc.deployment-{{ deployment }}.j2
         - bash.bashrc.j2
@@ -545,7 +546,7 @@
   with_first_found:
     - files:
         - '{{ dims_profile }}'
-        - dims.sh.{{ ansible_fqdn }}.j2
+        - dims.sh.{{ dims_fqdn }}.j2
         - dims.sh.category-{{ category }}.j2
         - dims.sh.deployment-{{ deployment }}.j2
         - dims.sh.j2
@@ -576,7 +577,7 @@
   with_first_found:
     - files:
         - '{{ dims_bashrc_dims }}'
-        - bashrc.dims.{{ ansible_fqdn }}.j2
+        - bashrc.dims.{{ dims_fqdn }}.j2
         - bashrc.dims.category-{{ category }}.j2
         - bashrc.dims.deployment-{{ deployment }}.j2
         - bashrc.dims.j2
@@ -601,14 +602,14 @@
 # on the CoreOS nodes to funnel logs back to their central holding place.
 # Adding "when" statements to make these all Debian-only tasks.
 
-- name: Stop rsyslogd
-  service:
-    name: rsyslog
-    state: stopped
-  notify: restart rsyslog
-  when: ansible_os_family != "Container Linux by CoreOS"
-  ignore_errors: yes
-  tags: [ base, config, rsyslogd ]
+#- name: Stop rsyslogd
+#  service:
+#    name: rsyslog
+#    state: stopped
+#  notify: restart rsyslog
+#  when: ansible_os_family != "Container Linux by CoreOS"
+#  ignore_errors: yes
+#  tags: [ base, config, rsyslogd ]
 
 - name: Add group for rsyslog
   group:
@@ -918,7 +919,7 @@
 # TODO(mboggess): Tasks in dnsmasq.yml fail on CoreOS
 # added "when" statement
 - name: Make DNS service using dnsmasq present (Debian)
-  include: dnsmasq.yml
+  import_tasks: dnsmasq.yml
   when: ansible_os_family == "Debian" and manage_dnsmasq
   tags: [ base, packages ]
 
@@ -1021,7 +1022,7 @@
 
 # The Google shflags package is used by DIMS scripts
 - name: Make sure shflags is present
-  include: "{{ tasks_path }}/install-shflags.yml"
+  import_tasks: "{{ tasks_path }}/install-shflags.yml"
   tags: [ base, updates ]
 
 # Note: All scripts end up without extensions. In the directory, they
@@ -1154,7 +1155,7 @@
   tags: [ base, config ]
 
 - name: Ensure bashpass is present
-  include: "{{ tasks_path }}/install-bashpass.yml"
+  import_tasks: "{{ tasks_path }}/install-bashpass.yml"
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, packages, updates ]
@@ -1193,22 +1194,22 @@
   tags: [ base, config ]
 
 - name: Ensure bats is present
-  include: "{{ tasks_path }}/install-bats.yml"
+  import_tasks: "{{ tasks_path }}/install-bats.yml"
   become: yes
   tags: [ base, packages, updates ]
 
 - name: Make defined bats tests present
-  include: "{{ tasks_path }}/install-bats-tests.yml"
+  import_tasks: "{{ tasks_path }}/install-bats-tests.yml"
   become: yes
   tags: [ base, tests ]
 
 - name: Make defined triggers present
-  include: "{{ tasks_path }}/triggers.yml"
+  import_tasks: "{{ tasks_path }}/triggers.yml"
   become: yes
   tags: [ base, triggers ]
 
 - name: Make CoreOS resources present
-  include: coreos.yml
+  import_tasks: coreos.yml
   become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, packages ]

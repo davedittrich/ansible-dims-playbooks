@@ -8,6 +8,11 @@
 #
 # See https://www.postgresql.org/docs/current/static/app-pgdump.html
 
+- assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
+
 - name: Identify user running ansible-playbook
   local_action: command whoami
   register: _localuser
@@ -28,7 +33,7 @@
 
 - name: Define (local) trident_backup_dir
   set_fact:
-    trident_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
+    trident_backup_dir: '{{ dims_backups }}/{{ dims_fqdn }}'
   when: trident_backup_dir is not defined
 
 - name: Debug trident_backup_dir
@@ -39,8 +44,8 @@
 - name: Define trident_backups_paths
   set_fact:
     trident_backups_paths:
+      - '/etc/trident'
       - '/var/lib/trident'
-      - '/usr/share/nginx'
       - '/usr/share/trident'
       - '/usr/share/pitchfork'
   when: trident_backups_paths is not defined

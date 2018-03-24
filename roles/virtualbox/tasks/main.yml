@@ -42,7 +42,7 @@
   when: _running_vms is defined and _running_vms|int >= 1
   tags: [ virtualbox, packages ]
 
-- include: virtualbox.yml
+- import_tasks: virtualbox.yml
   when: _running_vms is defined and _running_vms|int == 0
   tags: [ virtualbox, packages ]
 

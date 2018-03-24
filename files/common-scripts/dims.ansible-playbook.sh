@@ -37,7 +37,7 @@
 FACTSD="/opt/dims/data/facts.d"
 
 # Tracks with bumpversion
-DIMS_VERSION=3.2.0
+DIMS_VERSION=3.3.0
 
 DEPLOYMENT=${DIMS_DEPLOYMENT:-$(get_deployment)}
 CATEGORY=${DIMS_CATEGORY:-devops}
@@ -364,9 +364,9 @@ get_temp_playbook() {
     if [[ $_type == "task" ]]; then \
         echo "  tasks:"; \
         if [[ ${FLAGS_debug} -eq ${FLAGS_TRUE} ]]; then \
-            echo "    - include: $(get_task_playbook debug-dump-vars)"; \
+            echo "    - import_tasks: $(get_task_playbook debug-dump-vars)"; \
         fi; \
-        echo "    - include: $(get_task_playbook $1)"; \
+        echo "    - import_tasks: $(get_task_playbook $1)"; \
     else \
         echo "  roles:"; \
         if [[ ${FLAGS_debug} -eq ${FLAGS_TRUE} ]]; then \

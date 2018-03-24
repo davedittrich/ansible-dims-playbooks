@@ -35,7 +35,7 @@
       - _pubkeystat.stat.exists
   tags: [ always ]
 
-- include: '{{ tasks_path }}/pre_tasks.yml'
+- import_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ git-ssh ]
 
 - name: Ensure git user present w/git-shell for shell
@@ -204,9 +204,9 @@
     - '{{ existing_repos }}'
   tags: [ git-ssh ]
 
+  # Using dynamic include for looping
 - name: Ensure desired post-receive hooks are present
-  include: 'link-post-receive.yml'
-  static: no
+  include_tasks: 'link-post-receive.yml'
   with_items:
     - '{{ git_required_repos|map(attribute="name")|list }}'
   loop_control:
@@ -214,7 +214,7 @@
   become: yes
   tags: [ git-ssh ]
 
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ git-ssh ]
 
 # vim: ft=ansible :

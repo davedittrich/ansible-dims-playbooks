@@ -51,7 +51,7 @@
   with_first_found:
     - files:
         - '{{ coreos_profile }}'
-        - coreos.sh.{{ ansible_fqdn }}.j2
+        - coreos.sh.{{ dims_fqdn }}.j2
         - coreos.sh.category-{{ category }}.j2
         - coreos.sh.deployment-{{ deployment }}.j2
         - coreos.sh.j2

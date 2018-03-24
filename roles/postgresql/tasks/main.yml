@@ -2,7 +2,7 @@
 
 # File: roles/postgresql/tasks/main.yml
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ postgresql, config, packages ]
 
   # /etc/apt/sources.list.d/pgdg.list
@@ -125,11 +125,7 @@
   become: yes
   tags: [ postgresql, packages ]
 
-- name: Make defined bats tests present
-  include: "{{ tasks_path }}/install-bats-tests.yml"
-  tags: [ postgresql, tests ]
-
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ postgresql, config, packages ]
 
 # vim: ft=ansible :

@@ -10,6 +10,7 @@ all:
     'red':
       tcp_ports: [ 25, 53, '{{ rsyslog_port }}' ]
       udp_ports: [ 53 ]
+    'black':
     'blue':
     'green':
       tcp_ports: [ 25, '{{ nginx_default_port }}', '{{ nginx_ssl_port }}' ]
@@ -22,10 +23,11 @@ all:
       hosts:
         'red':
         'green':
+        'black':
+        'purple':
     development:
       hosts:
         'blue':
-        'purple':
     coreos:
       vars:
         ssl_certs_dir: '?'
@@ -141,6 +143,8 @@ all:
           - 'auditd'
       hosts:
         'red':
+          os_version: '8.5.0'
+        'black':
           os_version: '8.5.0'
         'green':
           os_version: '8.5.0'

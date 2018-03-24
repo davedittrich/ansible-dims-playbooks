@@ -24,6 +24,6 @@
     - { role: python-virtualenv, use_sphinx: true }
 
   handlers:
-   - include: "{{ handlers_path }}/restart_services.yml"
+   - import_tasks: "{{ handlers_path }}/restart_services.yml"
 
 # vim: ft=ansible :

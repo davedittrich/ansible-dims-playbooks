@@ -4,7 +4,7 @@
 
 # TODO(dittrich): Beware, this role was never completed. Remove?
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ squid-proxy, config ]
 
 #
@@ -30,7 +30,7 @@
   ignore_errors: yes
   tags: [ squid-proxy ]
 
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ squid-proxy, config ]
 
 # vim: ft=ansible :

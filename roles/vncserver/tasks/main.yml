@@ -5,6 +5,19 @@
 # Playbook based in part on this resource:
 # https://rbgeek.wordpress.com/2012/06/25/how-to-install-vnc-server-on-ubuntu-server-12-04/
 
+- name: Assert vnc_password is defined and not null
+  assert:
+    that:
+      - vnc_password is defined
+      - vnc_password != ''
+  tags: [ always ]
+
+- name: Define vncserver_fqdn
+  set_fact:
+    vncserver_fqdn: '{{ dims_fqdn }}'
+  when: vncserver_fqdn is not defined
+  tags: [ always ]
+
 - name: Define vncserver_packages
   set_fact:
     vncserver_packages: '{{ _vncserver_packages }}'
@@ -51,7 +64,7 @@
 - debug: var=vncserver_users_indexed
   tags: [ vncserver ]
 
-- include: '{{ tasks_path }}/pre_tasks.yml'
+- import_tasks: '{{ tasks_path }}/pre_tasks.yml'
   tags: [ vncserver ]
 
 - name: Ensure vncserver is stopped
@@ -88,7 +101,7 @@
   with_first_found:
     - files:
         - '{{ vncserver_init }}'
-        - vncserver.{{ ansible_fqdn }}.j2
+        - vncserver.{{ vnserver_fqdn }}.j2
         - vncserver.category-{{ category }}.j2
         - vncserver.deployment-{{ deployment }}.j2
         - vncserver.j2
@@ -143,12 +156,12 @@
 - name: Ensure local tunnel helper script is present
   template:
     src: '{{ item }}'
-    dest: '{{ dims_bin }}/{{ item|basename|regex_replace("\.sh\.j2$","") }}.{{ ansible_fqdn }}'
+    dest: '{{ dims_bin }}/{{ item|basename|regex_replace("\.sh\.j2$","") }}.{{ vncserver_fqdn }}'
     mode: 0o755
   with_first_found:
     - files:
         - '{{ vnc_script }}'
-        - vnc.sh.{{ ansible_fqdn }}.j2
+        - vnc.sh.{{ vncserver_fqdn }}.j2
         - vnc.sh.category-{{ category }}.j2
         - vnc.sh.deployment-{{ deployment }}.j2
         - vnc.sh.j2
@@ -169,7 +182,7 @@
   with_first_found:
     - files:
         - '{{ vncserver_default }}'
-        - vncserver.{{ ansible_fqdn }}.j2
+        - vncserver.{{ vncserver_fqdn }}.j2
         - vncserver.category-{{ category }}.j2
         - vncserver.deployment-{{ deployment }}.j2
         - vncserver.j2
@@ -178,7 +191,7 @@
         - default/
   tags: [ vncserver ]
 
-- include: '{{ tasks_path }}/post_tasks.yml'
+- import_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ vncserver ]
 
 # vim: ft=ansible :

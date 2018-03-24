@@ -8,6 +8,12 @@
 #
 # See https://www.postgresql.org/docs/current/static/app-pgdump.html
 
+- name: Assert dims_fqdn is defined and not null
+  assert:
+    that:
+      - dims_fqdn is defined
+      - dims_fqdn != ''
+
 - name: Identify user running ansible-playbook
   local_action: command whoami
   register: _localuser
@@ -29,7 +35,7 @@
 # TODO(dittrich): Could use dims.function to get backup dir
 - name: Define local postgresql backup directory
   set_fact:
-    postgresql_backup_dir: '{{ dims_backups }}/{{ ansible_fqdn }}'
+    postgresql_backup_dir: '{{ dims_backups }}/{{ dims_fqdn }}'
   when: postgresql_backup_dir is not defined
 
 - debug:

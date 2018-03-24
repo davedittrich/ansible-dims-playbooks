@@ -35,5 +35,5 @@
   shell: sh /tmp/start_consul.sh
   become: yes
 
-#- include: post_tasks.yml
+#- import_tasks: post_tasks.yml
 

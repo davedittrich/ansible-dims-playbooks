@@ -297,17 +297,13 @@ following variables:
 
     ---
 
-    trident_sysadmin_pass: 'glYWeAsTlo'
-    vault_trident_db_pass: 'lOwsposTIo'
-    # TODO(dittrich): Make this work like jenkins2 role password...
-    vault_trident_sysadmin_pass: '{{ trident_sysadmin_pass }}'
+    ca_rootca_password: 'sposTeAsTo'
     jenkins_admin_password: 'WeAsToXYLN'
     rabbitmq_default_user_pass: 'xsTIoglYWe'
     rabbitmq_admin_user_pass: 'oXYLNwspos'
-    vncserver_default_password: 'lYWeALNwsp'
-
-    # For ansible-role-ca
-    ca_rootca_password: 'sposTeAsTo'
+    trident_sysadmin_pass: 'glYWeAsTlo'
+    trident_db_pass: 'lZ4gDxsTlo'
+    vncserver_password: 'lYWeALNwsp'
 
 ..
 

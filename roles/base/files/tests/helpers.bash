@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
-
 # vim: set ts=4 sw=4 tw=0 et :
 
 # This function comes from https://github.com/jenkinsci/docker
@@ -99,9 +97,7 @@ function assert_files_identical() {
 function center() {
     local width=$(($1-2))
     local text=$2
-    {%- raw %}
     echo ${text} | sed -e :a -e 's/^.\{1,'${width}'\}$/ & /;ta'
-    {% endraw %}
 }
 
 

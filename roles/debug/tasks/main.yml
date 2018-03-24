@@ -7,7 +7,7 @@
 # or "debug: true" somewhere in the inventory and ensure
 # this role is included in the appropriate playbook.
 
-- include: "{{ tasks_path }}/debug-dump-vars.yml"
+- import_tasks: "{{ tasks_path }}/debug-dump-vars.yml"
   tags: [ always ]
 
 # vim: ft=ansible :

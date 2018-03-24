@@ -4,7 +4,7 @@
 
 # Prepare system for using rundeck
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ rundeck, packages ]
 
 - name: Stop rundeckd daemon
@@ -21,8 +21,6 @@
     url: '{{ rundeck_gpg_key_url }}'
     state: present
   become: yes
-  args:
-    warn: false
   when: ansible_os_family == "Debian"
   tags: [ rundeck, packages ]
 
@@ -69,12 +67,7 @@
   become: yes
   tags: [ rundeck, packages ]
 
-- name: Make defined bats tests present
-  include: "{{ tasks_path }}/install-bats-tests.yml"
-  ignore_errors: yes
-  tags: [ rundeck ]
-
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ rundeck, packages ]
 
 # vim: ft=ansible :

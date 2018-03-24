@@ -15,11 +15,11 @@
 # See also $PBR/playbooks/hosts/vmhost.devops.local.yml and related
 # host_vars file for doing this more easily via a playbook.
 
-- include: "{{ tasks_path }}/pre_tasks.yml"
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ dns, dnsfiles, packages, config ]
 
 # Install dnsmasq consistently from source.
-- include: "{{ tasks_path }}/dnsmasq.yml"
+- import_tasks: "{{ tasks_path }}/dnsmasq.yml"
   tags: [ dns, packages, config ]
 
 - name: Make sure additional user-supplied config directory exists
@@ -42,7 +42,7 @@
   with_first_found:
     - files:
         - '{{ dnsmasq_defaults }}'
-        - dnsmasq.{{ ansible_fqdn }}.j2
+        - dnsmasq.{{ dims_fqdn }}.j2
         - dnsmasq.category-{{ category }}.j2
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
@@ -65,7 +65,7 @@
   with_first_found:
     - files:
         - '{{ dnsmasq_conf }}'
-        - dnsmasq.conf.{{ ansible_fqdn }}.j2
+        - dnsmasq.conf.{{ dims_fqdn }}.j2
         - dnsmasq.conf.category-{{ category }}.j2
         - dnsmasq.conf.deployment-{{ deployment }}.j2
       paths:
@@ -88,7 +88,7 @@
   with_first_found:
     - files:
         - '{{ dnsmasq_default }}'
-        - dnsmasq.{{ ansible_fqdn }}.j2
+        - dnsmasq.{{ dims_fqdn }}.j2
         - dnsmasq.category-{{ category }}.j2
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
@@ -111,7 +111,7 @@
   with_first_found:
     - files:
         - '{{ dnsmasq_init }}'
-        - dnsmasq.{{ ansible_fqdn }}.j2
+        - dnsmasq.{{ dims_fqdn }}.j2
         - dnsmasq.category-{{ category }}.j2
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
@@ -180,7 +180,7 @@
     - restart dnsmasq
   tags: [ dns, dnsfiles, config ]
 
-- include: "{{ tasks_path }}/post_tasks.yml"
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
   tags: [ dns, packages, config ]
 
 # vim: ft=ansible :

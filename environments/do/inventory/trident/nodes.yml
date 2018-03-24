@@ -9,16 +9,13 @@ trident:
       trident_nginx_https_listen_port: 443
       trident_http_listen_port: 8333
       trident_sysadmin_user: 'trident'
-      trident_sysadmin_pass: '{{ vault_trident_sysadmin_pass }}'
 
       trident_db_name: 'trident'
       trident_db_user: 'trident'
-      trident_db_pass: '{{ vault_trident_db_pass }}'
       trident_db_listen_port: 5432
 
       # Several trident packages (server, cli, all) share the same
       # version number. Related packages are in the same directory, too.
-      trident_version: '1.4.5'
       trident_download_dir: 'https://github.com/tridentli/trident/releases/download/v{{ trident_version }}'
 
       # Trident components are all loaded at once as a bundle
