@@ -4,7 +4,7 @@
 #
 #			For more information see rsyslog.conf(5) and /etc/rsyslog.conf
 
-{% if rsyslog_server is defined and dims_fqdn != rsyslog_server %}
+{% if rsyslog_server is defined and ansible_default_ipv4.address != rsyslog_server %}
 # DIMS addition. Send a copy of all logs to central server.
 {% if rsyslog_use_ssl|bool|default(false) %}
 # http://www.rsyslog.com/doc/v8-stable/tutorials/tls.html
