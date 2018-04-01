@@ -262,8 +262,8 @@ letsencrypt_ssl_certfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/cert.pem'
 letsencrypt_ssl_keyfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/privkey.pem'
 
 trident_version: '1.4.6'
-trident_repo_branch: 'DEV_1.4.6'
-pitchfork_repo_branch: '{{ trident_repo_branch }}'
+trident_repo_branch: 'DEV_1.4.6-RC2'
+pitchfork_repo_branch: '{{ trident_version }}'
 
 swarm:
   service_delay_seconds: 30
