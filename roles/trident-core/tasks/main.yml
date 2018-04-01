@@ -141,24 +141,38 @@
   become: yes
   tags: [ trident-core, config ]
 
-- name: Ensure core Trident packages present
-  get_url:
-    url: '{{ item.url }}'
-    sha256sum: '{{ item.sha256sum }}'
-    dest: '{{ deploy_dir }}/{{ role_name }}/{{ item.url | basename }}'
-  with_items: "{{ trident_dist_bundle }}"
-  register: _trident_install
-  become: yes
+# TODO(dittrich): Start of package installation: split here...
+
+# As of March 2018, the Trident release packages are all bundled
+# into a single .zip file for simpler downloading. This .zip
+# bundle needs to be unpacked to get the constituent packages as
+# were created for previous releases. These packages are
+# produced by Jenkins jobs if building packages locally
+# from source.
+#
+# Either way, ensure that the following variables are set for
+# all elements of the trident_dist_bundle list, which is used
+# for ordering of package installation:
+# trident_dist_bundle.url
+# trident_dist_bundle.sha256sum
+
+- name: Get trident packages from release bundle
+  import_tasks: get_bundle.yml
+  when:
+    - trident_unified_archive_url is defined
+    - trident_unified_archive_sha256sum is defined
   tags: [ trident-core, packages ]
 
-- name: Debug trident package install
-  debug:
-    var: _trident_install
-    verbosity: 2
+- name: Get individual trident packages
+  import_tasks: get_individual.yml
+  when:
+    - trident_unified_archive_url is not defined
+    - trident_unified_archive_sha256sum is not defined
   tags: [ trident-core, packages ]
 
 # NOTE: trident-perl package is from private source currently,
-# so must retrieve from our cache, not the github debs source.
+# so must retrieve from our cache, not the GitHub download
+# directory.
 
 - name: Ensure trident-perl package present
   get_url:

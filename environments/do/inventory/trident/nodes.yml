@@ -16,43 +16,59 @@ trident:
 
       # Several trident packages (server, cli, all) share the same
       # version number. Related packages are in the same directory, too.
-      trident_download_dir: 'https://github.com/tridentli/trident/releases/download/v{{ trident_version }}'
+      #trident_download_dir: 'https://github.com/tridentli/trident/releases/download/v{{ trident_version }}'
 
-      # Trident components are all loaded at once as a bundle
+      trident_download_dir: 'https://github.com/tridentli/trident/releases/download/{{ trident_repo_branch }}'
+      trident_unified_archive_url: '{{ trident_download_dir }}/trident_all.zip'
+      trident_unified_archive_sha256sum: 'ab8393bc973005e7f26653436ea5b524465e1c066262c277187bf79da7346f77'
+
+      # Trident components are all loaded at once as a bundle.
+      # If installing from a trident_all.tar.gz bundle, use 'name'
+      # to derive installation order.
       trident_dist_bundle:
-        - { 'url': '{{ trident_server_disturl }}', 'sha256sum': '{{ trident_server_sha256sum }}' }
-        - { 'url': '{{ trident_cli_disturl }}', 'sha256sum': '{{ trident_cli_sha256sum }}' }
-        - { 'url': '{{ trident_all_disturl }}', 'sha256sum': '{{ trident_all_sha256sum }}' }
-        - { 'url': '{{ pitchfork_disturl }}', 'sha256sum': '{{ pitchfork_sha256sum }}' }
-        - { 'url': '{{ trident_wikiexport_disturl }}', 'sha256sum': '{{ trident_wikiexport_sha256sum }}' }
+        - 'name': 'trident-server'
+          'url': '{{ trident_server_disturl }}'
+          'sha256sum': '{{ trident_server_sha256sum }}'
+        - 'name': 'trident-cli'
+          'url': '{{ trident_cli_disturl }}'
+          'sha256sum': '{{ trident_cli_sha256sum }}'
+        - 'name': 'trident-all'
+          'url': '{{ trident_all_disturl }}'
+          'sha256sum': '{{ trident_all_sha256sum }}'
+        - 'name': 'pitchfork-data'
+          'url': '{{ pitchfork_disturl }}'
+          'sha256sum': '{{ pitchfork_sha256sum }}'
+        - 'name': 'trident-wikiexport'
+          'url': '{{ trident_wikiexport_disturl }}'
+          'sha256sum': '{{ trident_wikiexport_sha256sum }}'
 
       trident_cli_version: '{{ trident_version }}'
       trident_cli_archive: 'trident-cli_{{ trident_cli_version }}_amd64.deb'
       trident_cli_disturl: '{{ trident_download_dir }}/{{ trident_cli_archive }}'
-      trident_cli_sha256sum: '15f11c986493a67e85aa9cffe6719a15a8c6a65b739a2b0adf62ce61e53f4203'
+      trident_cli_sha256sum: ''
       trident_cli_opts: ''
 
       trident_server_version: '{{ trident_version }}'
       trident_server_archive: 'trident-server_{{ trident_server_version }}_amd64.deb'
       trident_server_disturl: '{{ trident_download_dir }}/{{ trident_server_archive }}'
-      trident_server_sha256sum: 'a8af27833ada651c9d15dc29d04451250a335ae89a0d2b66bf97a787dced9956'
+      trident_server_sha256sum: ''
       trident_server_opts: '--syslog'
 
       trident_all_version: '{{ trident_version }}'
       trident_all_archive: 'trident_{{ trident_all_version }}_all.deb'
       trident_all_disturl: '{{ trident_download_dir }}/{{ trident_all_archive }}'
-      trident_all_sha256sum: '67f57337861098c4e9c9407592c46b04bbc2d64d85f69e8c0b9c18e8d5352ea6' #trident_1.4.5_all.deb
+      trident_all_sha256sum: ''
 
       trident_wikiexport_version: '{{ trident_version }}'
       trident_wikiexport_archive: 'trident-wikiexport_{{ trident_wikiexport_version }}_amd64.deb'
       trident_wikiexport_disturl: '{{ trident_download_dir }}/{{ trident_wikiexport_archive }}'
-      trident_wikiexport_sha256sum: '4d2f9d62989594dc5e839546da596094c16c34d129b86e4e323556f1ca1d8805'
+      trident_wikiexport_sha256sum: ''
 
       # Pitchfork tracks its own version
       pitchfork_version: '1.9.4'
       pitchfork_archive: 'pitchfork-data_{{ pitchfork_version }}_all.deb'
       pitchfork_disturl: '{{ trident_download_dir }}/{{ pitchfork_archive }}'
-      pitchfork_sha256sum: '5b06ae4a20a16a7a5e59981255ba83818f67224b68f6aaec014acf51ca9d1a44'
+      pitchfork_sha256sum: ''
 
       # Trident perl tracks its own version
       # TODO(dittrich): trident-perl is private artifact - using our cached copy
