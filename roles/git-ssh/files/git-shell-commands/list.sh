@@ -36,7 +36,7 @@
 . $DIMS/bin/dims_functions.sh
 
 # Tracks with bumpversion
-VERSION=3.3.0
+VERSION=3.4.0
 
 export FQDN=$(get_fqdn)
 DEPLOYMENT=${DEPLOYMENT:-$(get_deployment_from_fqdn)}
