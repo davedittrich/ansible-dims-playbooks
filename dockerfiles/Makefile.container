@@ -1,0 +1,191 @@
+# This Makefile is designed to provide generic functionality for
+# building DIMS project Docker containers. It should be used by
+# including it in a Makefile in subdirectories.
+
+# Add this file using its relative path within the repo, so
+# that "make help" works properly with subordinate use of
+# "inclue" in Makefile of containers.
+# WARNING: Tight coupling of logic between makefiles.
+MAKEFILES+=$(GIT)/dims-dockerfiles/dockerfiles/Makefile.container
+
+IMAGE=$(shell basename `pwd`)
+NAME=dims.$(shell basename $(IMAGE))
+AUTHOR=$(shell whoami)
+REGISTRY=hub.vlan1.dims:5000
+
+# Set RESTART_POLICY to be one of: no (default), always, on-failure[:max-retries],
+# unless-stopped.
+# See: https://docs.docker.com/engine/reference/commandline/run/#/restart-policies-restart
+RESTART_POLICY=$(shell if [ -f RESTART_POLICY ]; then cat RESTART_POLICY; else echo "unless-stopped"; fi)
+
+# Each container must have a VERSION file
+VERSION:=$(shell cat VERSION)
+
+LAST_UPDATED:=$(shell date)
+
+FILES=AUTHOR IMAGE VERSION LAST_UPDATED docker.entrypoint
+
+# To produce a Docker run command line that looks like this:
+#
+#  $ docker run --name $(IMAGE) --restart $(RESTART_POLICY) -v /vm/cache/apt:/cachedir -p 8000:8000 dims/$(IMAGE)
+#
+# ... do this:
+#
+# echo "-v /vm/cache/apt:/cachedir -p 8000:8000" > RUNARGS
+#
+# To enable verbose mode, add "-e VERBOSE=true" to the strings stored in the file RUNARGS.
+
+RUNARGS=$(shell if [ -f RUNARGS ]; then cat RUNARGS; else echo ""; fi)
+
+VERSION:
+	echo $(VERSION) > VERSION
+
+IMAGE:
+	echo $(IMAGE) > IMAGE
+
+AUTHOR:
+	echo $(AUTHOR) > AUTHOR
+
+LAST_UPDATED:
+	echo $(LAST_UPDATED) > LAST_UPDATED
+
+#HELP default - image
+.PHONY: default
+default: image.built
+
+docker.entrypoint: $(GIT)/dims-dockerfiles/dockerfiles/scripts/docker.entrypoint
+	cp $< $@
+	chmod +x $@
+
+#HELP image - build the image
+.PHONY: image
+image: image.built
+image.built: $(FILES)
+	@echo "[+] Building $(IMAGE) v$(VERSION)"
+	docker build \
+		--build-arg AUTHOR=$(AUTHOR) \
+		--build-arg IMAGE=$(IMAGE) \
+		--build-arg LAST_UPDATED="$(LAST_UPDATED)" \
+		--build-arg VERSION=$(VERSION) \
+		--tag $(IMAGE):$(VERSION) ./
+	docker tag $(IMAGE):$(VERSION) $(IMAGE):latest
+	@echo "[+] Tagging versions :$(VERSION) and :latest for $(REGISTRY)"
+	docker tag $(IMAGE):$(VERSION) $(REGISTRY)/$(IMAGE):$(VERSION)
+	docker tag $(IMAGE):$(VERSION) $(REGISTRY)/$(IMAGE):latest
+	touch image.built
+
+#HELP push - push the image (and update :latest)
+.PHONY: push
+push: image.built
+	docker push $(REGISTRY)/$(IMAGE):$(VERSION)
+	docker push $(REGISTRY)/$(IMAGE):latest
+
+#HELP nocache - build the image with argument "--no-cache"
+.PHONY: nocache
+nocache: $(FILES)
+	@echo "[+] Building $(IMAGE) v$(VERSION) w/o cache"
+	docker build \
+		--no-cache \
+		--build-arg AUTHOR=$(AUTHOR) \
+		--build-arg IMAGE=$(IMAGE) \
+		--build-arg LAST_UPDATED="$(LAST_UPDATED)" \
+		--build-arg VERSION=$(VERSION) \
+		--tag $(IMAGE):$(VERSION) ./
+
+#HELP list - list containers associated with repository name
+.PHONY: list
+list:
+	docker images $(IMAGE)
+	curl -s -X GET http://$(REGISTRY)/v2/$(IMAGE)/tags/list | python -m json.tool
+
+#HELP run - run image in container
+.PHONY: run
+run:
+	docker run \
+	  --name $(NAME) \
+	  --rm \
+	  $(RUNARGS) $(IMAGE):$(VERSION)
+
+#HELP daemon - run image in container in the background (sending stdout/stderr to /dev/null)
+.PHONY: daemon
+daemon:
+	docker run \
+	  --name $(NAME) \
+	  --restart $(RESTART_POLICY) \
+	  $(RUNARGS) $(IMAGE):$(VERSION) 2>&1 >/dev/null &
+
+#HELP logs - view and follow logs
+.PHONY: logs
+logs:
+	docker logs -f $(NAME)
+
+#HELP exec - exec into bash shell inside the container
+.PHONY: exec
+exec:
+	docker exec -it $(IMAGE):$(VERSION) /bin/bash
+
+#HELP kill - kill the container
+.PHONY: kill
+kill:
+	docker kill $(NAME)
+
+#HELP stop - stop the container
+.PHONY: stop
+stop:
+	docker stop $(NAME)
+
+#HELP rm - stop and remove the container image
+.PHONY: rm
+rm:
+	-docker stop $(NAME)
+	-docker rm $(NAME)
+
+#HELP rmi - remove the image
+.PHONY: rmi
+rmi: rm
+	-docker rmi $(IMAGE):$(VERSION)
+	-rm -f image.built
+
+#HELP test - Test the docker.entrypoint with --test
+.PHONY: test
+test: image.built
+	@echo "------------------------ --test -------------------------"
+	-docker run --rm --name $(NAME) $(IMAGE):$(VERSION) --test
+
+#HELP test-help - Test the docker.entrypoint with --help
+.PHONY: test-help
+test-help: image.built
+	@echo "------------------------ --help -------------------------"
+	-docker run --rm --name $(NAME) $(IMAGE):$(VERSION) --help
+
+#HELP test-run - Test the docker.entrypoint on interactive containers with and without --verbose
+test-run: image.built
+	@echo "---------------------- --verbose  ----------------------"
+	-docker run --rm --name $(NAME) $(IMAGE):$(VERSION) --verbose
+	@echo "---------------------- --debug  ----------------------"
+	-docker run --rm --name $(NAME) $(IMAGE):$(VERSION) --debug
+	@echo "---------------------- no arguments ----------------------"
+	-docker run --rm --name $(NAME) $(IMAGE):$(VERSION)
+	@echo "---------------------- --noscripts ----------------------"
+	-docker run --rm --name $(NAME) $(IMAGE):$(VERSION) --noscripts
+
+#HELP history - show 'docker history' output for image
+.PHONY: history
+history:
+	-docker history $(IMAGE)
+
+#HELP clean - remove temporary files
+.PHONY: clean
+clean:
+	-rm -f AUTHOR IMAGE LAST_UPDATED docker.entrypoint image.built
+
+#HELP spotless - remove all exited containers associated with this image as well
+.PHONY: spotless
+spotless: clean
+	@for c in $(shell docker ps -af status=exited | grep $(NAME) | awk '{print $$1;}'); \
+	 do \
+		echo "[+++] Removing container $$c"; \
+		docker rm $$c; \
+	 done
+
+# EOF

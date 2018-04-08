@@ -1,0 +1,10 @@
+#! /bin/bash
+
+# This script gets info about the dims-base image from the registry
+
+IMAGE=dims-base
+REGISTRY=hub.prisem.washington.edu:5000
+
+echo "[+++] Get JSON info about ${IMAGE} tags"
+curl -s -X GET $REGISTRY/v2/$IMAGE/tags/list | python -m json.tool
+

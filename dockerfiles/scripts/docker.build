@@ -1,0 +1,25 @@
+#! /bin/bash
+
+# This script builds the dims-base image.
+# If you are building to push to the DIMS registry, use the
+# dims.register.dims-base script
+
+if [ "$1" == "help" ]; then
+  cat <<EOD
+Usage: $0
+
+Builds a dims-base image from the Dockerfile. If you want to
+build and push an image to the registry, use dims.register.dims-base.
+
+EOD
+  exit 1
+fi
+
+IMAGE=dims-base
+DOCKERFILES=$GIT/dims-dockerfiles/dockerfiles
+
+cd $DOCKERFILES/$IMAGE
+
+# Build the image
+docker build -t $IMAGE .
+
