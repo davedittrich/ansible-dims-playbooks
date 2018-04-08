@@ -4,7 +4,7 @@ MAINTAINER Dave Dittrich <dave.dittrich@gmail.com>
 # Make sure the package repository is up to date.
 RUN apt-get update \
  && apt-get -y upgrade \
- && locale-gen en_US.UTF-8 && \
+ && locale-gen en_US.UTF-8 \
  && apt-get install -y \
       build-essential \
       git \
