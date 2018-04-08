@@ -23,10 +23,10 @@ ENV IMAGE $IMAGE
 
 # This Dockerfile requires that the Google 'shflags' repo
 # be checked out into this directory on build.
-# $ git clone https://android.googlesource.com/platform/external/shflags
+# $ git clone https://github.com/kward/shflags
 #
 # TODO(dittrich): Make this more robust and user-friendly.
-COPY shflags/src/shflags /shflags
+COPY shflags/shflags /shflags
 
 # It also requires that the "bats" repo be checked out into
 # this directory on build.
