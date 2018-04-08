@@ -1,0 +1,130 @@
+#!/bin/bash
+#
+# vim: set ts=4 sw=4 tw=0 et :
+#
+# Copyright (c) 2014-2016, University of Washington
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# This script provides a generic plugin style Docker entrypoint
+# for containers. It is run in the context of a Docker container, not
+# standard DIMS development or runtime (server) environment.
+
+# Source shflags
+. /shflags
+
+# For use of shflags, see:
+# https://github.com/kward/shflags/wiki/Documentation10x
+
+# IMAGE, VERSION and AUTHOR are set in Dockerfile at build time.
+IMAGE="$(cat /IMAGE)"
+VERSION="$(cat /VERSION)"
+AUTHOR="$(cat /AUTHOR)"
+LAST_UPDATED="$(cat /LAST_UPDATED)"
+FLAGS_HELP="USAGE: ${IMAGE} [flags]"
+EPDIR="/docker.entrypoint.d"
+
+# Define option flags
+DEFINE_boolean 'debug'   false 'enable debug mode'                       'd'
+DEFINE_boolean 'scripts' true  'run entrypoint scripts'                  's'
+DEFINE_boolean 'help'    false 'print usage and help information'        'h'
+DEFINE_boolean 'test'    false 'run any defined tests'                   't'
+DEFINE_boolean 'verbose' false 'enable verbose mode'                     'v'
+DEFINE_boolean 'version' false 'print container version number and exit' 'V'
+
+
+[ -f /usage.txt ] || die '/usage.txt file missing'
+
+version() {
+  if [ ${FLAGS_version} -eq ${FLAGS_TRUE} ]; then
+    echo "${IMAGE}: v${VERSION} (author ${AUTHOR})"
+    exit 0
+  fi
+}
+
+debug() {
+  [ ${FLAGS_debug} -eq ${FLAGS_TRUE} ] && echo "DEBUG: $@" >&2
+}
+
+run_tests() {
+  if [ $# -gt 0 ]; then
+    (cd /tests.d/ && bats -t $@)
+    exit $?
+  else
+    bats -t /tests.d/
+    exit $?
+  fi
+}
+
+die()
+{
+  [ $# -gt 0 ] && echo "error: $@" >&2
+  flags_help
+  exit 1
+}
+
+main()
+{
+  version
+  debug 'debug mode enabled'
+
+  [ ${FLAGS_verbose} -eq ${FLAGS_TRUE} ] && set -x
+
+  ARGS=""
+  if [ ${FLAGS_verbose} -eq ${FLAGS_TRUE} -o \
+       ${FLAGS_debug} -eq ${FLAGS_TRUE} ]; then
+    ARGS+="--verbose"
+  fi
+
+  if [ ${FLAGS_help} -eq ${FLAGS_TRUE} ]; then
+    #flags_help
+    #debug 'after flags_help is called'
+    cat /usage.txt
+    exit 0
+  fi
+
+  if [ ${FLAGS_test} -eq ${FLAGS_TRUE} ]; then
+    debug "calling run_tests $@"
+    run_tests $@
+    exit 0
+  fi
+
+  if [ ${FLAG_scripts} -eq ${FLAG_TRUE} ]; then
+    debug /bin/run-parts $ARGS --regex '\.sh$' "${EPDIR}"
+    /bin/run-parts $ARGS --regex '\.sh$' "${EPDIR}"
+  fi
+
+  if [ -n "$@" ]; then
+    debug "exec: " "$@"
+    exec "$@"
+  fi
+}
+
+# parse the command-line
+FLAGS "$@" || exit $?
+eval set -- "${FLAGS_ARGV}"
+main "$@"
