@@ -1,5 +1,5 @@
 include $(DIMS)/etc/Makefile.dims.global
-include $(GIT)/dims-dockerfiles/dockerfiles/Makefile.container
+include $(DOCKERFILES)/Makefile.container
 
 #HELP setup - load pre-requisites needed for building Docker image
 setup:

@@ -6,7 +6,7 @@
 # that "make help" works properly with subordinate use of
 # "inclue" in Makefile of containers.
 # WARNING: Tight coupling of logic between makefiles.
-MAKEFILES+=$(GIT)/dims-dockerfiles/dockerfiles/Makefile.container
+MAKEFILES+=$(DOCKERFILES)/Makefile.container
 
 IMAGE=$(shell basename `pwd`)
 NAME=dims.$(shell basename $(IMAGE))
@@ -53,7 +53,7 @@ LAST_UPDATED:
 .PHONY: default
 default: image.built
 
-docker.entrypoint: $(GIT)/dims-dockerfiles/dockerfiles/scripts/docker.entrypoint
+docker.entrypoint: $(DOCKERFILES)/scripts/docker.entrypoint
 	cp $< $@
 	chmod +x $@
 
