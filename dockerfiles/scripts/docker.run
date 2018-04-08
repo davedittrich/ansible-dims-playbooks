@@ -1,0 +1,37 @@
+#! /bin/bash
+
+# This script runs the latest dims-base image
+
+# Argument: name of container
+# Other parameters passed via name
+
+if [ "$1" == "help" -o $# -lt 1 -o "x$1" == "x" ]; then
+  cat <<EOD
+Usage: [ name=value ] $0 container-name
+
+Examples:
+      $0 help
+          Print this help
+
+      $0 dims-base
+          Run container named 'dims-base'
+
+EOD
+  exit 1
+fi
+
+IMAGE=dims-base
+REGISTRY=hub.prisem.washington.edu:5000
+
+echo "[+++] Building the run command."
+RUNCOMMAND="docker run -i -t "
+RUNCOMMAND+="--name=${1} $REGISTRY/$IMAGE"
+
+echo "[+++] Stop and delete any existing container."
+echo "[+++] Will report errors if container is not running and/or"
+echo "[+++] does not exist. These errors can be ignored as they are to"
+echo "[+++] be expected on first run."
+docker kill $1 || true; docker rm $1 || true;
+echo "[+++] Start the container. Will report guid of running container"
+echo "$(${RUNCOMMAND})"
+

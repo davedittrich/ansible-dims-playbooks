@@ -1,0 +1,3 @@
+Find a way to delete images from the remote registry.
+	http://opensysblog.directorioc.net/2016/04/docker-delete-image-from-private.html
+	

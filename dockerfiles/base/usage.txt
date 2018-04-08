@@ -1,0 +1,42 @@
+
+This is a base container with fundamental features for constructing
+arbitrary service oriented containers. It uses a modular Docker
+entrypoint mechanism described by Camptocamp SA in a blog post
+entitled "Flexible Docker entrypoint scripts".
+
+http://www.camptocamp.com/en/actualite/flexible-docker-entrypoint-scripts
+https://github.com/camptocamp/
+
+In the derived container, put usage text to help guide users in
+using the container, and put any scripts to be run at container
+initiation in the directory docker.entrypoint.d/ as seen here:
+
+.
+├── Dockerfile
+├── Makefile
+├── docker.entrypoint.d
+│   └── 00-hello.sh
+├── docker.entrypoint
+└── usage.txt
+
+To get help on using this ('base') container, use:
+
+  $ docker run dims/base --help
+
+To make startup verbose, use --verbose like this:
+
+  $ docker run dims/base --verbose
+  + ARGS=
+  + '[' 0 -eq 0 -o 1 -eq 0 ']'
+  + ARGS+=--verbose
+  + '[' 1 -eq 0 ']'
+  + '[' -eq ']'
+  + debug /bin/run-parts --verbose --regex '\.sh$' /docker.entrypoint.d
+  + '[' 1 -eq 0 ']'
+  + /bin/run-parts --verbose --regex '\.sh$' /docker.entrypoint.d
+  run-parts: executing /docker.entrypoint.d/00-hello.sh
+  Hello! (image 'dims/base', version 0.8, author dittrich, last update Wed Jun 1 13:24:19 PDT 2016)
+  + '[' -n ']'
+  + debug 'exec: '
+  + '[' 1 -eq 0 ']'
+  + exec

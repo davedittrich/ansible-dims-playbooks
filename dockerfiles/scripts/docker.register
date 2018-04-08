@@ -1,0 +1,54 @@
+#! /bin/bash
+
+# This script builds an dims-base image from the Dockerfile.
+# Input the version number, i.e. "1.2"
+# It builds the image, tags it for pushing to the DIMS registry
+# as latest and $VERSION
+# It then pushes both images to the registry.
+set -e
+
+if [ "$1" == "help" -o $# -lt 1 -o "x$1" == "x" ]; then
+  cat <<EOD
+Usage: $0 image-version
+
+1) Update the Dockerfile and its version
+2) Run this command with the new version
+3) The image will be built, tagged, and pushed to the registry
+4) Script will output info from registry
+
+Example:
+    $0 1.1
+           Build new image, tag as latest for registry, tag as 1.1 for registry
+           and push new images to registry
+
+EOD
+  exit 1
+fi
+
+IMAGE=dims-base
+REGISTRY=hub.prisem.washington.edu:5000
+DOCKERFILES=$GIT/dims-dockerfiles/dockerfiles
+VERSION=$1
+
+echo "[+++] Building dims-base version ${VERSION}"
+
+cd $DOCKERFILES/$IMAGE
+
+# Build the image for latest
+docker build -t $IMAGE .
+
+echo "[+++] Tag for registry $REGISTRY/$IMAGE"
+# Tag for registry
+docker tag $IMAGE $REGISTRY/$IMAGE
+echo "[+++] Push $REGISTRY/$IMAGE"
+# Push latest to registry
+docker push $REGISTRY/$IMAGE
+echo "[+++] Tag with version $VERSION"
+# Tag latest as the supplied version
+docker tag $IMAGE $REGISTRY/$IMAGE:$VERSION
+echo "[+++] Push $REGISTRY/$IMAGE:$VERSION"
+# Push to registry
+docker push $REGISTRY/$IMAGE:$VERSION
+echo "[+++] Get info back about ${IMAGE}"
+# List registry contents for this image
+curl -s -X GET http://$REGISTRY/v2/$IMAGE/tags/list | python -m json.tool

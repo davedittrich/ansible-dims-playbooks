@@ -1,0 +1,35 @@
+apt.postgresql.org                      # Postgres
+us.debian.org                           # Debian
+httpredir.debian.org                    # Debian
+security.debian.org                     # Debian
+archive.ubuntu.org						# Ubuntu
+security.ubuntu.com						# Ubuntu
+ppa.launchpad.net                       # Foreign PPA
+private-ppa.launchpad.net
+download.virtualbox.org                 # Oracle VM
+dl.bintray.com                          # Vagrant et al
+releases.ansible.com                    # Ansible
+dl.google.com                           # Google repositories
+raw.githubusercontent.com               # Static files from github
+github.com                              # Github http checkout
+get.docker.io                           # Docker
+dl.dropboxusercontent.com               # Dropbox URI
+cloud-images.ubuntu.com                 # Base vboxes
+puppet-vagrant-boxes.puppetlabs.com     # Beaker/Puppet vboxes
+www.openprinting.org                    # Printer drivers (ubuntu extras)
+linux.dropbox.com                       # Dropbox
+deb.opera.com                           # Opera
+downloads-distro.mongodb.org            # MongoHQ
+repository.spotify.com                  # Spotify
+repo.steampowered.com                   # Steam
+deb.torproject.org                      # Tor
+download.rethinkdb.com                  # RethinkDB
+download.opensuse.org                   # OpenSuse Build Service
+packages.elasticsearch.org              # ElasticSearch
+packages.elastic.co                     # ElasticSearch new URL
+depts.washington.edu                    # DIMS artifacts cache
+prisem.washington.edu                   # DIMS artifacts cache
+devops.develop                          # DIMS artifacts cache
+devops.local                            # DIMS artifacts cache
+devops.ectf                             # DIMS artifacts cache
+hashicorp.com                           # Consul, etc.

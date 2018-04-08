@@ -1,0 +1,14 @@
+
+This container provides a squid-cache service that is suitable
+for caching APT packages for Ubuntu, or archive files for
+DIMS software products.
+
+TODO(dittrich): Finish developing and documenting the generalized way to do this.
+
+To run the container:
+
+    $ docker run --name dims.squid-deb-proxy --rm -v /vm/cache/apt:/cachedir -p 8000:8000 dims/squid-deb-proxy 2>&1 >/dev/null &
+
+To monitor logs from the Docker host:
+
+    $ docker logs -f dims.squid-deb-proxy
