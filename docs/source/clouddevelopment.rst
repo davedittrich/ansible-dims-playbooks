@@ -98,6 +98,27 @@ configuration settings (including passwords) for your deployment.
 
 ..
 
+* Install pre-requisite programs on the system you will be using as the Ansible
+  control host (see :ref:`ansiblefundamentals`).
+
+  * Debian
+
+    .. code-block:: none
+
+       $ sudo apt-get install -y bats ansible git make
+
+    ..
+
+  * Mac OS X (using `homebrew`_)
+
+    .. code-block:: none
+
+       $ brew install bats ansible git make
+
+    ..
+
++ `Install Terraform`_ for your OS.
+
 + Set up an account on DigitalOcean.
 
   .. note::
@@ -185,8 +206,6 @@ configuration settings (including passwords) for your deployment.
       $ make prerequisites
 
   ..
-
-+ `Install Terraform`_ for your OS.
 
 + Test the ``terraform`` installation and other tools by initializing the
   directory form within the ``deploy/do`` directory:
@@ -507,5 +526,6 @@ the ``-target=`` option.  For example, here is how to destroy the droplet ``purp
 .. _DigitalOcean: https://www.digitalocean.com/
 .. _Terraform: https://www.terraform.io/
 .. _Install Terraform: https://www.terraform.io/intro/getting-started/install.html
+.. _homebrew: https://brew.sh/
 
 .. EOF
