@@ -2,6 +2,7 @@ FROM base:latest
 MAINTAINER Dave Dittrich <dave.dittrich@gmail.com>
 
 # Make sure the package repository is up to date.
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
  && apt-get -y upgrade \
  && locale-gen en_US.UTF-8 \

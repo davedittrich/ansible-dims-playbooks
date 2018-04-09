@@ -47,6 +47,7 @@ COPY docker.entrypoint.d/* /docker.entrypoint.d/
 ONBUILD COPY docker.entrypoint.d/* /docker.entrypoint.d/
 
 # Add some stuff via apt-get
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         bc \
