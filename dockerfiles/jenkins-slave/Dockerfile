@@ -9,7 +9,6 @@ RUN apt-get update \
       build-essential \
       git \
       locales \
-      maven \
       openjdk-7-jdk \
       openssh-server \
       python-dev \
@@ -30,10 +29,6 @@ RUN mkdir -p /var/run/sshd
 RUN adduser --quiet jenkins
 # Set password for the jenkins user
 RUN echo "jenkins:jenkins" | chpasswd
-
-RUN mkdir /home/jenkins/.m2
-#ADD settings.xml /home/jenkins/.m2/
-RUN chown -R jenkins:jenkins /home/jenkins/.m2/ 
 
 # Create entry point script and plugin directory.
 COPY docker.entrypoint /
