@@ -5,7 +5,6 @@ MAINTAINER Dave Dittrich <dave.dittrich@gmail.com>
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
  && apt-get -y upgrade \
- && locale-gen en_US.UTF-8 \
  && apt-get install -y \
       build-essential \
       git \
@@ -18,6 +17,11 @@ RUN apt-get update \
       python-setuptools \
  && apt-get clean \
  && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
+
+RUN update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
 RUN sed -i 's|session    required     pam_loginuid.so|session    optional     pam_loginuid.so|g' /etc/pam.d/sshd
 RUN mkdir -p /var/run/sshd
