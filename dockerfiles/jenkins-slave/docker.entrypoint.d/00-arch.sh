@@ -17,7 +17,11 @@
 # This script enables i386 architecture support for a Jenkins slave
 # container.
 
-if [ "$*" ?? "i386" -o "$ARCH" = "i386" ]; then
+if [ "$ARCH" = "i386" ]; then
+  set - $* $ARCH
+fi
+
+if [[ "$*" =~ "i386" ]]; then
    dpkg --add-architecture i386 && apt-get update > /dev/null
 fi
 exit 0
