@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM debian:jessie-backports
 
 MAINTAINER Dave Dittrich <dittrich@u.washington.edu>
 
