@@ -146,6 +146,9 @@
   when: hostvars[inventory_hostname].ansible_docker0 is defined
   ignore_errors: true
 
+- name: restart docker
+  service: name=docker state=restarted
+
 - name: restart rabbitmq-server
   service: name=rabbitmq-server state=restarted
 
