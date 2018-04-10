@@ -1,4 +1,5 @@
-FROM base:latest
+#FROM base:latest
+FROM debian:jessie-backports
 MAINTAINER Dave Dittrich <dave.dittrich@gmail.com>
 
 # Make sure the package repository is up to date.
@@ -31,13 +32,7 @@ RUN adduser --quiet jenkins
 # Set password for the jenkins user
 RUN echo "jenkins:jenkins" | chpasswd
 
-# Create entry point script and plugin directory.
-#COPY docker.entrypoint /
-#COPY docker.entrypoint.d/* /docker.entrypoint.d/
-#ONBUILD COPY docker.entrypoint.d/* /docker.entrypoint.d/
-
 # Standard SSH port
 EXPOSE 22
 
-#ENTRYPOINT ["/docker.entrypoint"]
 CMD ["/usr/sbin/sshd", "-D"]
