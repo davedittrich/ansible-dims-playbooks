@@ -14,5 +14,6 @@ LAST_UPDATED="$(cat /LAST_UPDATED)"
 # It can't be deleted from the image, but the script will only run
 # if the image name matches the name of the base image.
 
-/usr/sbin/sshd -D
-exit $?
+[ ! -d /var/run/sshd ] && mkdir -p /var/run/sshd
+/usr/sbin/sshd -D &
+exec "$@"
