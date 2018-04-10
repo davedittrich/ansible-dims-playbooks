@@ -14,6 +14,7 @@ RUN apt-get update \
       python-dev \
       python-pip \
       python-setuptools \
+      sudo \
  && apt-get clean \
  && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
