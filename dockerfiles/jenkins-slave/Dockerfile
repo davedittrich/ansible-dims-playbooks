@@ -31,11 +31,12 @@ RUN adduser --quiet jenkins
 RUN echo "jenkins:jenkins" | chpasswd
 
 # Create entry point script and plugin directory.
-COPY docker.entrypoint /
-COPY docker.entrypoint.d/* /docker.entrypoint.d/
-ONBUILD COPY docker.entrypoint.d/* /docker.entrypoint.d/
+#COPY docker.entrypoint /
+#COPY docker.entrypoint.d/* /docker.entrypoint.d/
+#ONBUILD COPY docker.entrypoint.d/* /docker.entrypoint.d/
 
 # Standard SSH port
 EXPOSE 22
 
-ENTRYPOINT ["/docker.entrypoint"]
+#ENTRYPOINT ["/docker.entrypoint"]
+CMD ["/usr/sbin/sshd", "-D"]
