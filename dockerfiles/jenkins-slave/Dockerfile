@@ -37,6 +37,7 @@ RUN apt-get update \
       ca-certificates-java \
       curl \
       git \
+      openjdk-8-jdk-headless \
       openjdk-8-jre-headless \
       openssh-server \
       python-dev \
