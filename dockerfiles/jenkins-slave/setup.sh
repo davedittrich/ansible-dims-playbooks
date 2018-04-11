@@ -25,7 +25,7 @@ if [[ ! -z $JENKINS_HOME && -f $JENKINS_HOME/agent.jar ]]; then
         cp $JENKINS_HOME/agent.jar .
 else
     curl -sSLo \
-        slave.jar \
+        agent.jar \
         https://repo.jenkins-ci.org/public/org/jenkins-ci/main/remoting/${AGENT_VERSION}/remoting-${AGENT_VERSION}.jar
 fi
 exit $?
