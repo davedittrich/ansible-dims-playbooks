@@ -2,19 +2,20 @@
 FROM debian:jessie-backports
 MAINTAINER Dave Dittrich <dave.dittrich@gmail.com>
 
-ENV LANGUAGE en_US.UTF-8
 ENV LANG     en_US.UTF-8
 ENV LC_ALL   en_US.UTF-8
+ENV LANGUAGE en_US:en
 
 # Make sure the package repository is up to date.
 ENV DEBIAN_FRONTEND=noninteractive
 RUN dpkg --add-architecture i386 \
  && apt-get update > /dev/null \
  && apt-get -y upgrade > /dev/null \
- && apt-get install -y apt-utils locales language-pack-en \
+ && apt-get install -y apt-utils locales \
+ && localedef -i en_US -f UTF-8 en_US.UTF-8 \
+ && dpkg-reconfigure locales \
  && ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime \
  && dpkg-reconfigure tzdata \
- && localedef -i en_US -f UTF-8 en_US.UTF-8 \
  && apt-get install -y \
       build-essential \
       curl \
