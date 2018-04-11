@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN dpkg --add-architecture i386 \
  && apt-get update > /dev/null \
  && apt-get -y upgrade > /dev/null \
- && apt-get install -y apt-utils locales > /dev/null \
+ && apt-get install -y apt-utils locales \
  && ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime \
  && dpkg-reconfigure tzdata \
  && localedef -i en_US -f UTF-8 en_US.UTF-8 \
