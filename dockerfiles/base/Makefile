@@ -1,3 +1,4 @@
+DOCKERFILES ?= $(shell dirname `pwd`)
 include $(DIMS)/etc/Makefile.dims.global
 include $(DOCKERFILES)/Makefile.container
 
