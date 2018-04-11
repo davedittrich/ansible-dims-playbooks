@@ -4,5 +4,5 @@ include $(DOCKERFILES)/Makefile.container
 
 #HELP setup - load pre-requisites needed for building Docker image
 setup:
-	[ -f GNUmakefile ] && make -f GNUmakefile shflags bats
-	[ -f setup.sh ] && ./setup.sh
+	if [ -f GNUmakefile ]; then make -f GNUmakefile shflags bats; fi
+	if [ -f setup.sh ]; then bash setup.sh; fi
