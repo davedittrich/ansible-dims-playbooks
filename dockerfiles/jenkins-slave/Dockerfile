@@ -46,6 +46,6 @@ COPY agent.jar /home/jenkins/agent.jar
 # Standard SSH port
 EXPOSE 22
 
-USER jenkins:jenkins
+USER jenkins
 
 CMD ["/usr/sbin/sshd", "-D"]
