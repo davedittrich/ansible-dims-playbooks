@@ -21,15 +21,16 @@ RUN apt-get update \
 RUN apt-get update \
  && apt-get install -t jessie-backports -y \
       build-essential \
+      ca-certificates-java \
       curl \
       git \
-      ca-certificates-java \
       openjdk-8-jre-headless \
       openssh-server \
       python-dev \
       python-pip \
       python-setuptools \
       sudo \
+      tree \
  && apt-get -y upgrade \
  && apt-get clean \
  && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
