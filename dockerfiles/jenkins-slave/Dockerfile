@@ -8,17 +8,6 @@ ENV LANGUAGE en_US:en
 
 # See: https://github.com/fjudith/docker-jenkins/blob/master/Dockerfile
 
-# Set default options
-# http://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html
-ENV JAVA_OPTS="-Xmx8192m"
-
-# http://winstone.sourceforge.net/#commandLine
-ENV JENKINS_OPTS="--handlerCountMax=300"
-#ENV JENKINS_OPTS="--handlerCountMax=300 --logfile=/var/log/jenkins/jenkins.log"
-
-# Enable access log
-ENV JENKINS_ACCESSLOG="--accessLoggerClassName=winstone.accesslog.SimpleAccessLogger --simpleAccessLogger.format=combined --simpleAccessLogger.file=/var/log/jenkins/access.log"
-
 # Make sure the package repository is up to date.
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
@@ -70,5 +59,17 @@ COPY agent.jar /home/jenkins/agent.jar
 EXPOSE 22
 
 USER jenkins:jenkins
+
+# Set default options
+# http://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html
+#ENV JAVA_OPTS="-Xmx8192m"
+ENV JAVA_OPTS="-XX:+UseCGroupMemoryLimitForHeap"
+
+# http://winstone.sourceforge.net/#commandLine
+ENV JENKINS_OPTS="--handlerCountMax=300"
+#ENV JENKINS_OPTS="--handlerCountMax=300 --logfile=/var/log/jenkins/jenkins.log"
+
+# Enable access log
+ENV JENKINS_ACCESSLOG="--accessLoggerClassName=winstone.accesslog.SimpleAccessLogger --simpleAccessLogger.format=combined --simpleAccessLogger.file=/var/log/jenkins/access.log"
 
 CMD ["/usr/sbin/sshd", "-D"]
