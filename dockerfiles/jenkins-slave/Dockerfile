@@ -39,7 +39,12 @@ RUN mkdir -p /var/run/sshd \
  && sed -i 's|session    required     pam_loginuid.so|session    optional     pam_loginuid.so|g' /etc/pam.d/sshd
 
 RUN groupadd -r jenkins \
- && useradd -m -g sudo -d /home/jenkins -s /bin/sh jenkins \
+ && useradd --create-home \
+            --gid jenkins \
+            --home-dir /home/jenkins \
+            --shell /bin/sh jenkins \
+ && usermod -aG sudo jenkins \
+ && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
  && echo "jenkins:jenkins" | chpasswd
 
 COPY agent.jar /home/jenkins/agent.jar
