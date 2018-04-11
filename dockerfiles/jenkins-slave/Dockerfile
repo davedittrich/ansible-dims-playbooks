@@ -34,6 +34,8 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
+# Leave apt-get ready to go for Trident builds
+RUN apt-get update
 
 RUN mkdir -p /var/run/sshd \
  && sed -i 's|session    required     pam_loginuid.so|session    optional     pam_loginuid.so|g' /etc/pam.d/sshd
