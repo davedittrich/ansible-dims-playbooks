@@ -12,13 +12,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime \
  && dpkg --add-architecture i386 \
  && apt-get update > /dev/null \
+ && apt-get install -y apt-utils locales \
  && apt-get -y upgrade \
  && apt-get install -y \
-      apt-utils \
       build-essential \
       curl \
       git \
-      locales \
       openjdk-8-jre-headless \
       openssh-server \
       python-dev \
