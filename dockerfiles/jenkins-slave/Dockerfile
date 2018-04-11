@@ -8,8 +8,7 @@ ENV LC_ALL en_US.UTF-8
 
 # Make sure the package repository is up to date.
 ENV DEBIAN_FRONTEND=noninteractive
-RUN locale-gen en_US.UTF-8 \
- && dpkg --add-architecture i386 \
+RUN dpkg --add-architecture i386 \
  && apt-get update > /dev/null \
  && apt-get -y upgrade \
  && apt-get install -y \
@@ -24,6 +23,7 @@ RUN locale-gen en_US.UTF-8 \
       python-pip \
       python-setuptools \
       sudo > /dev/null \
+ && locale-gen en_US.UTF-8 \
  && dpkg-reconfigure tzdata \
  && apt-get clean \
  && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
