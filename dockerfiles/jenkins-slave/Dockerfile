@@ -4,7 +4,8 @@ MAINTAINER Dave Dittrich <dave.dittrich@gmail.com>
 
 # Make sure the package repository is up to date.
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update \
+RUN dpkg --add-architecture i386 \
+ && apt-get update > /dev/null \
  && apt-get -y upgrade \
  && apt-get install -y \
       build-essential \
@@ -15,15 +16,16 @@ RUN apt-get update \
       python-dev \
       python-pip \
       python-setuptools \
-      sudo \
+      sudo > /dev/null \
  && apt-get clean \
  && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
-RUN dpkg-reconfigure locales \
- && locale-gen en_US.UTF-8
+RUN ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime \
+ && dpkg-reconfigure tzdata \
+ && localedef -i en_US -f UTF-8 en_US.UTF-8
 
 RUN sed -i 's|session    required     pam_loginuid.so|session    optional     pam_loginuid.so|g' /etc/pam.d/sshd
 RUN mkdir -p /var/run/sshd
@@ -31,6 +33,8 @@ RUN mkdir -p /var/run/sshd
 RUN adduser --quiet jenkins
 # Set password for the jenkins user
 RUN echo "jenkins:jenkins" | chpasswd
+
+COPY agent.jar /usr/share/jenkins/slave.jar
 
 # Standard SSH port
 EXPOSE 22
