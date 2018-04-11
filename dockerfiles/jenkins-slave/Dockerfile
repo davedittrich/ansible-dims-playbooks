@@ -10,7 +10,6 @@ ENV LANGUAGE en_US:en
 ENV DEBIAN_FRONTEND=noninteractive
 RUN dpkg --add-architecture i386 \
  && apt-get update > /dev/null \
- && apt-get -y upgrade > /dev/null \
  && apt-get install -y apt-utils locales \
  && localedef -i en_US -f UTF-8 en_US.UTF-8 \
  && dpkg-reconfigure locales \
@@ -26,6 +25,7 @@ RUN dpkg --add-architecture i386 \
       python-pip \
       python-setuptools \
       sudo > /dev/null \
+ && apt-get -y upgrade > /dev/null \
  && apt-get clean \
  && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
