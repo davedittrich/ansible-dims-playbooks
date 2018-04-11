@@ -41,7 +41,7 @@ RUN mkdir -p /var/run/sshd \
 RUN useradd -m -d /home/jenkins -s /bin/sh jenkins \
  && echo "jenkins:jenkins" | chpasswd
 
-COPY agent.jar /usr/share/jenkins/agent.jar
+COPY agent.jar /home/jenkins/agent.jar
 
 # Standard SSH port
 EXPOSE 22
