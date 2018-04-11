@@ -38,7 +38,8 @@ RUN apt-get update \
 RUN mkdir -p /var/run/sshd \
  && sed -i 's|session    required     pam_loginuid.so|session    optional     pam_loginuid.so|g' /etc/pam.d/sshd
 
-RUN useradd -m -d /home/jenkins -s /bin/sh jenkins \
+RUN groupadd -r jenkins \
+ && useradd -m -g sudo -d /home/jenkins -s /bin/sh jenkins \
  && echo "jenkins:jenkins" | chpasswd
 
 COPY agent.jar /home/jenkins/agent.jar
@@ -46,6 +47,6 @@ COPY agent.jar /home/jenkins/agent.jar
 # Standard SSH port
 EXPOSE 22
 
-USER jenkins
+USER jenkins:jenkins
 
 CMD ["/usr/sbin/sshd", "-D"]
