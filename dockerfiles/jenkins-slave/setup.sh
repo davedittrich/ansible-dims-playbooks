@@ -14,7 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-AGENT_VERSION=${AGENT_VERSION:-3.9}
+AGENT_VERSION=${AGENT_VERSION:-3.8}
 
 # Ensure that a version of the Jenkins agent.jar file is available for
 # installation in the container via Dockerfile COPY command. The
