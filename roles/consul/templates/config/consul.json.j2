@@ -1,0 +1,11 @@
+{
+    "server": {{ (groups.consul_server is defined and inventory_hostname in groups.consul_server|default(false))|to_json }},
+    "datacenter": "{{ consul_data_center }}",
+    "data_dir": "{{ consul_data_dir }}",
+    "ui_dir": "{{ consul_ui_dir }}",
+    "encrypt": "{{ consul_key|default('') }}",
+    "log_level": "{{ consul_log_level }}",
+    "enable_syslog": {{ consul_enable_syslog|to_json }},
+    "start_join": {{ consul_start_join|to_json }},
+    "leave_on_terminate": {{ consul_leave_on_terminate|default(true) }}
+}
