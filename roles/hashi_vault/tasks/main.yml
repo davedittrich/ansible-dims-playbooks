@@ -300,7 +300,7 @@
   environment:
     VAULT_ADDR: "{{ hashi_vault_addr }}"
   register: keys
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   when: _hashi_vault_mode == "dev" and not _hashi_vault_initialized
   tags: [ hashi_vault, config ]
 
@@ -312,7 +312,7 @@
   environment:
     VAULT_ADDR: "{{ hashi_vault_addr }}"
   register: _keys
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   when: _hashi_vault_mode == "simple" and not _hashi_vault_initialized
   changed_when: _keys.stdout|search("Unseal Key")
   tags: [ hashi_vault, config ]
@@ -320,7 +320,7 @@
 - debug:
     msg: "{{ _keys }}"
     verbosity: 2
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   when: _keys is defined
   tags: [ hashi_vault, config ]
 
@@ -329,14 +329,14 @@
     hashi_vault_keys: '{{ hashi_vault_keys|default([]) + [item.split(": ")[1]] }}'
   with_items: '{{ _keys.stdout_lines|default([]) }}'
   when: _keys is defined and item|search('Unseal Key')
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   tags: [ hashi_vault, config ]
 
 - name: Debug hashi_vault_keys
   debug:
     var: hashi_vault_keys
     verbosity: 2
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   when: _keys is defined
   tags: [ hashi_vault, config ]
 
@@ -345,14 +345,14 @@
     hashi_vault_root_token: '{{ hashi_vault_root_token|default([]) + [item.split(": ")[1]] }}'
   with_items: '{{ _keys.stdout_lines|default([]) }}'
   when: _keys is defined and item|search('Initial Root Token')
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   tags: [ hashi_vault, config ]
 
 - name: Debug hashi_vault_root_token
   debug:
     var: hashi_vault_root_token
     verbosity: 2
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   when: _keys is defined
   tags: [ hashi_vault, config ]
 

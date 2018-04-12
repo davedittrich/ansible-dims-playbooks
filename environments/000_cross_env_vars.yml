@@ -105,7 +105,7 @@ ansible_python_virtualenv: '/opt/dims/envs/dimsenv'
 # Put these here for now to allow Jenkins build jobs to work.
 verbose: false
 debug: false
-nolog: true
+no_log: true
 
 # Set a default timezone so that the common role works properly.
 # Override on the command line for local install with '-e dims_timezone="US/New_York"'

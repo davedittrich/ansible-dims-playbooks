@@ -98,7 +98,7 @@
       owner: postgres
       group: postgres
       mode: 0o770
-    no_log: '{{ nolog|default(true) }}'
+    no_log: '{{ no_log|default(true) }}'
     become: yes
 
   - name: Restore backup of postgresql database

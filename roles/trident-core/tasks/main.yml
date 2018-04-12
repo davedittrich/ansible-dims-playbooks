@@ -429,7 +429,7 @@
 - name: Ensure initial sysadmin user present
   shell: >
     /usr/sbin/tsetup adduser trident {{ trident_sysadmin_pass }}
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   become: yes
   become_user: 'postgres'
   register: _tsetup
@@ -497,14 +497,14 @@
   shell: >
     tcli system login trident {{ trident_sysadmin_pass }}
   register: _tcli_login
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   failed_when: not _tcli_login.stdout|search('Login successful')
   tags: [ trident-core, trident-configure ]
 
 - name: Ensure trident administator is logged out
   shell: >
     tcli system logout
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   tags: [ trident-core ]
 
 - import_tasks: '{{ tasks_path }}/post_tasks.yml'
