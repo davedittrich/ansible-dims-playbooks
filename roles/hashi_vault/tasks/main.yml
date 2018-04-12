@@ -32,10 +32,22 @@
   when: hashi_vault_key_shares is not defined
   tags: [ always ]
 
+- name: Debug hashi_vault_key_shares
+  debug:
+    var: hashi_vault_key_shares
+    verbosity: 2
+  tags: [ always ]
+
 - name: Define hashi_vault_key_threshold
   set_fact:
     hashi_vault_key_threshold: '{{ _hashi_vault_key_threshold }}'
   when: hashi_vault_key_threshold is not defined
+  tags: [ always ]
+
+- name: Debug hashi_vault_key_threshold
+  debug:
+    var: hashi_vault_key_threshold
+    verbosity: 2
   tags: [ always ]
 
   # This role uses the variable "_hashi_vault_mode" to simplify logic later on.
@@ -49,15 +61,14 @@
 
 - name: Define _hashi_vault_mode
   set_fact:
-    _hashi_vault_mode: '{{ (hashi_vault_key_shares|int == 1 and hashi_vault_key_threshold|int == 1)|ternary("simple","full") }}'
-  when: _hashi_vault_mode is not defined and
-        (hashi_vault_key_shares|int > 1 and hashi_vault_key_threshold|int > 1)
+    _hashi_vault_mode: 'dev'
+  when: (hashi_vault_key_shares|int == 0 and hashi_vault_key_threshold|int == 0)
   tags: [ always ]
 
 - name: Define _hashi_vault_mode
   set_fact:
-    _hashi_vault_mode: 'dev'
-  when: _hashi_vault_mode is not defined
+    _hashi_vault_mode: '{{ (hashi_vault_key_shares|int == 1 and hashi_vault_key_threshold|int == 1)|ternary("simple","full") }}'
+  when: (hashi_vault_key_shares|int > 0 and hashi_vault_key_threshold|int > 0)
   tags: [ always ]
 
 - name: Debug _hashi_vault_mode
@@ -285,7 +296,7 @@
   tags: [ hashi_vault, packages ]
 
 - name: "Initialize Vault (dev mode)"
-  shell: "{{ dims_bin }}/vault operator init -dev"
+  shell: "{{ dims_bin }}/vault server -dev"
   environment:
     VAULT_ADDR: "{{ hashi_vault_addr }}"
   register: keys
