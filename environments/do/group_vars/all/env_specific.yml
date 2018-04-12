@@ -89,13 +89,14 @@ dnsmasq_sha256_sum: '777c4762d2fee3738a0380401f2d087b47faa41db2317c60660d69ad10a
 
 
 docker_listen_port: 2375
+docker_api_listen_address: '127.0.0.1'
 docker_api_port: 2376
 docker_registry_port: 5000
-docker_registry: hub.{{ ansible_domain }}:{{ docker_registry_port }}
+docker_registry: hub.{{ dims_domain }}:{{ docker_registry_port }}
 
 # TODO(dittrich): This should be derived from (a) more global variable(s)
 # e.g., docker_insecure_registry_net: '{{ networks["vlan1"].network }}/{{ networks["vlan1"].cidr_bits }}'
-docker_insecure_registry_net: 192.168.56.0/24
+docker_insecure_registry_net: '192.168.56.0/24'
 docker_network_opts: ''
 #docker_network_opts: |
   #  -ip={{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface['docker']].ip }}
@@ -262,8 +263,8 @@ letsencrypt_ssl_fullchainfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/fullchain.
 letsencrypt_ssl_certfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/cert.pem'
 letsencrypt_ssl_keyfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/privkey.pem'
 
-trident_version: '1.4.6'
-trident_repo_branch: 'DEV_1.4.6-RC2'
+trident_version: 'DEV_1.4.6'
+trident_repo_branch: 'DEV_1.4.6'
 pitchfork_repo_branch: '{{ trident_version }}'
 
 swarm:
