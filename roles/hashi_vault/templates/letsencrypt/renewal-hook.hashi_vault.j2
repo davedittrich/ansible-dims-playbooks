@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# Copyright (C) 2018, David Dittrich <dave.dittrich@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This is a simple post-renewal hook for copying Letsencrypt
+# certificates/keys for use by non-privileged hashi_vault processing.
+
+[[ -d {{ hashi_vault_ssl_dir }} ]] || (echo "[-] Directory {{ hashi_vault_ssl_dir }} does not exist" && exit 1)
+cp {{ letsencrypt_ssl_fullchainfile }} {{ hashi_vault_ssl_fullchainfile }}
+cp {{ letsencrypt_ssl_certfile }} {{ hashi_vault_ssl_certfile }}
+cp {{ letsencrypt_ssl_cacertfile }} {{ hashi_vault_ssl_cacertfile }}
+cp {{ letsencrypt_ssl_keyfile }} {{ hashi_vault_ssl_keyfile }}
+for F in {{ hashi_vault_ssl_fullchainfile }} {{ hashi_vault_ssl_cacertfile }} {{ hashi_vault_ssl_certfile }} {{ hashi_vault_ssl_keyfile }}; do
+  chown {{ hashi_vault_user }}:{{ hashi_vault_group }} $F
+  chmod 640 $F
+done
+exit 0
