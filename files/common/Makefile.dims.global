@@ -1,0 +1,125 @@
+# This GNU Makefile is included in all DIMS Makefiles to provide
+# basic common functionality and features. It should be included
+# into other Makefile files using the following syntax:
+#
+#    include $(DIMS)/etc/Makefile.dims.global
+#
+# CAUTION: This file defines some variables that are coupled with definitions
+# in other locations, such as the file "dims_functions.sh" from the
+# ansible-playbooks 'base' role and ansible-playbooks inventory vars files.
+# Other variables are inherited from the environment.  Ideally, this file (and
+# the "dims_functions.sh" file) would both be templated to use the definitions
+# that come from ansible-playbooks vars files so there is only one source of
+# truth about how they are set, which is why some variables are set during
+# shell initialization using files that are under Ansible control and are
+# templated.
+# TODO(dittrich): Move variables to Ansible controlled /etc/environment
+
+# Use "make envcheck" to ensure the development environment is
+# set up properly before doing any DIMS coding or testing.
+
+# Note that the following variables are set as constants.
+# For the difference bewteen "=" and ":=" assignments, see:
+# http://stackoverflow.com/questions/448910/makefile-variable-assignment
+#
+# Force shell to be Bash for all of these rules, as they rely on Bash
+# features.
+SHELL=/bin/bash
+
+DIMS_VERSION:=1.7.30
+
+# Define this 1 to get debugging trace output
+DEBUG=0
+
+BASENAME:=$(shell basename `pwd`)
+NOW:=$(shell date +'%Y%m%d%H%M')
+DIMSBIN:=$(DIMS)/bin
+DIMSDATA:=$(DIMS)/data
+DIMSDEPLOY:=$(DIMS)/deploy
+DIMSETC:=$(DIMS)/etc
+DIMSLIB:=$(DIMS)/lib
+DIMSSRC:=$(DIMS)/src
+OWNER:="dims"
+GROUP:="dims"
+MODE_EXEC:="755"
+MODE_READ:="644"
+INSTALL_PROGRAM:=install
+OS:=$(shell uname -s)
+DIMS_REV:=$(shell git describe --always 2>/dev/null | sed "s/.*g//")
+CWD:=$(shell pwd)
+GITREPO:=$(shell git config --get remote.origin.url 2>/dev/null)
+GITBRANCH:=$(shell git branch 2>/dev/null | grep \* | sed 's/\* //')
+GITRELEASE:=$(shell git describe --exact-match 2>/dev/null | echo "`git symbolic-ref HEAD 2>/dev/null | cut -b 12-`-`git log --pretty=format:\"%h\" -1 2>/dev/null`")
+
+# This regular expression and use of cut can only handle variables
+# that start with ":", so conditional variables can't be used with it.
+_DIMSVARS=$(shell grep "^[A-Z][A-Z_]*[:]=" $(DIMS)/etc/Makefile.dims.global | cut -d: -f1)
+
+# The following comes from O'Reilly's book on GNU Make
+# http://www.oreilly.com/openbook/make3/book/ch04.pdf
+
+debug-enter = $(ifeq $(DEBUG) 1, \
+                 $(warning Entering $0 $(echo-args)))
+debug-leave = $(ifeq $(DEBUG) 1, $(warning Leaving $0))
+comma := ,
+echo-args = $(subst ' ', '$(comma) ',\
+              $(foreach a,1 2 3 4 5 6 7 8 9, '$($a)'))
+
+
+# Retrieve help text from a file. It extracts any line that starts
+# with '#HELP ' and strips that string, allowing all of the following
+# text to be printed (with whatever whitespace is included.) See
+# line looks like this:
+#
+#   #HELP help - Show this help information (usually the default rule)
+#
+# (Note that that line is not found because it does *not* begin
+# with '#HELP ', but instead starts with '#   #HELP ').
+
+define get_help_text
+  @echo ""
+  @echo "----- Targets from $1 -----"
+  @echo ""
+  @cat $1 | egrep "^#HELP" | sed -e 's/#HELP //' -e 's/#HELP//'
+  @echo ""
+endef
+
+
+.PHONY: help
+help:
+	@echo "$(CWD)"
+	@echo "[Using Makefile.dims.global v$(DIMS_VERSION) rev $(DIMS_REV)]"
+	@echo "---------------------------------------------------------------------------"
+	@echo "Usage: make [something]"
+	@echo ""
+	@echo "Where \"something\" is one of the targets listed in the sections below."
+	@echo ""
+	$(foreach f,$(MAKEFILE_LIST), \
+          $(call get_help_text,$f))
+	@echo "---------------------------------------------------------------------------"
+
+#HELP help - Show this help information (usually the default rule)
+#HELP
+#HELP dimsdefaults - show default variables included from Makefile.dims.global
+.PHONY: dimsdefaults
+dimsdefaults:
+	@echo "Defaults for variables set in Makefile.dims.global"
+	@for v in $(_DIMSVARS); \
+	 do \
+	    echo `grep "^$$v:=" $(DIMS)/etc/Makefile.dims.global`; \
+	 done
+
+#HELP print-SOMETHING - prints the value of variable "SOMETHING"
+print-%:
+	        @echo '$*=$($*)'
+
+#HELP version - show the Git revision for this repo
+.PHONY: version
+version:
+	@echo "$(CWD) version $(REV)"
+
+#HELP envcheck - perform checks of requirements for DIMS development
+.PHONY: envcheck
+envcheck:
+	@$(DIMSBIN)/test.dims-ci-utils.envcheck
+
