@@ -63,7 +63,7 @@ USER jenkins:jenkins
 # Set default options
 # http://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html
 #ENV JAVA_OPTS="-Xmx8192m"
-ENV JAVA_OPTS="-XX:+UseCGroupMemoryLimitForHeap"
+ENV JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
 
 # http://winstone.sourceforge.net/#commandLine
 ENV JENKINS_OPTS="--handlerCountMax=300"
