@@ -1,0 +1,113 @@
+---
+
+# File: roles/trident/tasks/get_bundle.yml
+
+# This sub-task downloads and validates a unified trident
+# release bundle, setting individual URL and SHA256 sums for
+# each consitutent from trident_dist_bundle.
+
+- name: Define local archive file name
+  set_fact:
+    _trident_archive: '{{ trident_unified_archive_url | basename }}'
+
+- name: Ensure Trident bundle present
+  get_url:
+    url: '{{ trident_unified_archive_url }}'
+    sha256sum: '{{ trident_unified_archive_sha256sum }}'
+    dest: '{{ deploy_dir }}/{{ role_name }}/{{ _trident_archive }}'
+  register: _trident_arhive
+  become: yes
+
+  # HACK: The trident_all.zip file holds all of the consituent .deb files
+  # in the output/ directory created by the Jenkins build job. Placing a
+  # symbolic link named "output" in the current working directory prior
+  # to the unarchive: module invocation results in the files being placed
+  # in the current working directory (which simplifies further access
+  # in later plays.)
+
+- name: Symbolic link output/ to ./
+  file:
+    src: '.'
+    dest: '{{ deploy_dir }}/{{ role_name }}/output'
+    state: link
+    owner: root
+    group: root
+  become: yes
+
+- name: Debug trident package install
+  debug:
+    var: _trident_install
+    verbosity: 2
+
+- name: Unpack the bundle
+  shell: >
+    unzip -o
+    '{{ _trident_archive }}'
+    chdir='{{ deploy_dir }}/{{ role_name }}'
+  become: true
+
+- name: Find package files
+  find:
+    paths: '{{ deploy_dir }}/{{ role_name }}'
+    patterns: '*_all.deb,*_amd64.deb'
+    file_type: 'file'
+    recurse: no
+    use_regex: no
+  become: yes
+  register: _find_packages
+
+- name: Fail when packages cannot be found
+  fail:
+    msg: 'Cannot find trident packages'
+  when: _find_packages.files.0 is not defined
+
+- name: Extract list of present trust groups
+  set_fact:
+    _trident_packages: '{{ _trident_packages|default([]) + [ item ]}} '
+  with_items: '{{ _find_packages.files|map(attribute="path")|list }}'
+
+- name: Debug _trident_packages
+  debug:
+    var: _trident_packages
+    verbosity: 2
+
+- name: Initialize _trident_dist_bundle_items
+  set_fact:
+    _trident_dist_bundle_items: []
+
+- name: Define _trident_dist_bundle_items from trident_dist_bundle
+  set_fact:
+    _trident_dist_bundle_items: '{{ _trident_dist_bundle_items + [ item.name ] }}'
+  with_items: '{{ trident_dist_bundle }}'
+
+- name: Debug _trident_dist_bundle_items
+  debug:
+    var: _trident_dist_bundle_items
+    verbosity: 2
+
+- name: Get sha256sum values for packages
+  shell: >
+    sha256sum {{ item }} | cut -f1 -d' '
+  register: _sha256sum
+  with_items: '{{ _trident_packages }}'
+
+- name: Debug _sha256sum
+  debug:
+    var: _sha256sum
+    verbosity: 2
+
+- name: Re-initialize trident_dist_bundle
+  set_fact:
+    trident_dist_bundle: []
+
+- name: Re-generate trident_dist_bundle
+  set_fact:
+    trident_dist_bundle: '{{ trident_dist_bundle + [ { "name": _trident_dist_bundle_items[item.0], "url": "file://" + _sha256sum.results[item.0].item, "sha256sum": _sha256sum.results[item.0].stdout } ] }}'
+  with_indexed_items: '{{ _trident_dist_bundle_items }}'
+
+- name: Debug trident_dist_bundle
+  debug:
+    var: trident_dist_bundle
+    verbosity: 2
+
+# vim: ft=ansible :

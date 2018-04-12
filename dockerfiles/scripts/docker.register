@@ -26,11 +26,11 @@ EOD
 fi
 
 IMAGE=dims-base
-REGISTRY=hub.prisem.washington.edu:5000
-DOCKERFILES=$GIT/dims-dockerfiles/dockerfiles
+REGISTRY=${REGISTRY:-127.0.0.1:5000}
+DOCKERFILES=${DOCKERFILES:-$PBR/dockerfiles}
 VERSION=$1
 
-echo "[+++] Building dims-base version ${VERSION}"
+echo "[+] Building dims-base version ${VERSION}"
 
 cd $DOCKERFILES/$IMAGE
 

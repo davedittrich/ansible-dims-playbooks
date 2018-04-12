@@ -1,0 +1,19 @@
+---
+
+# File: roles/trident/tasks/get_individual.yml
+
+- name: Ensure core Trident packages present
+  get_url:
+    url: '{{ item.url }}'
+    sha256sum: '{{ item.sha256sum }}'
+    dest: '{{ deploy_dir }}/{{ role_name }}/{{ item.url | basename }}'
+  with_items: '{{ trident_dist_bundle }}'
+  register: _trident_download
+  become: yes
+
+- name: Debug _trident_download
+  debug:
+    var: _trident_download
+    verbosity: 2
+
+# vim: ft=ansible :

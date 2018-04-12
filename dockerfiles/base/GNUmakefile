@@ -1,8 +1,16 @@
-shflags: $(DIMS)/src/shflags
-	(cd $(DIMS)/src; tar -cf - shflags) | tar -xf -
+shflags:
+	if [ -f $(DIMS)/src/shflags ]; then \
+		tar -C $(DIMS)/src -cf - shflags | tar -xf -; \
+	else \
+		git clone https://github.com/kward/shflags; \
+	fi
 
-bats: $(DIMS)/src/bats
-	(cd $(DIMS)/src; tar -cf - bats) | tar -xf -
+bats:
+	if [ -f $(DIMS)/src/bats ]; then \
+		tar -C $(DIMS)/src -cf - bats | tar -xf -; \
+	else \
+		git clone https://github.com/sstephenson/bats; \
+	fi
 
 %: force
 	        @$(MAKE) -f Makefile $@

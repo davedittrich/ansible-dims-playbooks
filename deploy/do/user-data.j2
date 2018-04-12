@@ -1,6 +1,4 @@
 #cloud-config
-#
-# {{ ansible_managed }}
 
 dc: {{ dims_domain|to_nice_json }}
 preserve_hostname: {{ do_preserve_hostname|to_nice_json }}

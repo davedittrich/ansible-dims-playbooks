@@ -13,7 +13,7 @@ This chapter covers development or prototype deployment on the
 `DigitalOcean`_ platform using Hashicorp `Terraform`_.
 
 Control of Digital Ocean droplets using these playbooks is done in the
-subdirectory ``do/dims/`` beneath the root directory of the cloned repository.
+subdirectory ``deploy/do`` beneath the root directory of the cloned repository.
 (This document assumes an environment variable ``$PBR`` points to the
 repository root.)
 

@@ -60,6 +60,15 @@
     mode: 0755
   become: true
 
+- name: Jenkins Script - Configure Docker Plugin
+  template:
+    src: configureDocker.groovy
+    dest: '{{ jenkins_home }}/init.groovy.d/configureDocker.groovy'
+    owner: jenkins
+    group: jenkins
+    mode: 0755
+  become: true
+
 - name: Restart Service 'jenkins'
   service:
     name: jenkins
@@ -90,6 +99,7 @@
   - '{{ jenkins_home }}/init.groovy.d/slaveAgentPort.groovy'
   - '{{ jenkins_home }}/init.groovy.d/adminSshKeys.groovy'
   - '{{ jenkins_home }}/init.groovy.d/updateCenterRefresh.groovy'
+  - '{{ jenkins_home }}/init.groovy.d/configureDocker.groovy'
   ignore_errors: yes
 
 # At this point (once the service is restarted), the CLI itself should be usable

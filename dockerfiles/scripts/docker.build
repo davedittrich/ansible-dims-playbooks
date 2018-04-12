@@ -16,7 +16,7 @@ EOD
 fi
 
 IMAGE=dims-base
-DOCKERFILES=$GIT/dims-dockerfiles/dockerfiles
+DOCKERFILES=${DOCKERFILES:-$PBR/dockerfiles}
 
 cd $DOCKERFILES/$IMAGE
 

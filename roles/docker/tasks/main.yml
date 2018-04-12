@@ -223,6 +223,35 @@
   when: ansible_os_family == "Debian" and docker_machine_version is defined
   tags: [ docker, packages ]
 
+- name: Ensure docker.service unit present (systemd)
+  template:
+    src: '{{ item }}'
+    dest: /etc/systemd/system/docker.service
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ docker_service }}'
+        - 'docker.service.{{ inventory_hostname }}.j2'
+        - 'docker.service.category-{{ category }}.j2'
+        - 'docker.service.deployment-{{ deployment }}.j2'
+        - 'docker.service.j2'
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/docker.service/'
+        - docker.service/
+  when: ansible_service_mgr == "systemd"
+  become: yes
+  notify: restart docker
+  tags: [ docker, config ]
+
+- name: Reload the consul service configuration (systemd)
+  shell: "systemctl daemon-reload"
+  when: ansible_service_mgr == "systemd"
+  become: yes
+  notify: restart docker
+  tags: [ docker, config ]
+
 - name: Make Docker defaults present
   template:
     src: '{{ item }}'

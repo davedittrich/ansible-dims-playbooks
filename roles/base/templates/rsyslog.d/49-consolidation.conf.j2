@@ -34,12 +34,22 @@ $InputTCPServerRun {{ rsyslog_port }}
 
 # do this in FRONT of the local/regular rules
 
-$template PerHostLog,"/var/log/dims/%HOSTNAME%.log"
+{%  if rsyslog_perhost is defined and rsyslog_perhost|bool %}
+$template LogFile,"/var/log/dims/%HOSTNAME%.log"
+{%  else %}
+$template LogFile,"/var/log/dims/{{ dims_domain }}.log"
+{%  endif %}
 
-{% if rsyslog_domains is defined %}
-{% for domain in rsyslog_domains %}
-if $fromhost != '{{ dims_fqdn }}' and $fromhost contains '{{ domain }}' then -?PerHostLog
+{%  if rsyslog_domains is defined %}
+{%   for domain in rsyslog_domains %}
+{%    if rsyslog_perhost is defined and rsyslog_perhost|bool %}
+if $fromhost != '{{ dims_fqdn }}' and $fromhost contains '{{ domain }}' then -?LogFile
 & stop
-{% endfor %}
-{% endif %}
+{%    else %}
+if $fromhost contains '{{ domain }}' then -?LogFile
+& stop
+{%    endif %}
+{%   endfor %}
+{%  endif %}
+
 {% endif %}

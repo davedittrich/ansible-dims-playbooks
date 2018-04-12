@@ -50,60 +50,85 @@ ci_server:
     jenkins_repo_url: "deb https://pkg.jenkins.io/debian-stable binary/"
     jenkins_repo_key_url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
     jenkins_pkg_url: https://pkg.jenkins.io/debian-stable/binary
-    jenkins_version: '2.107.1'
+    jenkins_version: '2.107.2'
     jenkins_package_state: present
     jenkins_connection_delay: 5
     jenkins_connection_retries: 60
+    jenkins_groups:
+      - 'www-data'
+      - 'sudo'
+      - 'docker'
     jenkins_home: /var/lib/jenkins
     jenkins_hostname: localhost
     jenkins_port: 8080
     jenkins_ssh_port: 8022
+    jenkins_cloud_name: 'docker-local'
     jenkins_slave_agent_port: 38023
+    jenkins_slave_image: 'jenkins-slave:latest'
+    jenkins_slave_label: 'docker.local.jenkins.slave'
+    jenkins_slave_name: 'docker.local'
+    jenkins_slave_docker_url: 'tcp://{{ docker_api_listen_address }}:{{ docker_api_port }}'
+    jenkins_slave_docker_remote_fs: '/home/jenkins'
+    jenkins_slave_docker_volumes: 'jenkins_home:/home/jenkins'
+    jenkins_slave_docker_pull_strategy: 'pull_latest'
+    jenkins_slave_docker_registry: '127.0.0.1'
+    jenkins_slave_docker_registry_credentials: ''
+    jenkins_slave_java_opts: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap'
+    jenkins_slave_docker_environment: 'JAVA_OPTS="{{ jenkins_slave_java_opts }}"'
     jenkins_context_path: '/jenkins'
     jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar"
     jenkins_cli: 'ssh -p {{ jenkins_ssh_port }} -l {{ jenkins_admin_username }} {{ jenkins_hostname }}'
+    # This label gets applied to the master node. Node selectors ("build_node")
+    # below enable slave builds.
     jenkins_labels:
-      - '{{ ansible_lsb.codename }}'
-      - '{{ ansible_architecture }}'
-      - '{{ (ansible_architecture == "x86_64")|ternary("amd64","not_amd64") }}' # For Trident label, until changed
-      # To pin to a specific version use format: 'ssh-slaves:1.24'
+      - 'master'
+      #- '{{ ansible_lsb.codename }}'
+      #- '{{ ansible_architecture }}'
+      #- '{{ (ansible_architecture == "x86_64")|ternary("amd64","not_amd64") }}' # For Trident label, until changed
+    # To pin to a specific version use format: 'ssh-slaves:1.24'
     jenkins_plugins:
+      - ant
+      - ansicolor
+      - antisamy-markup-formatter
+      - blueocean
+      - build-name-setter
+      - copyartifact
+      - credentials
+      #- docker-plugin
+      #- docker-custom-build-environment
+      - digitalocean-plugin
+      - envinject
+      - external-monitor-job
       - git
       - git-client
       - git-parameter
-      - translation
-      - timestamper
-      - job-dsl
-      - build-name-setter
-      - credentials
+      - greenballs
       - google-login
-      - ws-cleanup
-      - copyartifact
-      - matrix-project
-      - matrix-auth
-      - ssh-credentials
-      - ssh-slaves
-      - ssh-agent
-      - mailer
+      - javadoc
+      - jclouds-jenkins
+      - job-dsl
       - junit
-      - shiningpanda
-      - blueocean
-      - docker-plugin
-      - pam-auth
+      - ldap
+      - mailer
+      - matrix-auth
+      - matrix-project
       - maven-plugin
       - nodejs
-      - script-security
-      - ldap
-      - envinject
-      - external-monitor-job
-      - antisamy-markup-formatter
-      - publish-over-ssh
-      - token-macro
-      - ant
-      - postbuild-task
-      - javadoc
-      - scm-api
+      - pam-auth
       - parameterized-trigger
+      - postbuild-task
+      - publish-over-ssh
+      - scm-api
+      - script-security
+      - shiningpanda
+      - ssh-agent
+      - ssh-credentials
+      - ssh-slaves
+      - timestamper
+      - token-macro
+      - translation
+      - ws-cleanup
+      - yet-another-docker-plugin
     jenkins_url_prefix: "/jenkins"
     jenkins_java_options: "-Djenkins.install.runSetupWizard=false -Djenkins.CLI.disabled=true"
     jenkins_plugin_updates_expiration: 86400
@@ -137,9 +162,11 @@ ci_server:
       'build-rpc-prod':
         repo_url: 'https://github.com/davedittrich/prisem-rpc.git'
         repo_branch: 'master'
+        build_node: 'docker.local.jenkins.slave'
       'build-rpc-develop':
         repo_url: 'https://github.com/davedittrich/prisem-rpc.git'
         repo_branch: 'develop'
+        build_node: 'docker.local.jenkins.slave'
       'deploy-rpc-prod':
         playbooks_url: 'https://github.com/davedittrich/ansible-dims-playbooks.git'
         private_url: 'git@git.devops.develop:/opt/git/private-{{ deployment }}.git'
@@ -155,25 +182,36 @@ ci_server:
         repo_url: 'https://github.com/tridentli/pitchfork.git'
         repo_branch: '{{ pitchfork_repo_branch }}'
         repo_credentials: ''
+        build_node: 'docker.local.jenkins.slave'
       'pitchfork-data':
         project_url: 'https://github.com/tridentli/pitchfork'
         repo_url: 'https://github.com/tridentli/pitchfork.git'
         repo_branch: '{{ trident_repo_branch }}'
         repo_credentials: ''
+        build_node: 'docker.local.jenkins.slave'
       'trident':
         project_url: 'https://github.com/tridentli/trident'
         repo_url: 'https://github.com/tridentli/trident.git'
         #repo_url: '/opt/git/trident.git'
         repo_branch: '{{ trident_repo_branch }}'
         repo_credentials: ''
+        build_node: 'docker.local.jenkins.slave'
+      'trident_32':
+        project_url: 'https://github.com/tridentli/trident'
+        repo_url: 'https://github.com/tridentli/trident.git'
+        #repo_url: '/opt/git/trident.git'
+        repo_branch: '{{ trident_repo_branch }}'
+        repo_credentials: ''
+        build_node: 'docker.local.jenkins.slave'
       'trident-ext-src':
         project_url: 'https://github.com/tridentli/trident-ext-src'
         repo_url: 'https://github.com/tridentli/trident-ext-src.git'
         repo_branch: 'master'
         repo_credentials: ''
+        build_node: 'docker.local.jenkins.slave'
     jenkins_bootstrap_jobs:
+      - 'build dockerbuild -p IMAGE=jenkins-slave -p BRANCH=develop'
       - 'build build-parameterized -p REPO={{ jenkins_job_params["build-rpc-develop"].repo_url }} -p BRANCH={{ jenkins_job_params["build-rpc-develop"].repo_branch }}'
-      - 'build pitchfork'
   hosts:
     'green':
       nginx_source_dir: '/var/www/source'

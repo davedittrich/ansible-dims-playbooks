@@ -6,12 +6,11 @@
 # that "make help" works properly with subordinate use of
 # "inclue" in Makefile of containers.
 # WARNING: Tight coupling of logic between makefiles.
-MAKEFILES+=$(GIT)/dims-dockerfiles/dockerfiles/Makefile.container
+MAKEFILES+=$(DOCKERFILES)/Makefile.container
 
 IMAGE=$(shell basename `pwd`)
 NAME=dims.$(shell basename $(IMAGE))
 AUTHOR=$(shell whoami)
-REGISTRY=hub.vlan1.dims:5000
 
 # Set RESTART_POLICY to be one of: no (default), always, on-failure[:max-retries],
 # unless-stopped.
@@ -53,7 +52,7 @@ LAST_UPDATED:
 .PHONY: default
 default: image.built
 
-docker.entrypoint: $(GIT)/dims-dockerfiles/dockerfiles/scripts/docker.entrypoint
+docker.entrypoint: $(DOCKERFILES)/scripts/docker.entrypoint
 	cp $< $@
 	chmod +x $@
 
@@ -69,9 +68,11 @@ image.built: $(FILES)
 		--build-arg VERSION=$(VERSION) \
 		--tag $(IMAGE):$(VERSION) ./
 	docker tag $(IMAGE):$(VERSION) $(IMAGE):latest
-	@echo "[+] Tagging versions :$(VERSION) and :latest for $(REGISTRY)"
-	docker tag $(IMAGE):$(VERSION) $(REGISTRY)/$(IMAGE):$(VERSION)
-	docker tag $(IMAGE):$(VERSION) $(REGISTRY)/$(IMAGE):latest
+	@if [ ! -z "$(REGISTRY)" ]; then \
+		echo "[+] Tagging versions :$(VERSION) and :latest for $(REGISTRY)"; \
+		docker tag $(IMAGE):$(VERSION) $(REGISTRY)/$(IMAGE):$(VERSION); \
+		docker tag $(IMAGE):$(VERSION) $(REGISTRY)/$(IMAGE):latest; \
+	fi
 	touch image.built
 
 #HELP push - push the image (and update :latest)

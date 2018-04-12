@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM debian:jessie-backports
 
 MAINTAINER Dave Dittrich <dittrich@u.washington.edu>
 
@@ -23,10 +23,10 @@ ENV IMAGE $IMAGE
 
 # This Dockerfile requires that the Google 'shflags' repo
 # be checked out into this directory on build.
-# $ git clone https://android.googlesource.com/platform/external/shflags
+# $ git clone https://github.com/kward/shflags
 #
 # TODO(dittrich): Make this more robust and user-friendly.
-COPY shflags/src/shflags /shflags
+COPY shflags/shflags /shflags
 
 # It also requires that the "bats" repo be checked out into
 # this directory on build.
@@ -47,6 +47,7 @@ COPY docker.entrypoint.d/* /docker.entrypoint.d/
 ONBUILD COPY docker.entrypoint.d/* /docker.entrypoint.d/
 
 # Add some stuff via apt-get
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         bc \

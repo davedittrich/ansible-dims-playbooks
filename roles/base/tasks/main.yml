@@ -602,14 +602,14 @@
 # on the CoreOS nodes to funnel logs back to their central holding place.
 # Adding "when" statements to make these all Debian-only tasks.
 
-#- name: Stop rsyslogd
-#  service:
-#    name: rsyslog
-#    state: stopped
-#  notify: restart rsyslog
-#  when: ansible_os_family != "Container Linux by CoreOS"
-#  ignore_errors: yes
-#  tags: [ base, config, rsyslogd ]
+- name: Stop rsyslogd
+  service:
+    name: rsyslog
+    state: stopped
+  notify: restart rsyslog
+  when: ansible_os_family != "Container Linux by CoreOS"
+  ignore_errors: yes
+  tags: [ base, config, rsyslogd ]
 
 - name: Add group for rsyslog
   group:
@@ -817,7 +817,9 @@
 # purposes. Using 'notify' delays execution of handlers to the end.
 
 - name: start rsyslog
-  service: name=rsyslog state=started
+  service:
+    name: rsyslog
+    state: started
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
@@ -1028,6 +1030,16 @@
 # Note: All scripts end up without extensions. In the directory, they
 # have names that end in .j2 or .sh to differentiate between templated
 # and non-templated scripts.
+
+- name: Ensure Makefile.dims.global is present
+  template:
+    src: '{{ files }}/common/Makefile.dims.global'
+    dest: '{{ dims_etc }}/Makefile.dims.global'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o755
+  become: yes
+  tags: [ base, packages, scripts, tests ]
 
 - name: Make sure common (templated) scripts are present
   template:

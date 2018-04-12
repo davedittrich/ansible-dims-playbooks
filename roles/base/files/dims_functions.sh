@@ -264,7 +264,7 @@ fi
 if [ ! -z "$DIMS_VERSION" ]; then
 	DIMS_VERSION=$DIMS_VERSION
 else
-	DIMS_VERSION="3.4.0"
+	DIMS_VERSION="3.5.0"
 fi
 
 #HELP
