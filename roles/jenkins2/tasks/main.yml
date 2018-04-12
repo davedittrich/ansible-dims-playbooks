@@ -281,11 +281,11 @@
   ignore_errors: true
   tags: [ jenkins2 ]
 
-- name: Ensure jenkins user is in www-data, sudo groups
+- name: Ensure jenkins user is in desired groups
   user:
     name: jenkins
     append: yes
-    groups: www-data, sudo
+    groups: '{{ jenkins_groups }}'
   become: yes
   notify: restart nginx
   tags: [ jenkins2, config ]

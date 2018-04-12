@@ -54,6 +54,10 @@ ci_server:
     jenkins_package_state: present
     jenkins_connection_delay: 5
     jenkins_connection_retries: 60
+    jenkins_groups:
+      - 'www-data'
+      - 'sudo'
+      - 'docker'
     jenkins_home: /var/lib/jenkins
     jenkins_hostname: localhost
     jenkins_port: 8080
