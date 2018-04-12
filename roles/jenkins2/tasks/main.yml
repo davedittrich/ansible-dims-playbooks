@@ -13,6 +13,12 @@
 # there are still bugs that prevent handlers from executing
 # properly that make this not possible.
 
+- name: Assert supported Debian version
+  assert:
+    that:
+      ansible_lsb.id == "Debian" and ansible_lsb.codename in [ "jessie" ]
+  tags: [ always ]
+
 - name: Define jenkins_cli command
   set_fact:
     jenkins_cli: 'ssh -p {{ jenkins_ssh_port }} -l {{ jenkins_admin_username }} {{ jenkins_hostname }}'
@@ -92,51 +98,43 @@
     PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
   tags: [ jenkins2 ]
 
-- name: Make backports present for APT on Debian jessie
+- name: Make backports present for APT on Debian
   apt_repository:
-    repo: 'deb http://ftp.debian.org/debian jessie-backports main'
+    repo: 'deb http://ftp.debian.org/debian {{ item }} main'
     state: present
     update_cache: yes
-  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
+  with_items:
+    - '{{ ansible_lsb.codename }}-backports'
+    - '{{ ansible_lsb.codename }}'
   tags: [ jenkins2, packages ]
 
-- name: Get golang-go jessie-backports version
-  shell: apt-cache policy golang-go | grep jessie-backports -B1 | head -n1 | sed -e 's/^\s*\**\s*\(\S*\).*/\1/'
+- name: Get golang-go backports version
+  shell: apt-cache policy golang-go | grep {{ ansible_lsb.codename }}-backports -B1 | head -n1 | sed -e 's/^\s*\**\s*\(\S*\).*/\1/'
   register: _golanginstalled
-  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
   tags: [ jenkins2, packages ]
 
-- name: Install golang-go from jessie-backports
+- name: Install golang-go from backports
   apt:
     name: '{{ item }}={{ _golanginstalled.stdout_lines[0] }}'
     state: present
+    default_release: '{{ ansible_lsb.codename }}-backports'
     force: yes
   with_items:
     - golang-src
     - golang-go
-  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
-  tags: [ jenkins2, packages ]
-
-- name: Install golang-go from jesie-backports
-  apt:
-    name: 'golang-go'
-    state: present
-    force: yes
-    default_release: jessie-backports
-  when: ansible_lsb.id == "Debian" and ansible_lsb.codename == "jessie"
-  become: yes
   tags: [ jenkins2, packages ]
 
 - name: Ensure Debian go development prerequisites are present
   apt:
     name: '{{ item }}'
     state: present
+    default_release: '{{ ansible_lsb.codename }}-backports'
     force: yes
   with_items:
     - dh-golang
     - dh-systemd
-  when: ansible_os_family == "Debian"
   become: yes
+  tags: [ jenkins2, packages ]
 
 ## We want to pin the version of Jenkins for stability
 ## reasons.
@@ -147,6 +145,8 @@
     selection: hold
   with_items:
     - jenkins
+    - golang-go
+    - golang-src
   become: yes
   tags: [ jenkins2, packages ]
 
