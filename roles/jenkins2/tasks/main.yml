@@ -204,6 +204,18 @@
   notify: restart jenkins
   tags: [ jenkins2, config ]
 
+  # The slave (agent) API comes "baked in" to the Jenkins WAR. Easiest way to
+  # extract it is just to download it.
+- name: Get Jenkins agent.jar
+  get_url:
+    url: "http://localhost:{{ jenkins_port }}{{ jenkins_context_path | default('') }}/jnlpJars/agent.jar"
+    dest: '{{ jenkins_home }}/agent.jar'
+    force: true
+    owner: jenkins
+    group: jenkins
+    mode: 0444
+  become: true
+
   # Use the cli_config.yml task file from https://github.com/karlmdavis/ansible-jenkins2.git
 
 - import_tasks: 'cli_config.yml'
