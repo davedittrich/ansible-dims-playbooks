@@ -1031,6 +1031,16 @@
 # have names that end in .j2 or .sh to differentiate between templated
 # and non-templated scripts.
 
+- name: Ensure Makefile.dims.global is present
+  template:
+    src: '{{ files }}/common/Makefile.dims.global'
+    dest: '{{ dims_etc }}/Makefile.dims.global'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o755
+  become: yes
+  tags: [ base, packages, scripts, tests ]
+
 - name: Make sure common (templated) scripts are present
   template:
     src: '{{ item }}'
