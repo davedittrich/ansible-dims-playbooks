@@ -1,5 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<project>
+<?xml version="1.0" encoding="UTF-8"?><project>
   <actions/>
   <description>Deploys the rpc scripts. Triggered by upstream job build-rpc-prod, which pulls from the master branch of prisem.git&#xd;
 &#xd;
@@ -16,8 +15,8 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>BUILD_DISPLAY_NAME</name>
-          <description></description>
-          <defaultValue></defaultValue>
+          <description/>
+          <defaultValue/>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -33,7 +32,7 @@
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.30">
       <project>build-rpc-prod</project>
       <filter>prisem-rpc.tar.gz</filter>
-      <target></target>
+      <target/>
       <selector class="hudson.plugins.copyartifact.TriggeredBuildSelector"/>
       <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
     </hudson.plugins.copyartifact.CopyArtifact>
@@ -66,8 +65,8 @@ BUILD_URL=$BUILD_URL</properties>
   <buildWrappers>
     <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.20">
       <deleteDirs>false</deleteDirs>
-      <cleanupParameter></cleanupParameter>
-      <externalDelete></externalDelete>
+      <cleanupParameter/>
+      <externalDelete/>
     </hudson.plugins.ws__cleanup.PreBuildCleanup>
     <com.cloudbees.jenkins.plugins.sshagent.SSHAgentBuildWrapper plugin="ssh-agent@1.4.1">
       <user>bdfb0060-c133-4d99-87b5-1fb0b766ce07</user>

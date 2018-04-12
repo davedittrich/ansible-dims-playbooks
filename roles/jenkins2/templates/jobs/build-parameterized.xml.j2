@@ -1,5 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<project>
+<?xml version="1.0" encoding="UTF-8"?><project>
   <actions/>
   <description>Job to build artifacts from an arbitrary Git repo and branch. The job is controlled by the following parameters:&#xd;
 &#xd;
@@ -29,7 +28,7 @@ $BRANCH: Branch to build&#xd;</description>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>SAVE_TO_SOURCE</name>
-          <description></description>
+          <description/>
           <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
@@ -37,7 +36,7 @@ $BRANCH: Branch to build&#xd;</description>
     <EnvInjectJobProperty plugin="envinject@2.1.3">
       <info>
         <secureGroovyScript plugin="script-security@1.34">
-          <script></script>
+          <script/>
           <sandbox>false</sandbox>
         </secureGroovyScript>
         <loadFilesFromMaster>false</loadFilesFromMaster>
@@ -110,8 +109,8 @@ mv repo/output .
   <buildWrappers>
     <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.34">
       <deleteDirs>false</deleteDirs>
-      <cleanupParameter></cleanupParameter>
-      <externalDelete></externalDelete>
+      <cleanupParameter/>
+      <externalDelete/>
     </hudson.plugins.ws__cleanup.PreBuildCleanup>
   </buildWrappers>
 </project>

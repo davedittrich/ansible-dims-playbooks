@@ -17,7 +17,7 @@
       <threshold>
         <name>SUCCESS</name>
         <ordinal>0</ordinal>
-        <color>BLUE</color>
+        <color>GREEN</color>
         <completeBuild>true</completeBuild>
       </threshold>
     </jenkins.triggers.ReverseBuildTrigger>
@@ -43,11 +43,11 @@
       <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.tasks.Shell>
-      <command>#sudo apt-get -t jessie-backports install golang-go -y
-sudo apt-get remove exim4-base -y
+	    <command>#sudo apt-get install -y -t jessie-backports golang-go
+sudo apt-get remove -y exim4-base
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y postfix 
-sudo apt-get install postgresql postgresql-9.4 -y
-sudo apt-get install nginx-full ntpdate -y
+sudo apt-get install -y postgresql postgresql-9.4
+sudo apt-get install -y nginx-full ntpdate
 sudo dpkg -i ./output/pitchfork-data*.deb ./output/trident-server*.deb ./output/trident-cli*.deb
 sudo su postgres -c &quot;/usr/sbin/tsetup --force-db-destroy setup_test_db&quot;
 echo &apos;include &quot;/etc/trident/nginx/trident-upstream.inc&quot;;
