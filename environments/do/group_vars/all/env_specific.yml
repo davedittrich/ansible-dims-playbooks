@@ -227,6 +227,7 @@ rsyslog_server: '{{ hostvars["red"].ansible_host }}'
 # If you want to use other port configure selinux
 rsyslog_port: 6514
 rsyslog_use_ssl: true
+rsyslog_perhost: false
 rsyslog_domains: [
     '.{{ dims_domain }}',
 ]
