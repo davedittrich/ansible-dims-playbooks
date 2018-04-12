@@ -101,7 +101,7 @@ ansibleplaybooks_version: "3.5.0"
 # Put these here for now to allow Jenkins build jobs to work.
 verbose: false
 debug: false
-nolog: true
+no_log: true
 
 #-- END FROM vars/global.yml --#
 

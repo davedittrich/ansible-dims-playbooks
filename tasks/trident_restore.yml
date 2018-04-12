@@ -105,7 +105,7 @@
     owner: root
     group: root
     mode: 0o770
-  no_log: '{{ nolog|default(true) }}'
+  no_log: '{{ no_log|default(true) }}'
   become: yes
 
 - name: Extract sub-backup files

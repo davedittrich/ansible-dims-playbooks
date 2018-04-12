@@ -17,7 +17,7 @@
       <threshold>
         <name>SUCCESS</name>
         <ordinal>0</ordinal>
-        <color>GREEN</color>
+        <color>BLUE</color>
         <completeBuild>true</completeBuild>
       </threshold>
     </jenkins.triggers.ReverseBuildTrigger>

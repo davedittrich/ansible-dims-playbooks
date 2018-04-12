@@ -108,7 +108,7 @@
 - name: Get private key for postfix hosts
   set_fact:
      _private_key: '{{ lookup("file", _local_private_key_file) }}'
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   become: no
   delegate_to: 127.0.0.1
   run_once: true
@@ -120,7 +120,7 @@
 - name: Distribute private key to remaining postfix hosts
   shell: >
     echo "{{ _private_key }}" > {{ opendkim_private_key_file }}
-  no_log: '{{ nolog }}'
+  no_log: '{{ no_log }}'
   when: inventory_hostname in groups.postfix
   args:
     creates: '{{ opendkim_private_key_file }}'
