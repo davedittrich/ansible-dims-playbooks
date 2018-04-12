@@ -125,8 +125,10 @@ main()
             local _artifact="${FLAGS_saveto}/$(basename ${_file})"
             cp ${_file} ${_artifact} ||
                 error_exit $? "Failed to copy ${_file} to ${_artifact}"
+{% if 0 %}
             verbose Created ${_artifact}
             dims.logger -l devops "Created ${_artifact}"
+{% endif %}
         elif [[ -d ${_file} ]]; then
             warn "Handling directories is not supported"
         else
