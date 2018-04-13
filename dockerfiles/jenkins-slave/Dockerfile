@@ -55,11 +55,6 @@ RUN groupadd -r jenkins \
 
 COPY agent.jar /home/jenkins/agent.jar
 
-# Standard SSH port
-EXPOSE 22
-
-USER jenkins:jenkins
-
 # Set default options
 # http://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html
 #ENV JAVA_OPTS="-Xmx8192m"
@@ -71,5 +66,8 @@ ENV JENKINS_OPTS="--handlerCountMax=300"
 
 # Enable access log
 ENV JENKINS_ACCESSLOG="--accessLoggerClassName=winstone.accesslog.SimpleAccessLogger --simpleAccessLogger.format=combined --simpleAccessLogger.file=/var/log/jenkins/access.log"
+
+# Standard SSH port
+EXPOSE 22
 
 CMD ["/usr/sbin/sshd", "-D"]
