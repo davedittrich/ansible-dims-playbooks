@@ -94,8 +94,7 @@ ci_server:
       - build-name-setter
       - copyartifact
       - credentials
-      #- docker-plugin
-      #- docker-custom-build-environment
+      - docker-plugin
       - digitalocean-plugin
       - envinject
       - external-monitor-job
@@ -128,7 +127,6 @@ ci_server:
       - token-macro
       - translation
       - ws-cleanup
-      - yet-another-docker-plugin
     jenkins_url_prefix: "/jenkins"
     jenkins_java_options: "-Djenkins.install.runSetupWizard=false -Djenkins.CLI.disabled=true"
     jenkins_plugin_updates_expiration: 86400

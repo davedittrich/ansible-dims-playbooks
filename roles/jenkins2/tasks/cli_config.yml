@@ -51,14 +51,17 @@
     mode: 0755
   become: true
 
-- name: Jenkins Script - Configure Docker Plugin
-  template:
-    src: configureDocker.groovy
-    dest: '{{ jenkins_home }}/init.groovy.d/configureDocker.groovy'
-    owner: jenkins
-    group: jenkins
-    mode: 0755
-  become: true
+# TODO(dittrich): Temporarily going back to just docker-plugin
+# and configuration via templates/config/config.xml.j2
+
+#- name: Jenkins Script - Configure Docker Plugin
+#  template:
+#    src: configureDocker.groovy
+#    dest: '{{ jenkins_home }}/init.groovy.d/configureDocker.groovy'
+#    owner: jenkins
+#    group: jenkins
+#    mode: 0755
+#  become: true
 
 - name: Jenkins Script - Configure Slave Agent Port
   template:
