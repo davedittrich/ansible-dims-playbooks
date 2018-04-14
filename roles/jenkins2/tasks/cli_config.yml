@@ -6,15 +6,6 @@
 # Enables the Jenkins CLI and configures the 'admin' account so that it can be
 # used to connect to the CLI.
 
-- name: Jenkins Script - Configure Slave Agent Port
-  template:
-    src: slaveAgentPort.groovy
-    dest: '{{ jenkins_home }}/init.groovy.d/slaveAgentPort.groovy'
-    owner: jenkins
-    group: jenkins
-    mode: 0755
-  become: true
-
 - name: Generate SSH Keys for jenkins Service Account
   user:
     name: jenkins
@@ -64,6 +55,15 @@
   template:
     src: configureDocker.groovy
     dest: '{{ jenkins_home }}/init.groovy.d/configureDocker.groovy'
+    owner: jenkins
+    group: jenkins
+    mode: 0755
+  become: true
+
+- name: Jenkins Script - Configure Slave Agent Port
+  template:
+    src: slaveAgentPort.groovy
+    dest: '{{ jenkins_home }}/init.groovy.d/slaveAgentPort.groovy'
     owner: jenkins
     group: jenkins
     mode: 0755
