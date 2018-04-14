@@ -137,8 +137,13 @@ configuration settings (including passwords) for your deployment.
   ``MX``, and ``TXT`` records for your droplets.  (You will set an
   environment variable in a moment with this domain name.)
 
-  After a short period of time after creating the domain, you should
-  be able to see the NS records:
+  Now go to your DigitalOcean control panel, select **Networking**,
+  then **Domains**. Enter your new domain name in the
+  **Add a Domain** field and select **Add Domain** to register
+  the domain with Digital Ocean.
+
+  After a short period of time, you should then be able to see
+  the NS records:
 
   .. code-block:: none
 
