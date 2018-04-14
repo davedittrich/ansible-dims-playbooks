@@ -117,3 +117,7 @@
     [ ! -z "$(git config user.email)" ]
 }
 
+@test "[S][EV] Can run opendkim-genkey" {
+    echo "    ==> Install opendkim (\"apt-get install opendkim\" or \"brew install opendkim\")" >&2
+    opendkim-genkey --version
+}
