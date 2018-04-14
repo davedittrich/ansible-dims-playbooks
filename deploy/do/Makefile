@@ -74,11 +74,16 @@ help:
 	@echo '     $$ make DIMS_ANSIBLE_ARGS="--limit trident" backup.postgresql'
 
 .PHONY: init
-init: terraform.tfstate
+init: terraform.tfstate ansible.cfg
 	@[ -d $(HOME)/.secrets/digital-ocean ] || mkdir -p $(HOME)/.secrets/digital-ocean
 	@chmod 700 $(HOME)/.secrets $(HOME)/.secrets/digital-ocean
 	@touch $(HOME)/.secrets/digital-ocean/token
 	@chmod 600 $(HOME)/.secrets/digital-ocean/token
+
+ansible.cfg:
+	wget https://raw.githubusercontent.com/ansible/ansible/devel/examples/ansible.cfg
+	patch ansible.cfg < diffs.ansible_cfg
+
 
 terraform.tfstate:
 	terraform init
