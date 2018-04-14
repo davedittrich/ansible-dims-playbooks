@@ -4,13 +4,13 @@
 
 - name: Load deployment secrets
   include_vars: "{{ dims_private }}/group_vars/vault.yml"
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   when: ansible_lsb.codename == "jessie"
 
 # Build a list of desired admins that we want to have on the system
 - name: Create set of defined admins
   set_fact: admins_defined={{ trident_site_admins | map(attribute='ident') | list }}
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -21,7 +21,7 @@
   shell: >
     tcli system login trident {{ trident_sysadmin_pass }} | grep -q "Login successful"
   register: tcli_login
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   when: ansible_lsb.codename == "jessie"
 
 - fail: msg="Failed to log in via trident: {{ tcli_login.stdout }}"
@@ -32,7 +32,7 @@
   shell: >
     tcli system swapadmin | grep -q "Now a SysAdmin user"
   register: tcli_swapadmin
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   when: ansible_lsb.codename == "jessie"
 
 - fail: msg="Failed to obtain sysadmin rights: {{ tcli_swapadmin.stdout }}"
@@ -121,7 +121,7 @@
     tcli user new {{ item.ident }} {{ item.email }} &&
     tcli user email confirm_force {{ item.ident }} {{ item.email }}
   with_items: "{{ trident_site_trust_groups.0.initial_users }}"
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
         and not have_members
 
@@ -225,7 +225,7 @@
     tcli user email confirm_force {{ item.ident }} {{ item.email }} &&
     tcli user set sysadmin {{ item.ident }} true
   with_items: "{{ trident_site_admins }}"
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
         and ((admins_current is defined and item.ident not in admins_current)
              or item.ident in admins_needed)
@@ -236,7 +236,7 @@
 
 #- name: Retrieve primary TG members idents as list
 #  set_fact: member_idents={{ trident_site_trust_groups.0.initial_users | selectattr('ident', 'defined') | map(attribute='ident') | list }}
-#  no_log: "{{ no_log }}"
+#  no_log: "{{ _no_log }}"
 #  when: ansible_lsb.codename == "jessie"
 #
 #- name: Determine member account status
@@ -244,7 +244,7 @@
 #    tcli user get ident {{ item }}
 #  with_items: "{{ member_idents }}"
 #  register: account_status
-#  no_log: "{{ no_log }}"
+#  no_log: "{{ _no_log }}"
 #  when: ansible_lsb.codename == "jessie"
 #
 #- debug:
@@ -253,7 +253,7 @@
 
 #- name: Retrieve accounts not yet setup
 #  set_fact: setup_accounts={{ account_status.results | selectattr('stdout', 'defined') | map(attribute='stdout') | list }}
-#  no_log: "{{ no_log }}"
+#  no_log: "{{ _no_log }}"
 #  when: ansible_lsb.codename == "jessie"
 #
 #- debug:
@@ -264,7 +264,7 @@
   shell: >
     tcli group get ident {{ trident_site_trust_groups.0.name }}
   register: group_status
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -273,14 +273,14 @@
 
 - name: Retrieve group not yet setup
   set_fact: setup_group={{ group_status.stdout }}
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - name: Ensure initial TG is setup
   shell: >
     tcli group add {{ trident_site_trust_groups.0.name }} &&
     tcli group set descr {{ trident_site_trust_groups.0.name }} '{{ trident_site_trust_groups.0.settings.descr }}'
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
         and trident_site_trust_groups.0.name not in setup_group
 
@@ -288,7 +288,7 @@
   shell: >
     tcli ml list {{ trident_site_trust_groups.0.name }} | awk '{ print $1; }'
   register: list_status
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -297,7 +297,7 @@
 
 - name: Retrieve lists not yet setup
   set_fact: setup_lists={{ list_status.stdout_lines }}
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -308,7 +308,7 @@
   shell: >
     tcli ml new {{ trident_site_trust_groups.0.name }} {{ item.ident }}
   with_items: "{{ trident_site_trust_groups.0.additional_lists }}"
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
         and item.ident not in setup_lists
 
@@ -316,7 +316,7 @@
   shell: >
     tcli group member list {{ trident_site_trust_groups.0.name }} | sed -e 's/ //'
   register: member_status
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -325,7 +325,7 @@
 
 - name: Retrieve members in TG
   set_fact: setup_members={{ member_status.stdout_lines }}
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -338,7 +338,7 @@
     tcli group member approve {{ trident_site_trust_groups.0.name }} {{ item.ident }} &&
     tcli group member promote {{ trident_site_trust_groups.0.name }} {{ item.ident }}
   with_items: "{{ trident_site_admins }}"
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   when: ansible_lsb.codename == "jessie"
         and item.ident not in setup_members
 
@@ -347,7 +347,7 @@
     tcli group member add {{ trident_site_trust_groups.0.name }} {{ item.ident }} &&
     tcli group member approve {{ trident_site_trust_groups.0.name }} {{ item.ident }}
   with_items: "{{ trident_site_trust_groups.0.initial_users }}"
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   when: ansible_lsb.codename == "jessie"
         and item.ident not in setup_members
 
@@ -355,7 +355,7 @@
   shell: >
     tcli ml list {{ trident_site_trust_groups.0.name }} | awk '{ print $1; }'
   register: list_status
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -364,7 +364,7 @@
 
 - name: Retrieve created mailing lists
   set_fact: initial_lists={{ list_status.stdout_lines }}
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -376,7 +376,7 @@
     tcli ml member list {{ trident_site_trust_groups.0.name }} {{ item.ident }}
   with_items: "{{ trident_site_trust_groups.0.additional_lists }}"
   register: ml_member_status
-  #no_log: "{{ no_log }}"
+  #no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -387,7 +387,7 @@
   shell: >
     tcli group member list {{ trident_site_trust_groups.0.name }} | sed -e 's/ //'
   register: tg_member_status
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -396,7 +396,7 @@
 
 - name: Retrieve members in TG
   set_fact: setup_members={{ tg_member_status.stdout_lines }}
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
 
 - debug:
@@ -418,7 +418,7 @@
   with_nested:
     - "{{ ml_member_status.results }}"
     - "{{ setup_members }}"
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
         and item.1 not in item.0.stdout_lines
 
@@ -430,7 +430,7 @@
   shell: >
     tcli ml member add {{ trident_site_trust_groups.0.name }} {{ item.ml }} {{ item.new_member }}
   with_items: "{{ ml_members_status_dict }}"
-  no_log: "{{ no_log }}"
+  no_log: "{{ _no_log }}"
   when: ansible_lsb.codename == "jessie"
         and item.new_member not in item.current_members
 

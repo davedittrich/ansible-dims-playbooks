@@ -369,7 +369,7 @@
   with_items:
     - '{{ rabbitmq_users }}'
   become: yes
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   tags: [ rabbitmq ]
 
 - name: Enable rabbitmq plugins
