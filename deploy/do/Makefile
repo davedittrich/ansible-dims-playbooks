@@ -90,8 +90,18 @@ terraform.tfstate:
 
 .PHONY: prerequisites
 prerequisites:
-	sudo apt-get install bats pip python-pip jq
-	sudo pip install ansible==2.4.0.0
+	if [ "$(shell uname -s)" = "Darwin" ]; then \
+		brew install bats ansible git make jq; \
+	elif [ "$(shell uname -s)" = "Linux" ]; then \
+		sudo apt-get install bats ansible git make jq; \
+	else \
+		echo "Not prepared to handle prerequisites for $(shell uname -s)"; \
+		exit 1; \
+	fi
+	if [ ! -d venv ]; then \
+		virtualenv venv; \
+		venv/bin/pip install -r requirements.txt; \
+	fi; \
 
 .PHONY: droplets
 droplets:
