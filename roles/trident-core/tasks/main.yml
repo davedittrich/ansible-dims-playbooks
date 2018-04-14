@@ -34,6 +34,16 @@
 #  $ sudo apt-get purge postgresql-*
 # before running this playbook.
 
+# NOTE: The trident-perl package is not public at this point.
+# You will not have a fully-functional Trident portal without
+# it, but will be able to use a full D2 deployment to do
+# Trident portal or related content development.
+
+- name: Define trident_install_trident_perl
+  set_fact:
+    trident_install_trident_perl: false
+  when: trident_install_trident_perl is not defined
+
 - name: Determine user running ansible
   local_action: command whoami
   become: no
@@ -110,6 +120,7 @@
    - libossp-uuid-perl
    - libmime-tools-perl
   become: yes
+  when: trident_install_trident_perl
   tags: [ trident-core, packages ]
 
 - name: Ensure pg_hba.conf present
@@ -180,6 +191,7 @@
     sha256sum: '{{ trident_perl_sha256sum }}'
     dest: '{{ deploy_dir }}/{{ role_name }}/{{ trident_perl_disturl|basename }}'
   become: yes
+  when: trident_install_trident_perl
   tags: [ trident-core ]
 
 - name: Ensure trident group present
@@ -255,6 +267,7 @@
   shell: >
     dpkg -x {{ deploy_dir }}/{{ role_name }}/{{ trident_perl_archive }} /
   become: yes
+  when: trident_install_trident_perl
   tags: [ trident-core, packages ]
 
 - name: Manually extract control files from trident-perl
@@ -262,6 +275,7 @@
     dpkg -e {{ deploy_dir }}/{{ role_name }}/{{ trident_perl_archive }}
     {{ deploy_dir }}/{{ role_name }}/trident-perl_DEBIAN
   become: yes
+  when: trident_install_trident_perl
   tags: [ trident-core, packages ]
 
 - name: Manually run trident-perl postinst script to install
@@ -269,6 +283,7 @@
     sh {{ deploy_dir }}/{{ role_name }}/trident-perl_DEBIAN/postinst
   become: yes
   register: _postinst
+  when: trident_install_trident_perl
   tags: [ trident-core, packages ]
 
 - name: Define _trident_user_exists
