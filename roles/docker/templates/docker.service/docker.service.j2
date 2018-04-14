@@ -25,10 +25,14 @@ LimitNPROC=infinity
 LimitCORE=infinity
 # Uncomment TasksMax if your systemd version supports it.
 # Only systemd 226 and above support this version.
-TasksMax=infinity
+# NOTE(dittrich): Debian 7 produces following error:
+# Apr 12 20:06:27 green systemd[1]: [/etc/systemd/system/docker.service:24] Unknown lvalue 'TasksMax' in section 'Service'
+# TasksMax=infinity
 TimeoutStartSec=0
 # set delegate yes so that systemd does not reset the cgroups of docker containers
-Delegate=yes
+# NOTE(dittrich): Debian 7 produces following error:
+# Apr 12 20:06:27 green systemd[1]: [/etc/systemd/system/docker.service:27] Unknown lvalue 'Delegate' in section 'Service'
+#Delegate=yes
 # kill only the docker process, not all processes in the cgroup
 KillMode=process
 # restart the docker process if it exits prematurely
