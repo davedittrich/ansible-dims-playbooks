@@ -105,38 +105,4 @@
 # At this point (once the service is restarted), the CLI itself should be usable
 # by the 'jenkins' system user (and its SSH keys).
 
-- name: Create Jenkins CLI Directory
-  file:
-    path: /opt/jenkins
-    state: directory
-    owner: jenkins
-    group: jenkins
-    mode: 0755
-  become: true
-
-# The CLI comes "baked in" to the Jenkins WAR. Easiest way to extract it is
-# just to download it.
-- name: Get Jenkins CLI
-  get_url:
-    url: "http://localhost:{{ jenkins_port }}{{ jenkins_context_path | default('') }}/jnlpJars/jenkins-cli.jar"
-    dest: '/opt/jenkins/jenkins-cli.jar'
-    force: true
-    owner: jenkins
-    group: jenkins
-    mode: 0444
-  become: true
-
-- name: Verify CLI using username/password
-  shell: >
-    java -jar /opt/jenkins/jenkins-cli.jar
-    -s http://localhost:{{ jenkins_port }}{{ jenkins_context_path | default('') }}
-    who-am-i
-    --username {{ jenkins_admin_username }}
-    --password {{ jenkins_admin_password }}
-  register: cli_whoami
-  become: true
-  become_user: jenkins
-  no_log: '{{ no_log }}'
-  changed_when: false
-
 # vim: ft=ansible :
