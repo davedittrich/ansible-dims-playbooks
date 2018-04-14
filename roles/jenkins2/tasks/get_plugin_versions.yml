@@ -1,0 +1,27 @@
+---
+
+# File: roles/jenkins2/tasks/get_plugin_versions.yml
+
+- assert:
+    that:
+      - jenkins_home is defined
+
+# Returns plugins in list 'jenkins_plugin_versions'
+
+- name: Get plugin version numbers
+  shell:
+    chdir={{ jenkins_home }}
+    grep -r Plugin-Version plugins | sed 's/\// /g' | awk '{ print $2, $5; }'
+  become: yes
+  register: _plugin_out
+
+- name: Save plugin version numbers in dictionary
+  set_fact:
+    jenkins_plugin_versions: "{{ jenkins_plugin_versions|default({}) | combine( {item.split(' ')[0]: item.split(' ')[1]} ) }}"
+  with_items: "{{ _plugin_out.stdout_lines }}"
+
+- debug:
+    var: jenkins_plugin_versions
+    verbosity: 2
+
+# vim: ft=ansible :
