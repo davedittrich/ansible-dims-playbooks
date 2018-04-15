@@ -289,7 +289,7 @@
 
 - name: Define _trident_user_exists
   set_fact:
-    _trident_user_exists: '{{ _postinst.stdout is search("trident user already exists") }}'
+    _trident_user_exists: '{{ _postinst.stdout|default("") is search("trident user already exists") }}'
   tags: [ trident-core, packages ]
 
 - name: Debug _trident_user_exists
