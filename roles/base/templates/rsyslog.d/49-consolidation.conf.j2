@@ -15,6 +15,9 @@
 #  http://serverfault.com/questions/274625/how-do-i-get-rsyslogd-to-log-a-servers-fqdn-instead-of-its-short-hostname
 #}
 
+$template HostLogFile,"/var/log/dims/%HOSTNAME%.log"
+$template DomainLogFile,"/var/log/dims/{{ dims_domain }}.log"
+
 {% if rsyslog_server is defined and rsyslog_server == inventory_hostname %}
 # This is the central logging host.
 
@@ -37,9 +40,6 @@ $InputTCPServerStreamDriverMode 1 # Only use TLS
 $InputTCPServerRun {{ rsyslog_port }}
 
 # do this in FRONT of the local/regular rules
-
-$template HostLogFile,"/var/log/dims/%HOSTNAME%.log"
-$template DomainLogFile,"/var/log/dims/{{ dims_domain }}.log"
 
 {%  if rsyslog_domains is defined %}
 # Logging for domains: '{{ rsyslog_domains|join(', ') }}'
