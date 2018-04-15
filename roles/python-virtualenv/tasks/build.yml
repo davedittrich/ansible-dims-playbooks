@@ -290,19 +290,25 @@
   - name: Debug build (stdout)
     debug:
       var: _build_result.stdout_lines
-    when: _build_result is defined and _build_result|failed
+    when:
+      - _build_result is defined
+      - _build_result is failed
     tags: [ python-virtualenv ]
 
   - name: Debug unit test output
     debug:
       var: _unit_test_result.stdout_lines
-    when: _unit_test_result is defined and _unit_test_result|failed
+    when:
+      - _unit_test_result is defined
+      - _unit_test_result is failed
     tags: [ python-virtualenv ]
 
   - name: Debug build (stderr)
     debug:
       var: _build_result.stderr_lines
-    when:  _build_result is defined and _build_result|failed
+    when:
+      - _build_result is defined
+      - _build_result is failed
     tags: [ python-virtualenv ]
 
   - fail:
@@ -319,8 +325,11 @@
     group: '{{ dims_group }}'
     mode: 0o755
   become: yes
-  when: _build_result is defined and not _build_result|failed and
-        _unit_test_result is defined and not _unit_test_result|failed
+  when:
+    - _build_result is defined
+    - _build_result is not failed
+    - _unit_test_result is defined
+    - _unit_test_result is not failed
   tags: [ python-virtualenv ]
 
 # vim: ft=ansible :
