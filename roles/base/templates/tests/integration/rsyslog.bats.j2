@@ -8,7 +8,7 @@ load helpers
 
 {% if rsyslog_use_ssl is defined and rsyslog_use_ssl|bool %}
 @test "[I][EV] Can connect to rsyslog server ({{ rsyslog_server }}) via openssl s_client" {
-    [ -z "{{ rsyslog_server_address|default('')" ] && skip "rsyslog_server_address is not defined"
+    [ -z "{{ rsyslog_server_address|default('') }}" ] && skip "rsyslog_server_address is not defined"
     openssl s_client -showcerts -connect {{ rsyslog_server_address }}:{{ rsyslog_port }} -CAfile {{ rsyslog_ssl_cacertfile }} | grep -q 'Verify return code: 0 (ok)'
 }
 {% endif %}
