@@ -205,6 +205,8 @@
       renew
       --quiet
       --no-self-upgrade
+    args:
+      warn: no
     become: yes
     register: _update_results
     when: use_letsencrypt and _have_cert
