@@ -115,7 +115,8 @@ fail2ban_findtime: 600 # 10 minutes
 # Items in list can be IP address, CIDR block, or DNS entry
 fail2ban_ignoreips:
   - '127.0.0.1/8'
-fail2ban_logpath: '/var/log/dims/{{ rsyslog_perhost|default(false)|ternary(dims_fqdn,dims_domain) }}.log'
+#fail2ban_logpath: '/var/log/dims/{{ rsyslog_perhost|default(false)|ternary(dims_fqdn,dims_domain) }}.log'
+fail2ban_logpath: '/var/log/dims/{{ dims_fqdn }}.log'
 fail2ban_maxretry: 3
 fail2ban_sendername: 'Fail2ban'
 fail2ban_services:
