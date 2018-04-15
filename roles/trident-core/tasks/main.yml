@@ -43,6 +43,7 @@
   set_fact:
     trident_install_trident_perl: false
   when: trident_install_trident_perl is not defined
+  tags: [ always ]
 
 - name: Determine user running ansible
   local_action: command whoami
