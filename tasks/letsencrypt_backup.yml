@@ -64,7 +64,7 @@
       dest: '{{ _tmpdir }}/{{ certbot_backup_file }}'
       owner: root
       group: root
-      mode: 0o770
+      mode: 0o700
       remove: false
     become: yes
 
@@ -73,7 +73,7 @@
       dest: '{{ certbot_backup_dir }}'
       state: directory
       owner: '{{ backups_owner }}'
-      mode: 0o770
+      mode: 0o700
     delegate_to: 127.0.0.1
     become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
     become_user: '{{ backups_owner }}'
@@ -95,7 +95,7 @@
     file:
       path: '{{ certbot_backup_dir }}/{{ certbot_backup_file }}'
       owner: '{{ backups_owner }}'
-      mode: 0o660
+      mode: 0o600
     delegate_to: 127.0.0.1
     become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
     become_user: '{{ backups_owner }}'
