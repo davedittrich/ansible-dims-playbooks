@@ -73,7 +73,6 @@
       dest: '{{ certbot_backup_dir }}'
       state: directory
       owner: '{{ backups_owner }}'
-      group: '{{ backups_group }}'
       mode: 0o770
     delegate_to: 127.0.0.1
     become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
