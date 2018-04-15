@@ -3,28 +3,6 @@
 #  Default rules for rsyslog.
 #
 #			For more information see rsyslog.conf(5) and /etc/rsyslog.conf
-
-{% if rsyslog_server is defined and ansible_default_ipv4.address != rsyslog_server %}
-# DIMS addition. Send a copy of all logs to central server.
-{% if rsyslog_use_ssl|bool|default(false) %}
-# http://www.rsyslog.com/doc/v8-stable/tutorials/tls.html
-# make gtls driver the default
-$DefaultNetstreamDriver gtls
-
-# certificate files
-$DefaultNetstreamDriverCAFile {{ rsyslog_ssl_cacertfile }}
-$DefaultNetstreamDriverCertFile {{ rsyslog_ssl_certfile }}
-$DefaultNetstreamDriverKeyFile {{ rsyslog_ssl_keyfile }}
-
-$ActionSendStreamDriverMode 1 # require TLS for the connection
-$ActionSendStreamDriverAuthMode anon # server is NOT authenticated
-
-*.*  @@(o){{ rsyslog_server }}:{{ rsyslog_port }}
-{% else %}
-*.*  @@{{ rsyslog_server }}:{{ rsyslog_port }}
-{% endif %}
-{% endif %}
-
 #
 # First some standard log files.  Log by facility.
 #
@@ -39,7 +17,7 @@ mail.*				-/var/log/mail.log
 
 # DIMS services use the following facility for logging to assist
 # in log consolidation and debugging.
-*.*;{{syslog_facility}}.*       -/var/log/dims/{{ dims_fqdn }}.log
+*.*;{{syslog_facility}}.*       -?HostLogFile
 
 #
 # Logging for the mail system.  Split it up so that
