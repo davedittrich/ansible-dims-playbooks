@@ -221,21 +221,7 @@
 - import_tasks: 'cli_config.yml'
   tags: [ jenkins2 ]
 
-- name: Get plugin version numbers
-  shell:
-    chdir={{ jenkins_home }}
-    grep -r Plugin-Version plugins | sed 's/\// /g' | awk '{ print $2, $5; }'
-  become: yes
-  register: _plugin_out
-  tags: [ jenkins2 ]
-
-- name: Save plugin version numbers in dictionary
-  set_fact:
-    jenkins_plugin_versions: "{{ jenkins_plugin_versions|default({}) | combine( {item.split(' ')[0]: item.split(' ')[1]} ) }}"
-  with_items: "{{ _plugin_out.stdout_lines }}"
-  tags: [ jenkins2 ]
-
-- debug: 'var=jenkins_plugin_versions'
+- import_tasks: 'get_plugin_versions.yml'
   tags: [ jenkins2 ]
 
 - name: Ensure members of jenkins group can read secrets

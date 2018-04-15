@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+[Unit]
+SourcePath=/etc/init.d/fail2ban
+Description=LSB: Start/stop fail2ban
+Before=runlevel2.target runlevel3.target runlevel4.target runlevel5.target shutdown.target
+After=local-fs.target remote-fs.target time-sync.target network-online.target systemd-journald-dev-log.socket iptables.service firehol.service shorewall.service ipmasq.service arno-iptables-firewall.service iptables-persistent.service ferm.service rsyslog.service
+Wants=network-online.target rsyslog.service
+Conflicts=shutdown.target
+
+[Service]
+Type=forking
+Restart=on-failure
+TimeoutSec=5min
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+RemainAfterExit=yes
+SysVStartPriority=2
+ExecStart=/etc/init.d/fail2ban start
+ExecStop=/etc/init.d/fail2ban stop

@@ -1,0 +1,98 @@
+--- ansible.cfg.github	2018-04-13 23:48:44.000000000 -0700
++++ ansible.cfg	2018-04-14 00:11:35.000000000 -0700
+@@ -13,3 +13,11 @@
+ 
+-#inventory      = /etc/ansible/hosts
++# NOTE: The environment variable $PBR has been used by DIMS project
++# team members to select Ansible playbooks and/or inventories. If it
++# is not defined by the account running Ansible command line programs
++# that read this configuration file, it will not find an inventory.
++# Because the path involves the name of the Git repo, and may be
++# relative to a user's home directory, there is no way to reliably
++# default it here.
++
++inventory      = ${PBR}/environments/${TF_VAR_environment}/inventory
+ #library        = /usr/share/my_modules/
+@@ -19,4 +27,4 @@
+ #plugin_filters_cfg = /etc/ansible/plugin_filters.yml
+-#forks          = 5
+-#poll_interval  = 15
++forks          = 5
++poll_interval  = 15
+ #sudo_user      = root
+@@ -24,5 +32,5 @@
+ #ask_pass      = True
+-#transport      = smart
+-#remote_port    = 22
+-#module_lang    = C
++transport      = smart
++remote_port    = 22
++module_lang    = C
+ #module_set_locale = False
+@@ -35,3 +43,3 @@
+ # explicit - do not gather by default, must say gather_facts: True
+-#gathering = implicit
++gathering = implicit
+ 
+@@ -58,3 +66,3 @@
+ # additional paths to search for roles in, colon separated
+-#roles_path    = /etc/ansible/roles
++roles_path    = ${PBR}/roles:${HOME}/git:/etc/ansible/roles
+ 
+@@ -74,2 +82,3 @@
+ #callback_whitelist = timer, mail
++callback_whitelist = profile_tasks
+ 
+@@ -93,3 +102,3 @@
+ # SSH timeout
+-#timeout = 10
++timeout = 10
+ 
+@@ -98,2 +107,3 @@
+ #remote_user = root
++remote_user = ansible
+ 
+@@ -114,3 +124,3 @@
+ # this can also be set to 'merge'.
+-#hash_behaviour = replace
++hash_behaviour = merge
+ 
+@@ -138,3 +148,3 @@
+ # in some situations so the default is a static string:
+-#ansible_managed = Ansible managed
++ansible_managed = Ansible managed
+ 
+@@ -184,8 +194,8 @@
+ #cache_plugins      = /usr/share/ansible/plugins/cache
+-#callback_plugins   = /usr/share/ansible/plugins/callback
+-#connection_plugins = /usr/share/ansible/plugins/connection
+-#lookup_plugins     = /usr/share/ansible/plugins/lookup
++callback_plugins   = ${PBR}/callback_plugins:/usr/share/ansible_plugins/callback_plugins
++connection_plugins = ${PBR}/connection_plugins:/usr/share/ansible_plugins/connection_plugins
++lookup_plugins     = ${PBR}/lookup_plugins:/usr/share/ansible_plugins/lookup_plugins
+ #inventory_plugins  = /usr/share/ansible/plugins/inventory
+-#vars_plugins       = /usr/share/ansible/plugins/vars
+-#filter_plugins     = /usr/share/ansible/plugins/filter
++vars_plugins       = ${PBR}/vars_plugins:/usr/share/ansible_plugins/vars_plugins
++filter_plugins     = ${PBR}/filter_plugins:/usr/share/ansible_plugins/filter_plugins
+ #test_plugins       = /usr/share/ansible/plugins/test
+@@ -207,3 +217,3 @@
+ # set to 1 if you don't want cowsay support or export ANSIBLE_NOCOWS=1
+-#nocows = 1
++nocows = 1
+ 
+@@ -240,3 +250,3 @@
+ 
+-#retry_files_enabled = False
++retry_files_enabled = False
+ #retry_files_save_path = ~/.ansible-retry
+@@ -358,2 +368,4 @@
+ #ssh_args = -C -o ControlMaster=auto -o ControlPersist=60s
++# SECURITY ALERT: Set UseRoaming=no to prevent SSH vuln
++ssh_args = -C -o ControlMaster=auto -o ControlPersist=60s -o UseRoaming=no
+ 
+@@ -373,3 +385,3 @@
+ # control_path = %(directory)s/%%h-%%r
+-#control_path =
++control_path = %(directory)s/ansible-ssh-%%h-%%p-%%r
+ 

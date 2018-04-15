@@ -1,5 +1,6 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 #
+{#
 #  Rules for doing log consolidation using remote rsyslog logging from DIMS
 #  clients to a central server. This configuration file must exist on the
 #  consolidation server.
@@ -12,11 +13,17 @@
 #  http://www.rsyslog.com/storing-messages-from-a-remote-system-into-a-specific-file/
 #  http://www.rsyslog.com/sending-messages-to-a-remote-syslog-server/
 #  http://serverfault.com/questions/274625/how-do-i-get-rsyslogd-to-log-a-servers-fqdn-instead-of-its-short-hostname
+#}
 
-{% if rsyslog_server is defined %}
+$template HostLogFile,"/var/log/dims/%HOSTNAME%.log"
+$template DomainLogFile,"/var/log/dims/{{ dims_domain }}.log"
+
+{% if rsyslog_server is defined and rsyslog_server == inventory_hostname %}
+# This is the central logging host.
+
 $ModLoad imtcp # load TCP listener
 
-{% if rsyslog_use_ssl|bool|default(false) %}
+{%  if rsyslog_use_ssl|bool|default(false) %}
 # certificate files
 $DefaultNetstreamDriverCAFile {{ rsyslog_ssl_cacertfile }}
 $DefaultNetstreamDriverCertFile {{ rsyslog_ssl_certfile }}
@@ -28,28 +35,52 @@ $DefaultNetstreamDriver gtls
 $InputTCPServerStreamDriverAuthMode x509/name # Auth mode
 $InputTCPServerStreamDriverPermittedPeer *.{{ dims_domain }}
 $InputTCPServerStreamDriverMode 1 # Only use TLS
-{% endif %}
+{%  endif %}
 
 $InputTCPServerRun {{ rsyslog_port }}
 
 # do this in FRONT of the local/regular rules
 
-{%  if rsyslog_perhost is defined and rsyslog_perhost|bool %}
-$template LogFile,"/var/log/dims/%HOSTNAME%.log"
-{%  else %}
-$template LogFile,"/var/log/dims/{{ dims_domain }}.log"
-{%  endif %}
-
 {%  if rsyslog_domains is defined %}
+# Logging for domains: '{{ rsyslog_domains|join(', ') }}'
+
 {%   for domain in rsyslog_domains %}
-{%    if rsyslog_perhost is defined and rsyslog_perhost|bool %}
-if $fromhost != '{{ dims_fqdn }}' and $fromhost contains '{{ domain }}' then -?LogFile
+{%    if rsyslog_perhost|default(false)|bool %}
+# Per-host logging is enabled. Use separate log files
+# for each client based on their host names.
+
+if $fromhost != '{{ hostvars[inventory_hostname].dims_fqdn }}' and $fromhost contains '{{ domain }}' then -?HostLogFile
 & stop
 {%    else %}
-if $fromhost contains '{{ domain }}' then -?LogFile
-& stop
+# Not logging per-host. Log all events from any host in the
+# domain to a single log file per domain.
+
+#if $fromhost != '{{ hostvars[inventory_hostname].dims_fqdn }}' and $fromhost contains '{{ domain }}' then -?DomainLogFile
+if $fromhost contains '{{ domain }}' then -?DomainLogFile
+# fall through for logging locally (e.g., for fail2ban).
 {%    endif %}
 {%   endfor %}
+{%  endif %}
+{% else %}
+# This is not the central server, so send
+# a copy of all logs to central server.
+
+{%  if rsyslog_use_ssl|bool|default(false) %}
+# http://www.rsyslog.com/doc/v8-stable/tutorials/tls.html
+# make gtls driver the default
+$DefaultNetstreamDriver gtls
+
+# certificate files
+$DefaultNetstreamDriverCAFile {{ rsyslog_ssl_cacertfile }}
+$DefaultNetstreamDriverCertFile {{ rsyslog_ssl_certfile }}
+$DefaultNetstreamDriverKeyFile {{ rsyslog_ssl_keyfile }}
+
+$ActionSendStreamDriverMode 1 # require TLS for the connection
+$ActionSendStreamDriverAuthMode anon # server is NOT authenticated
+
+*.*  @@(o){{ rsyslog_server_address }}:{{ rsyslog_port }}
+{%  else %}
+*.*  @@{{ rsyslog_server_address }}:{{ rsyslog_port }}
 {%  endif %}
 
 {% endif %}

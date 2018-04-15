@@ -54,6 +54,7 @@ help:
 	@echo " create - applies terraform plan to create droplets for hosts in group 'do'"
 	@echo " ping - does Ansible ad-hoc ping of hosts in group 'do'"
 	@echo " bootstrap - create, then run bootstrap.yml and ca-certs.yml playbooks"
+	@echo " bootstrap-opendkim - just create opendkim keys and terraform modules"
 	@echo " installcerts - run 'certbot-installcert.yml' playbook to install SSL certs"
 	@echo " deploy - run 'master.yml' playbook to deploy roles on droplets"
 	@echo " post.test - run 'test.runner --terse' on all droplets"
@@ -74,19 +75,34 @@ help:
 	@echo '     $$ make DIMS_ANSIBLE_ARGS="--limit trident" backup.postgresql'
 
 .PHONY: init
-init: terraform.tfstate
+init: terraform.tfstate ansible.cfg
 	@[ -d $(HOME)/.secrets/digital-ocean ] || mkdir -p $(HOME)/.secrets/digital-ocean
 	@chmod 700 $(HOME)/.secrets $(HOME)/.secrets/digital-ocean
 	@touch $(HOME)/.secrets/digital-ocean/token
 	@chmod 600 $(HOME)/.secrets/digital-ocean/token
+
+ansible.cfg:
+	wget https://raw.githubusercontent.com/ansible/ansible/devel/examples/ansible.cfg
+	patch ansible.cfg < diffs.ansible_cfg
+
 
 terraform.tfstate:
 	terraform init
 
 .PHONY: prerequisites
 prerequisites:
-	sudo apt-get install bats pip python-pip jq
-	sudo pip install ansible==2.4.0.0
+	if [ "$(shell uname -s)" = "Darwin" ]; then \
+		brew install bats ansible git make jq; \
+	elif [ "$(shell uname -s)" = "Linux" ]; then \
+		sudo apt-get install bats ansible git make jq; \
+	else \
+		echo "Not prepared to handle prerequisites for $(shell uname -s)"; \
+		exit 1; \
+	fi
+	if [ ! -d venv ]; then \
+		virtualenv venv; \
+		venv/bin/pip install -r requirements.txt; \
+	fi; \
 
 .PHONY: droplets
 droplets:
@@ -192,6 +208,10 @@ bootstrap:
 		$(PBR)/playbooks/bootstrap.yml \
 		-e host=do \
 		$(DIMS_ANSIBLE_ARGS)
+	$(MAKE) bootstrap-opendkim
+
+.PHONY: bootstrap-opendkim
+bootstrap-opendkim:
 	ansible-playbook -i $(INVENTORY) \
 		$(ASK_BECOME_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \

@@ -35,7 +35,7 @@
   shell: >
     tcli system login trident {{ trident_sysadmin_pass }} | grep -q "Login successful"
   register: tcli_login
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   tags: [ trident-configure, config ]
 
 - fail:
@@ -47,7 +47,7 @@
   shell: >
     tcli system swapadmin | grep -q "Now a SysAdmin user"
   register: tcli_swapadmin
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   tags: [ trident-configure, config ]
 
 - fail:
@@ -71,7 +71,7 @@
    - 'tcli system set header_image {{ trident_site_header_image }}'
    - 'tcli system set unknown_image {{ trident_site_unknown_person }}'
   register: _results
-  changed_when: "not _results.stdout|search('was already set')"
+  changed_when: "not _results.stdout is search('was already set')"
   tags: [ trident-configure, config ]
 
 - name: Ensure initial sysadmin user account setup
@@ -169,7 +169,7 @@
     - '{{ trident_site_trust_groups.0.additional_lists | map(attribute="ident") | list }}'
     - '{{ trident_site_trust_groups.0.initial_users | map(attribute="ident") | list }}'
   register: _results
-  changed_when: "not (_results.stdout|search('Already a list member'))"
+  changed_when: "not (_results.stdout is search('Already a list member'))"
   tags: [ trident-configure, config ]
 
 - name: Add admins to admin list
@@ -213,14 +213,14 @@
     - '{{ trident_site_trust_groups }}'
     - '{{ settings_keys }}'
   register: _results
-  changed_when: "not _results.stdout|search('already the requested value')"
-  failed_when: "_results.stdout|search('An error occured')"
+  changed_when: "not _results.stdout is search('already the requested value')"
+  failed_when: "_results.stdout is search('An error occured')"
   tags: [ trident-configure, config ]
 
 - name: Ensure trident administator is logged out
   shell: >
     tcli system logout
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   tags: [ trident-configure, config ]
 
 - name: Ensure cron emails go to the right person

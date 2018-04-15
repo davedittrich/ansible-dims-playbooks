@@ -1,3 +1,4 @@
+venv
 ansible.cfg
 provider.tf
 .terraform

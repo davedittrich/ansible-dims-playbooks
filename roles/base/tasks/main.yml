@@ -96,6 +96,8 @@
 
 - name: Clean APT cache
   command: apt-get clean
+  args:
+    warn: false
   become: yes
   when: packages_upgrade|bool and ansible_pkg_mgr == "apt"
   tags: [ base, packages, updates ]
@@ -355,6 +357,30 @@
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
     - "conditional restart docker"
   when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+- name: Make fail2ban.service unit present (systemd)
+  template:
+    src: '{{ item }}'
+    dest: /etc/systemd/system/fail2ban.service
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+        - '{{ fail2ban_service }}'
+        - 'fail2ban.service.{{ inventory_hostname }}.j2'
+        - 'fail2ban.service.category-{{ category }}.j2'
+        - 'fail2ban.service.deployment-{{ deployment }}.j2'
+        - 'fail2ban.service.j2'
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/fail2ban.service/'
+        - fail2ban.service/
+  when: ansible_service_mgr == "systemd"
+  become: yes
+  notify:
+    - "restart rsyslog"
+    - "restart fail2ban ({{ ansible_service_mgr }})"
   tags: [ base, config, iptables ]
 
 - name: Ensure /etc/fail2ban/fail2ban.local is present

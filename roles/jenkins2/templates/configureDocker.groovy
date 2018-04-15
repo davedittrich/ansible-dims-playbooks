@@ -62,7 +62,7 @@ JSONArray clouds_yadocker = [
                 docker_image_name: '{{ jenkins_slave_image }}',
                 //PULL IMAGE SETTINGS
                 //valid values: pull_latest, pull_always, pull_once, pull_never
-                pull_strategy: 'pull_latest',
+                pull_strategy: '{{ jenkins_slave_docker_pull_strategy }}',
                 pull_registry_credentials_id: '',
                 //CREATE CONTAINER SETTINGS
                 docker_command: '',
@@ -99,7 +99,7 @@ JSONArray clouds_yadocker = [
                 force_remove_containers: false,
                 //JENKINS SLAVE CONFIG
                 remote_fs_root: '{{ jenkins_slave_docker_remote_fs }}',
-                labels: 'docker',
+                labels: '{{ jenkins_slave_label }}',
                 //valid values: exclusive or normal
                 usage: 'exclusive',
                 availability_strategy: 'docker_once_retention_strategy',
@@ -107,7 +107,7 @@ JSONArray clouds_yadocker = [
                 executors: 1,
                 //LAUNCH METHOD
                 //valid values: launch_ssh or launch_jnlp
-                launch_method: 'launch_jnlp',
+                launch_method: '{{ jenkins_slave_launch_method }}',
                 //settings specific to launch_ssh (you only need one or the other)
                 launch_ssh_credentials_id: '',
                 launch_ssh_port: 22,

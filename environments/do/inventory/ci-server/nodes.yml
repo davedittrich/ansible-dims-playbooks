@@ -47,21 +47,24 @@ ci_server:
           - logamqp
           - email
           - jenkins-trident
-    jenkins_repo_url: "deb https://pkg.jenkins.io/debian-stable binary/"
-    jenkins_repo_key_url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
-    jenkins_pkg_url: https://pkg.jenkins.io/debian-stable/binary
+    jenkins_repo_url: 'deb https://pkg.jenkins.io/debian-stable binary/'
+    jenkins_repo_key_url: 'https://pkg.jenkins.io/debian-stable/jenkins.io.key'
+    jenkins_pkg_url: 'https://pkg.jenkins.io/debian-stable/binary'
     jenkins_version: '2.107.2'
-    jenkins_package_state: present
+    jenkins_package_state: 'present'
     jenkins_connection_delay: 5
     jenkins_connection_retries: 60
     jenkins_groups:
       - 'www-data'
       - 'sudo'
       - 'docker'
-    jenkins_home: /var/lib/jenkins
-    jenkins_hostname: localhost
+    jenkins_home: '/var/lib/jenkins'
+    jenkins_hostname: 'localhost'
     jenkins_port: 8080
     jenkins_ssh_port: 8022
+    jenkins_logging_level: 'INFO'
+    jenkins_java_options: "-Djenkins.install.runSetupWizard=false -Djenkins.CLI.disabled=true -Djava.util.logging.config.file={{ jenkins_home }}/logging.properties -Djenkins.slaves.DefaultJnlpSlaveReceiver.disableStrictVerification=true"
+    jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar" # DEPRECATED use of .jar for CLI (use SSH instead)
     jenkins_cloud_name: 'docker-local'
     jenkins_slave_agent_port: 38023
     jenkins_slave_image: 'jenkins-slave:latest'
@@ -70,13 +73,17 @@ ci_server:
     jenkins_slave_docker_url: 'tcp://{{ docker_api_listen_address }}:{{ docker_api_port }}'
     jenkins_slave_docker_remote_fs: '/home/jenkins'
     jenkins_slave_docker_volumes: 'jenkins_home:/home/jenkins'
-    jenkins_slave_docker_pull_strategy: 'pull_latest'
+    jenkins_slave_docker_pull_strategy: 'PULL_NEVER'
     jenkins_slave_docker_registry: '127.0.0.1'
     jenkins_slave_docker_registry_credentials: ''
-    jenkins_slave_java_opts: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap'
+    jenkins_slave_docker_instance_cap: 2
+    #jenkins_slave_java_opts: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap'
+    jenkins_slave_java_opts: '-XX:MaxRAM=256M'
+    jenkins_slave_memory_limit: 256
+    jenkins_slave_memory_swap: 512
     jenkins_slave_docker_environment: 'JAVA_OPTS="{{ jenkins_slave_java_opts }}"'
+    jenkins_slave_launch_method: 'launch_jnlp'
     jenkins_context_path: '/jenkins'
-    jenkins_jar_location: "{{ jenkins_home }}/jenkins-cli.jar"
     jenkins_cli: 'ssh -p {{ jenkins_ssh_port }} -l {{ jenkins_admin_username }} {{ jenkins_hostname }}'
     # This label gets applied to the master node. Node selectors ("build_node")
     # below enable slave builds.
@@ -94,8 +101,7 @@ ci_server:
       - build-name-setter
       - copyartifact
       - credentials
-      #- docker-plugin
-      #- docker-custom-build-environment
+      - docker-plugin
       - digitalocean-plugin
       - envinject
       - external-monitor-job
@@ -103,6 +109,7 @@ ci_server:
       - git-client
       - git-parameter
       - greenballs
+      - groovy-label-assignment
       - google-login
       - javadoc
       - jclouds-jenkins
@@ -128,9 +135,7 @@ ci_server:
       - token-macro
       - translation
       - ws-cleanup
-      - yet-another-docker-plugin
     jenkins_url_prefix: "/jenkins"
-    jenkins_java_options: "-Djenkins.install.runSetupWizard=false -Djenkins.CLI.disabled=true"
     jenkins_plugin_updates_expiration: 86400
     jenkins_plugin_timeout: 60
 

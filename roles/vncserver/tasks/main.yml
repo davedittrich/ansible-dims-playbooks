@@ -123,7 +123,7 @@
     vncserver -display :99 < ${HOME}/passwd.txt > /dev/null 2>/dev/null;
     vncserver -kill :99 > /dev/null 2>/dev/null;
     rm ${HOME}/passwd.txt
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   become: '{{ item.user }}'
   with_items: '{{ vncserver_users_indexed }}'
   tags: [ vncserver ]

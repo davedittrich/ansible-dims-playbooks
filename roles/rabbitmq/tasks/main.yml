@@ -369,7 +369,7 @@
   with_items:
     - '{{ rabbitmq_users }}'
   become: yes
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   tags: [ rabbitmq ]
 
 - name: Enable rabbitmq plugins
@@ -449,7 +449,7 @@
   shell: "rabbitmqadmin -N localhost_mgmt import /etc/rabbitmq/broker_objects.json"
   become: yes
   register: _import
-  failed_when: not _import.stdout|search("Imported definitions")
+  failed_when: not _import.stdout is search("Imported definitions")
   tags: [ rabbitmq, config ]
 
 - import_tasks: '{{ tasks_path }}/post_tasks.yml'

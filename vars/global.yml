@@ -95,13 +95,13 @@ zones: []
 # The following is managed using "bumpversion". See the
 # dims-ci-utils documentation.
 
-ansibleplaybooks_version: "3.5.0"
+ansibleplaybooks_version: "3.6.0"
 
 
 # Put these here for now to allow Jenkins build jobs to work.
 verbose: false
 debug: false
-no_log: true
+_no_log: true
 
 #-- END FROM vars/global.yml --#
 

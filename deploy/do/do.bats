@@ -14,7 +14,7 @@
 
 @test "[S][EV] Directory for secrets (~/.secrets/) is mode 700" {
     echo "    ==> Run \"make init\"" >&2
-    [ $(stat -c %a ~/.secrets 2>&1) == "700" ]
+    [ ! -z $(find ~/.secrets -type d -maxdepth 0 -perm 0700) ]
 }
 
 @test "[S][EV] Directory for DigitalOcean secrets (~/.secrets/digital-ocean/) exists" {
@@ -117,3 +117,7 @@
     [ ! -z "$(git config user.email)" ]
 }
 
+@test "[S][EV] Can run opendkim-genkey" {
+    echo "    ==> Install opendkim (\"apt-get install opendkim\" or \"brew install opendkim\")" >&2
+    opendkim-genkey --version
+}

@@ -107,7 +107,7 @@
     dest: '{{ postgresql_backup_dir }}/{{ postgresql_backup_file }}'
     flat: true
     validate_checksum: yes
-  no_log: '{{ no_log|default(true) }}'
+  no_log: '{{ _no_log|default(true) }}'
   become: yes
 
 - name: Set backup ownership

@@ -24,7 +24,7 @@
 
 - name: Load deployment secrets
   include_vars: "{{ dims_private }}/group_vars/vault.yml"
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   when: ansible_lsb.codename == "jessie"
 
 # Log in to tcli
@@ -32,7 +32,7 @@
   shell: >
     tcli system login trident {{ trident_sysadmin_pass }} | grep -q "Login successful"
   register: tcli_login
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   when: ansible_lsb.codename == "jessie"
 
 - fail: msg="Failed to log in via trident: {{ tcli_login.stdout }}"
@@ -44,7 +44,7 @@
   shell: >
     tcli system swapadmin | grep -q "Now a SysAdmin user"
   register: tcli_swapadmin
-  no_log: '{{ no_log }}'
+  no_log: '{{ _no_log }}'
   when: ansible_lsb.codename == "jessie"
 
 - fail: msg="Failed to obtain sysadmin rights: {{ tcli_swapadmin.stdout }}"
