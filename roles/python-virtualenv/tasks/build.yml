@@ -104,39 +104,39 @@
 
 - name: Create {{ venv_name }}-requirements.txt file
   template:
-    src=pip/{{ venv_name }}-requirements.txt.j2
-    dest={{ dims_etc }}/{{ venv_name }}-requirements.txt
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o644
+    src: 'pip/{{ venv_name }}-requirements.txt.j2'
+    dest: '{{ dims_etc }}/{{ venv_name }}-requirements.txt'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o644
   become: yes
   tags: [ python-virtualenv ]
 
 - name: Create {{ venv_name }}.build script
   template:
-    src=scripts/{{ venv_name }}.build.j2
-    dest={{ dims_bin }}/{{ venv_name }}.build
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o755
+    src: 'scripts/{{ venv_name }}.build.j2'
+    dest: '{{ dims_bin }}/{{ venv_name }}.build'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o755
   become: yes
   tags: [ python-virtualenv, config ]
 
 - name: Make {{ venv_name }}.update script present
   template:
-    src=scripts/{{ venv_name }}.update.j2
-    dest={{ dims_bin }}/{{ venv_name }}.update
-    owner={{ dims_user }}
-    group={{ dims_group }}
-    mode=0o755
+    src: 'scripts/{{ venv_name }}.update.j2'
+    dest: '{{ dims_bin }}/{{ venv_name }}.update'
+    owner: '{{ dims_user }}'
+    group: '{{ dims_group }}'
+    mode: 0o755
   become: yes
   tags: [ python-virtualenv, config ]
 
 - name: Ensure source for Python is present
   get_url:
-    url={{ python_dist_url }}
-    sha256sum={{ python_sha256_sum }}
-    dest={{ dims_src }}/{{ python_archive }}
+    url: '{{ python_dist_url }}'
+    sha256sum: '{{ python_sha256_sum }}'
+    dest: '{{ dims_src }}/{{ python_archive }}'
   become: yes
   become_user: '{{ dims_user }}'
   tags: [ python-virtualenv ]
