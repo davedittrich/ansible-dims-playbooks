@@ -95,7 +95,6 @@
     file:
       path: '{{ certbot_backup_dir }}/{{ certbot_backup_file }}'
       owner: '{{ backups_owner }}'
-      group: '{{ backups_group }}'
       mode: 0o660
     delegate_to: 127.0.0.1
     become: '{{ (backups_owner == _localuser)|ternary("no","yes") }}'
