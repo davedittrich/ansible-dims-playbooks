@@ -54,6 +54,7 @@ help:
 	@echo " create - applies terraform plan to create droplets for hosts in group 'do'"
 	@echo " ping - does Ansible ad-hoc ping of hosts in group 'do'"
 	@echo " bootstrap - create, then run bootstrap.yml and ca-certs.yml playbooks"
+	@echo " bootstrap-opendkim - just create opendkim keys and terraform modules"
 	@echo " installcerts - run 'certbot-installcert.yml' playbook to install SSL certs"
 	@echo " deploy - run 'master.yml' playbook to deploy roles on droplets"
 	@echo " post.test - run 'test.runner --terse' on all droplets"
@@ -207,6 +208,10 @@ bootstrap:
 		$(PBR)/playbooks/bootstrap.yml \
 		-e host=do \
 		$(DIMS_ANSIBLE_ARGS)
+	$(MAKE) bootstrap-opendkim
+
+.PHONY: bootstrap-opendkim
+bootstrap-opendkim:
 	ansible-playbook -i $(INVENTORY) \
 		$(ASK_BECOME_PASS) \
 		-e@~/.secrets/digital-ocean/secrets.yml \
