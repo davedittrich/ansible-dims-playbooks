@@ -289,7 +289,7 @@
 
 - name: Define _trident_user_exists
   set_fact:
-    _trident_user_exists: '{{ _postinst.stdout|search("trident user already exists") }}'
+    _trident_user_exists: '{{ _postinst.stdout is search("trident user already exists") }}'
   tags: [ trident-core, packages ]
 
 - name: Debug _trident_user_exists
@@ -416,7 +416,7 @@
 
 - name: Define _trident_configured
   set_fact:
-    _trident_configured: '{{ not (_tcli_system_get_name.stdout == "" or _tcli_system_get_name.stdout|search("Not Configured")) }}'
+    _trident_configured: '{{ not (_tcli_system_get_name.stdout == "" or _tcli_system_get_name.stdout is search("Not Configured")) }}'
   tags: [ trident-core, trident-configure, config ]
 
 - name: Debug _trident_configured
@@ -436,7 +436,7 @@
 
 - name: Define _trident_initial_setup
   set_fact:
-    _trident_initial_setup: "{{ not _tsetup_db.stdout|search('role \"trident\" already exists') }}"
+    _trident_initial_setup: "{{ not _tsetup_db.stdout is search('role \"trident\" already exists') }}"
   tags: [ trident-core ]
 
 # Add initial sysadmin user. This step is necessary according to email from
@@ -451,7 +451,7 @@
   register: _tsetup
   when: _trident_initial_setup
   changed_when: _tsetup.rc == 0 and _tsetup.stdout == ''
-  failed_when: _tsetup.rc != 0 and not _tsetup.stdout|search('duplicate key value violates unique constraint')
+  failed_when: _tsetup.rc != 0 and not _tsetup.stdout is search('duplicate key value violates unique constraint')
   tags: [ trident-core ]
 
 - name: Ensure Trident user password is set
@@ -514,7 +514,7 @@
     tcli system login trident {{ trident_sysadmin_pass }}
   register: _tcli_login
   no_log: '{{ _no_log }}'
-  failed_when: not _tcli_login.stdout|search('Login successful')
+  failed_when: not _tcli_login.stdout is search('Login successful')
   tags: [ trident-core, trident-configure ]
 
 - name: Ensure trident administator is logged out

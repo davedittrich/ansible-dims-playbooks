@@ -314,7 +314,7 @@
   register: _keys
   no_log: '{{ _no_log }}'
   when: _hashi_vault_mode == "simple" and not _hashi_vault_initialized
-  changed_when: _keys.stdout|search("Unseal Key")
+  changed_when: _keys.stdout is search("Unseal Key")
   tags: [ hashi_vault, config ]
 
 - debug:
@@ -328,7 +328,7 @@
   set_fact:
     hashi_vault_keys: '{{ hashi_vault_keys|default([]) + [item.split(": ")[1]] }}'
   with_items: '{{ _keys.stdout_lines|default([]) }}'
-  when: _keys is defined and item|search('Unseal Key')
+  when: _keys is defined and item is search('Unseal Key')
   no_log: '{{ _no_log }}'
   tags: [ hashi_vault, config ]
 
@@ -344,7 +344,7 @@
   set_fact:
     hashi_vault_root_token: '{{ hashi_vault_root_token|default([]) + [item.split(": ")[1]] }}'
   with_items: '{{ _keys.stdout_lines|default([]) }}'
-  when: _keys is defined and item|search('Initial Root Token')
+  when: _keys is defined and item is search('Initial Root Token')
   no_log: '{{ _no_log }}'
   tags: [ hashi_vault, config ]
 
@@ -448,7 +448,7 @@
   become: yes
   become_user: ansible
   register: _autocomplete
-  changed_when: not _autocomplete.stderr|search("already installed in")
+  changed_when: not _autocomplete.stderr is search("already installed in")
   tags: [ hashi_vault, config ]
 
 - import_tasks: "{{ tasks_path }}/post_tasks.yml"

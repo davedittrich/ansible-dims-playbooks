@@ -143,8 +143,8 @@
      -vvv
   become: yes
   register: _opendkim_testkey
-  failed_when: not _opendkim_testkey.stdout|search("key OK") or
-               _opendkim_testkey.stdout|search("unsafe permissions")
+  failed_when: not _opendkim_testkey.stdout is search("key OK") or
+               _opendkim_testkey.stdout is search("unsafe permissions")
 
 - name: Make /etc/default/opendkim present
   template:

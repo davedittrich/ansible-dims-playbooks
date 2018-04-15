@@ -244,7 +244,7 @@
 
 - debug:
     msg: '{{ _result.stdout }}'
-  when: _result.stdout|search(_venv_path)
+  when: _result.stdout is search(_venv_path)
   tags: [ python-virtualenv ]
 
 - name: Stop supervisor service if it is using this virtual environment
@@ -253,7 +253,7 @@
     state: stopped
   become: yes
   notify: restart supervisor
-  when: _result is defined and _result.stdout|search(_venv_path)
+  when: _result is defined and _result.stdout is search(_venv_path)
   ignore_errors: yes
   tags: [ python-virtualenv ]
 
