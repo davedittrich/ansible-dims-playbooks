@@ -17,7 +17,7 @@ mail.*				-/var/log/mail.log
 
 # DIMS services use the following facility for logging to assist
 # in log consolidation and debugging.
-*.*;{{syslog_facility}}.*       -?HostLogFile
+:msg, contains, "{{ hostvars[inventory_hostname].dims_fqdn }}" -?HostLogFile
 
 #
 # Logging for the mail system.  Split it up so that
