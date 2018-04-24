@@ -97,7 +97,7 @@
    register: openvpn_hmac_firewall_contents
 
  - name: Create the client configs
-   no_log: True
+   no_log: '{{ _no_log }}'
    template: src=client.cnf.j2 dest={{ openvpn_path }}/{{ item[0] }}/{{ openvpn_server }}.ovpn
    with_together:
      - openvpn_clients
@@ -147,7 +147,7 @@
    lineinfile: dest=/etc/rc.local regexp="/etc/init.d/dnsmasq restart" line="/etc/init.d/dnsmasq restart" insertbefore="exit 0" backup=yes state=present
 
  - name: Retrieve the files that clients will need in order to connect to the OpenVPN server
-   no_log: True
+   no_log: '{{ _no_log }}'
    fetch: src={{ openvpn_path }}/{{ item[0] }}/{{ item[1] }} dest=clients/{{ item[0] }}.ovpn flat=yes
    with_nested:
      - openvpn_clients
