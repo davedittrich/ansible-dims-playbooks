@@ -22,3 +22,5 @@ listener "tcp" {
   tls_disable = 1
 {% endif %}
 }
+
+ui = {{ hashi_vault_ui|default('false') }}

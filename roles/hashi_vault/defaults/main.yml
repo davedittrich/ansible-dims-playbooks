@@ -2,10 +2,10 @@
 
 # See also: environments/do/inventory/group_vars/all/env_specific.yml
 
-_hashi_vault_version: '0.9.6'
+_hashi_vault_version: '0.10.0'
 _hashi_vault_archive: 'vault_{{ hashi_vault_version }}_linux_amd64.zip'
 _hashi_vault_dist_url: 'https://releases.hashicorp.com/vault/{{ hashi_vault_version }}/vault_{{ hashi_vault_version }}_linux_amd64.zip'
-_hashi_vault_sha256_sum: '3f1f346ff7aaf367fed6a3e83e5a07fdc032f22860585e36c3674f9ead08dbaf'
+_hashi_vault_sha256_sum: 'a6b4b6db132f3bbe6fbb77f76228ffa45bd55a5a1ab83ff043c2c665c3f5a744'
 _hashi_vault_user: 'vault'
 _hashi_vault_group: 'vault'
 _hashi_vault_key_shares: 5
