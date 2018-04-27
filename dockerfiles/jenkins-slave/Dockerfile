@@ -35,6 +35,7 @@ RUN apt-get update \
       python-setuptools \
       sudo \
       tree \
+      wget \
  && apt-get install -y dh-golang dh-systemd \
  && apt-get -y upgrade \
  && apt-get clean \
