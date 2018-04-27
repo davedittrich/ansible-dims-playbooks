@@ -26,6 +26,7 @@ RUN apt-get update \
       ca-certificates-java \
       curl \
       git \
+      golang-go \
       openjdk-8-jdk-headless \
       openjdk-8-jre-headless \
       openssh-server \
@@ -34,6 +35,7 @@ RUN apt-get update \
       python-setuptools \
       sudo \
       tree \
+ && apt-get install -y dh-golang dh-systemd \
  && apt-get -y upgrade \
  && apt-get clean \
  && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
