@@ -161,7 +161,7 @@
     group: "{{ dims_group }}"
     mode: 0o755
     remote_src: True
-  creates: "{{ dims_bin }}/vault"
+    creates: "{{ dims_bin }}/vault"
   become: yes
   when: ansible_system == "Linux"
   tags: [ hashi_vault, packages ]

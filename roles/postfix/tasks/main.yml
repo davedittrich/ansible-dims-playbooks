@@ -77,7 +77,6 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/aliases/'
         - aliases/
   become: yes
-  force: true
   notify:
     - rebuild postfix aliases
     - restart postfix
@@ -102,7 +101,6 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/virtual/'
         - virtual/
   become: yes
-  force: true
   notify:
     - rebuild postfix virtual
     - restart postfix
@@ -126,7 +124,6 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/transport/'
         - transport/
   become: yes
-  force: true
   notify:
     - rebuild postfix transport
     - restart postfix
@@ -150,7 +147,6 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/generic/'
         - generic/
   become: yes
-  force: true
   notify:
     - rebuild postfix generic
     - restart postfix
@@ -175,7 +171,6 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/access/'
         - access/
   become: yes
-  force: true
   notify:
     - rebuild postfix access
     - restart postfix
@@ -200,7 +195,6 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/client_access/'
         - client_access/
   become: yes
-  force: true
   notify:
     - rebuild postfix client_access
     - restart postfix
@@ -225,7 +219,6 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/helo_access/'
         - helo_access/
   become: yes
-  force: true
   notify:
     - rebuild postfix helo_access
     - restart postfix
@@ -249,7 +242,6 @@
       paths:
         - relay_recipients/
   become: yes
-  force: true
   notify:
     - rebuild postfix relay_recipients
     - restart postfix
