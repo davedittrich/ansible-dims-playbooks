@@ -92,6 +92,7 @@
     set_fact:
       _backup_dir: '{{ backups_files.0|dirname }}'
     when: backups_files is defined and
+          backups_files.0 is defined and
           certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
@@ -99,6 +100,7 @@
     set_fact:
       _backup_file: '{{ backups_files.0|basename }}'
     when: backups_files is defined and
+          backups_files.0 is defined and
           certbot_backup_restorefrom is defined and
           certbot_backup_restorefrom == "latest"
 
