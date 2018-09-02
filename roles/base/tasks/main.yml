@@ -408,8 +408,8 @@
   tags: [ base, config, iptables ]
 
 - name: Ensure fail2ban filters are present
-  file:
-    src: '{{ item }}'
+  copy:
+    src: 'fail2ban/filter.d/{{ item }}'
     dest: '/etc/fail2ban/filter.d/{{ item }}'
     owner: '{{ root_user }}'
     group: '{{ root_group }}'
