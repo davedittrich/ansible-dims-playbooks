@@ -1,24 +1,23 @@
 variable "do_token" {}
+variable "keyname" { }
 variable "region" { }
 variable "environment" { }
-variable "private_key" {}
-variable "public_key" {}
+variable "private_key_file" {}
 variable "ssh_fingerprint" { default = "" }
 variable "domain" { }
-variable "datacenter" { }
 variable "sub_domains" {
     default = ""
     description = "Any additional sub-domains to be added before the domain variable"
 }
 
 provider "digitalocean" {
-  token = "${chomp(file("~/.secrets/digital-ocean/token"))}"
+  token = "${var.do_token}"
 }
 
 module "do-keypair" {
-  keyname = "{{ dims_domain|replace('.','_') }}"
+  keyname = "${var.keyname}"
   source = "./keypair"
-  public_key_filename = "${var.public_key}"
+  public_key_file = "${var.private_key_file}.pub"
 }
 
 resource "digitalocean_domain" "default" {
@@ -38,13 +37,12 @@ resource "digitalocean_droplet" "{{ d.name }}" {
     ssh_keys = [
       "${var.ssh_fingerprint}"
     ]
-    #user_data = "{\"role\":\"${var.role}\",\"dc\":\"${var.datacenter}\"}"
     user_data = "${chomp(file("user-data/{{ d.name }}"))}"
 
   connection {
       user = "root"
       type = "ssh"
-      private_key = "${file(var.private_key)}"
+      private_key = "${chomp(file(var.private_key_file))}"
       host = "${self.ipv4_address}"
       timeout = "2m"
   }
