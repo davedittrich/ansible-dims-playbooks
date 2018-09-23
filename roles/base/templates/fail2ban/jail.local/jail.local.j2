@@ -83,7 +83,7 @@ action = {{ fail2ban_action }}
 {% for service in fail2ban_services %}
 [{{ service.name }}]
 enabled = {{ service.enabled | default(true) | bool | to_json }}
-{% for key, value in service.iteritems() %}
+{% for key, value in service.items() %}
 {% if key not in ['name', 'enabled'] %}
 {{ key }} = {{ value }}
 {% endif %}
