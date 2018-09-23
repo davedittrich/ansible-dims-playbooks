@@ -7,7 +7,7 @@ INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
 
 # Generate SSH public key fingerprint for terraform to use
-SSH_FINGERPRINT=$(shell ssh-keygen -E md5 -lf ${TF_VAR_public_key}|awk '{print $$2}'|sed 's/^[Mm][Dd]5://')
+SSH_FINGERPRINT=$(shell ssh-keygen -E md5 -lf ${TF_VAR_private_key_file}.pub|awk '{print $$2}'|sed 's/^[Mm][Dd]5://')
 TF_VARS=-var 'ssh_fingerprint=$(SSH_FINGERPRINT)'
 
 # The following checks to see if local sudo requires a password. If so,
@@ -174,8 +174,8 @@ newkeypair:
 	        false; \
 	 fi
 	@echo "[+] Generating new SSH key pair"
-	ssh-keygen -t rsa -f $(TF_VAR_private_key)
-	ssh-add $(TF_VAR_private_key) || true
+	ssh-keygen -t rsa -f $(TF_VAR_private_key_file)
+	ssh-add $(TF_VAR_private_key_file) || true
 
 .PHONY: insertpubkey
 insertpubkey:
@@ -214,7 +214,7 @@ bootstrap:
 bootstrap-opendkim:
 	ansible-playbook -i $(INVENTORY) \
 		$(ASK_BECOME_PASS) \
-		-e@~/.secrets/digital-ocean/secrets.yml \
+		-e@"$(shell psec secrets path)" \
 		--tags opendkim-genkey \
 		master.yml \
 		$(DIMS_ANSIBLE_ARGS)
@@ -231,7 +231,7 @@ installcerts:
 deploy:
 	ansible-playbook -i $(INVENTORY) \
 		$(ASK_BECOME_PASS) \
-		-e@~/.secrets/digital-ocean/secrets.yml \
+		-e@"$(shell psec secrets path)" \
 		-e trident_backup_restorefrom='' \
 		master.yml \
 		$(DIMS_ANSIBLE_ARGS)
@@ -239,7 +239,7 @@ deploy:
 .PHONY: update
 update:
 	ansible-playbook -i $(INVENTORY) \
-		-e@~/.secrets/digital-ocean/secrets.yml \
+		-e@"$(shell psec secrets path)" \
 		--tags updates \
 		-e packages_upgrade=yes \
 		master.yml \
@@ -321,7 +321,7 @@ post.test:
 backup.trident:
 	-ansible-playbook -i $(INVENTORY) \
 		$(ASK_BECOME_PASS) \
-		-e@~/.secrets/digital-ocean/secrets.yml \
+		-e@"$(shell psec secrets path)" \
 		$(PBR)/playbooks/trident_backup.yml \
 		$(DIMS_ANSIBLE_ARGS)
 
@@ -329,7 +329,7 @@ backup.trident:
 restore.trident:
 	-ansible-playbook -i $(INVENTORY) \
 		$(ASK_BECOME_PASS) \
-		-e@~/.secrets/digital-ocean/secrets.yml \
+		-e@"$(shell psec secrets path)" \
 		$(PBR)/playbooks/trident_restore.yml \
 		$(DIMS_ANSIBLE_ARGS)
 
@@ -337,7 +337,7 @@ restore.trident:
 backup.letsencrypt:
 	-ansible-playbook -i $(INVENTORY) \
 		$(ASK_BECOME_PASS) \
-		-e@~/.secrets/digital-ocean/secrets.yml \
+		-e@"$(shell psec secrets path)" \
 		$(PBR)/playbooks/letsencrypt_backup.yml \
 		-e host=do \
 		$(DIMS_ANSIBLE_ARGS)
