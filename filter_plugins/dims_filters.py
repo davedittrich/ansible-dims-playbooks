@@ -7,6 +7,9 @@ import socket
 from netaddr import *
 from ansible import errors
 
+# Python3 has no basestring (use str instead)
+basestring = str
+
 def _list_to_args(_list):
     '''
     Return a space separated list suitable for an argument list.
