@@ -6,6 +6,9 @@ INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
 
+REQUIRED_APT_PACKAGES=bats ansible git make jq
+REQUIRED_BREW_PACKAGES=bats ansible git make jq opendkim-tools
+
 # Generate SSH public key fingerprint for terraform to use
 SSH_FINGERPRINT=$(shell ssh-keygen -E md5 -lf ${TF_VAR_private_key_file}.pub|awk '{print $$2}'|sed 's/^[Mm][Dd]5://')
 TF_VARS=-var 'ssh_fingerprint=$(SSH_FINGERPRINT)'
@@ -92,9 +95,9 @@ terraform.tfstate:
 .PHONY: prerequisites
 prerequisites:
 	if [ "$(shell uname -s)" = "Darwin" ]; then \
-		brew install bats ansible git make jq; \
+		brew install $(REQUIRED_BREW_PACKAGES); \
 	elif [ "$(shell uname -s)" = "Linux" ]; then \
-		sudo apt-get install bats ansible git make jq; \
+		sudo apt-get install $(REQUIRED_APT_PACKAGES); \
 	else \
 		echo "Not prepared to handle prerequisites for $(shell uname -s)"; \
 		exit 1; \
