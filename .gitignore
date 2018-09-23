@@ -1,3 +1,4 @@
+.python_secrets_environment
 vagrant_provision*
 ansible-digital_ocean.cache
 *.sublime*
