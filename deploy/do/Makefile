@@ -1,7 +1,8 @@
 # vim:ft=make:
 
 SHELL=/bin/bash
-SECRETS=$(HOME)/.secrets/digital-ocean
+TMP:=$(shell psec environments path --tmpdir)
+PLAN:=$(TMP)/tfplan
 INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
@@ -154,7 +155,7 @@ provider:
 
 .PHONY: plan
 plan: init provider
-	terraform plan $(TF_VARS)
+	terraform plan $(TF_VARS) -out=$(PLAN)
 	$(MAKE) --always-make $(INVENTORY_GENERATED)
 
 .PHONY: graph
@@ -182,7 +183,7 @@ newkeypair:
 
 .PHONY: insertpubkey
 insertpubkey:
-	terraform apply $(TF_VARS) -target=digitalocean_ssh_key.default -auto-approve
+	terraform apply -target=digitalocean_ssh_key.default -auto-approve
 
 .PHONY: removepubkey
 removepubkey:
@@ -190,7 +191,7 @@ removepubkey:
 
 .PHONY: create
 create: init hosts provider
-	terraform apply $(TF_VARS) | tee -a terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)//keys.host.extract.sh
+	terraform apply $(PLAN) | tee -a terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)//keys.host.extract.sh
 	! grep -q "Error: Error applying plan:" terraform.log
 	$(MAKE) --always-make $(INVENTORY_GENERATED)
 	$(MAKE) addhostkeys
