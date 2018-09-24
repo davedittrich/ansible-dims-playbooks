@@ -168,7 +168,7 @@
 
 - name: Make docker-ce present (apt)
   apt:
-    name: 'docker-ce={{ docker_ce_version }}~ce-0~{{ ansible_distribution|lowercase }}'
+    name: 'docker-ce={{ docker_ce_version }}~{{ ansible_distribution|lowercase }}'
     state: present
     force: yes
   when: ansible_os_family == "Debian"
@@ -177,7 +177,7 @@
 
 - name: Make docker-ce present (yum)
   yum:
-    name: 'docker-ce-{{ docker_ce_version }}.ce-1*'
+    name: 'docker-ce-{{ docker_ce_version }}*'
     state: present
   when: ansible_distribution == "CentOS"
   become: yes
