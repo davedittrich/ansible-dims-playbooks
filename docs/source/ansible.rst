@@ -52,6 +52,15 @@ risk of total disruption of the project in the event of an outage.
 .. _Zero-downtime Deployment with Ansible (Part 4/4): https://sysadmincasts.com/episodes/47-zero-downtime-deployments-with-ansible-part-4-4
 .. _Ansible section: https://staff.washington.edu/dittrich/home/unix.html#ansible
 
+.. attention::
+
+   As of 2018-09-23, these playbooks have been successfully used with
+   Ansible v2.5.5. Occassionally, changes in Ansible result in regression
+   errors. Using a Python virtual environment, and explicitly installing
+   a specific version of the Ansible package with ``python -m pip`` can
+   work around such breaking changes.
+
+..
 
 .. _ansiblefundamentals:
 
