@@ -11,13 +11,13 @@
 #    role: ansible-role-ca
 #    shelleg:
 
-- import_playbook: playbooks/red.yml
-  when: "'red' in groups.do"
-- import_playbook: playbooks/green.yml
-  when: "'green' in groups.do"
-- import_playbook: playbooks/purple.yml
-  when: "'purple' in groups.do"
 - import_playbook: playbooks/black.yml
-  when: "'black' in groups.do"
+  when: '"live" in groups and "black" in groups["live"]'
+- import_playbook: playbooks/red.yml
+  when: '"live" in groups and "red" in groups["live"]'
+- import_playbook: playbooks/green.yml
+  when: '"live" in groups and "green" in groups["live"]'
+- import_playbook: playbooks/purple.yml
+  when: '"live" in groups and "purple" in groups["live"]'
 - import_playbook: playbooks/blue.yml
-  when: "'blue' in groups.do"
+  when: '"live" in groups and "blue" in groups["live"]'
