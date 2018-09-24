@@ -2,13 +2,13 @@
 
 # File: do/create-provider.tf.yml
 
-- name: 'Generate provider.tf file for groups.do'
+- name: 'Generate provider.tf file for groups.live'
   vars:
     - playbooks_root: '{{ lookup("env", "PBR") }}'
     - pwd: '{{ lookup("pipe", "pwd") }}'
   vars_files:
     - '{{ playbooks_root }}/vars/global.yml'
-  hosts: do
+  hosts: live
   gather_facts: False
 
   tasks:

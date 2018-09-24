@@ -26,7 +26,7 @@ resource "digitalocean_domain" "default" {
 }
 
 {% for d in do_droplets %}
-{% if d.name in groups.do %}
+{% if d.name in groups.live %}
 resource "digitalocean_droplet" "{{ d.name }}" {
     image = "{{ d.image_id|default('debian-8-x64') }}"
     #name = "{{ d.name }}-${var.role}-${format(var.count_format, count.index+1)}"
