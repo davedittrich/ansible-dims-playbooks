@@ -18,7 +18,7 @@
 $template HostLogFile,"/var/log/dims/%HOSTNAME%.log"
 $template DomainLogFile,"/var/log/dims/{{ dims_domain }}.log"
 
-{% if rsyslog_server is defined and rsyslog_server == inventory_hostname %}
+{% if rsyslog_server is defined and rsyslog_server_address != "" and rsyslog_server == inventory_hostname %}
 # This is the central logging host.
 
 $ModLoad imtcp # load TCP listener

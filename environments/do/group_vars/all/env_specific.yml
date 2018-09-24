@@ -226,7 +226,7 @@ rabbitmq_queuebase: 'rpc'
 
 rsyslog_user: syslog
 rsyslog_server: 'red'
-rsyslog_server_address: '{{ hostvars[rsyslog_server].ansible_host }}'
+rsyslog_server_address: '{{ hostvars[rsyslog_server].ansible_host|default(None) }}'
 # Listen on port 6514
 # If you want to use other port configure selinux
 rsyslog_port: 6514
