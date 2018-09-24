@@ -25,13 +25,38 @@
       - playbooks_root is defined
       - playbooks_root != ""
 
+- name: Set _homedir_path
+  shell: 'echo ~'
+  delegate_to: localhost
+  become: false
+  register: _echo
+
+- name: Set _homedir_path
+  set_fact:
+    _homedir_path: '{{ _echo.stdout }}'
+
+- name: Debug _homedir_path
+  debug:
+    var: _homedir_path
+    verbosity: 2
+
 - name: Set _base_templates_path
   set_fact:
-    _base_templates_path: '{{ playbooks_root }}/roles/{{ role_name }}/templates/tests'
+    _base_templates_path: '{{ playbooks_root|regex_replace("^~", _homedir_path) }}/roles/{{ role_name }}/templates/tests'
+
+- name: Debug _base_templates_path
+  debug:
+    var: _base_templates_path
+    verbosity: 2
 
 - name: Set _base_files_path
   set_fact:
     _base_files_path: '{{ playbooks_root }}/roles/{{ role_name }}/files/tests'
+
+- name: Debug _base_files_path
+  debug:
+    var: _base_files_path
+    verbosity: 2
 
 - name: Determine if tests may exist
   find:
@@ -43,21 +68,30 @@
   ignore_errors: true
   register: _tests_find
 
+- name: Debug _tests_find
+  debug:
+    var: _tests_find
+    verbosity: 2
+
 - name: Initialize test_directories list
   set_fact:
     test_directories: []
 
 - name: Set fact with list of test directories
   set_fact:
-    test_directories: '{{ test_directories|default([]) + [item|regex_replace(_base_templates_path,"")|regex_replace("^/","")] }}'
+    test_directories: '{{ test_directories|default([]) + [item|replace(_base_templates_path,"")|regex_replace("^/","")] }}'
   with_items: "{{ _tests_find.files|map(attribute='path')|list }}"
   when: _tests_find.files is defined
 
-# TODO(dittrich): Somehow this broke in Ansible upgrades. Fix it later...
-#- name: Verify no nested tests
-#  fail: msg="Nested tests are not allowed ({{ item }})"
-#  with_items: '{{ test_directories }}'
-#  when: '"/" in item'
+- name: Debug test_directories
+  debug:
+    var: test_directories
+    verbosity: 2
+
+- name: Verify no nested tests
+  fail: msg="Nested tests are not allowed ({{ item }})"
+  with_items: '{{ test_directories }}'
+  when: '"/" in item'
 
 - name: Make subdirectories for test categories present
   file:
