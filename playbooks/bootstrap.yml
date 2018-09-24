@@ -13,7 +13,7 @@
 # > -i $GIT/private-develop/inventory \
 # > $PBR/playbooks/bootstrap.yml -e host=red.devops.local
 
-- name: Bootstrapping '{{ host|default('bootstrap') }}'
+- name: Bootstrapping hosts in group '{{ host|default('bootstrap') }}'
   vars:
    - playbooks_root: '{{ lookup("env", "PBR") }}'
    - _debug: false
