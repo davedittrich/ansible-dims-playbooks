@@ -1,6 +1,7 @@
 ---
 
 # File: roles/postfix/tasks/main.yml
+
 - name: Define postfix_postmaster
   set_fact:
     postfix_postmaster: '{{ dims_adminemail|default(ansible_user_id + "@" + dims_fqdn) }}'
@@ -294,7 +295,7 @@
 
 - name: Force postmap where necessary
   shell: >
-    [ -f '{{ item }}' && -f '{{ item }}'.db ] || postmap '{{ item }}'
+    [ -f '{{ item }}' ] && [-f '{{ item }}'.db ] || postmap '{{ item }}'
     chdir=/etc/postfix
   with_items:
     - access

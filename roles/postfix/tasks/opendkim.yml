@@ -66,6 +66,11 @@
   delegate_to: 127.0.0.1
   run_once: true
 
+- name: Stat opendkim private key
+  stat:
+    path: '{{ _local_private_key_file }}'
+  register: _stat_private_key
+
 - name: Generate key on Ansible host
   shell: >
      opendkim-genkey
@@ -81,12 +86,14 @@
   become: no
   delegate_to: 127.0.0.1
   run_once: true
+  when: not _stat_private_key.stat.exists
   register: _private_key_gen
 
 - name: Debug opendkim key generation
   debug:
     var: _private_key_gen
     verbosity: 2
+  when: not _stat_private_key.stat.exists
 
 - name: Validate private key with opendkim-testkey
   shell: >
@@ -98,12 +105,17 @@
   become: no
   delegate_to: 127.0.0.1
   run_once: true
-  when: _private_key_gen.changed
+  when: not _stat_private_key.stat.exists and _private_key_gen.changed
 
 - name: Define opendkim_dns_txt_record
   set_fact:
     opendkim_dns_txt_record: '{{ lookup("dkim_txt_record", _local_private_key_file|regex_replace(".private",".txt")) }}'
   when: opendkim_dns_txt_record is not defined
+
+- name: Debug opendkim_dns_txt_record
+  debug:
+    var: opendkim_dns_txt_record
+    verbosity: 2
 
 - name: Get private key for postfix hosts
   set_fact:
@@ -131,6 +143,7 @@
     chown -R opendkim:opendkim /etc/opendkim &&
     chmod -R go-rw /etc/opendkim/keys
     warn=no
+  when: inventory_hostname in groups.postfix
   become: yes
 
 - name: Validate private key with opendkim-testkey
@@ -141,6 +154,7 @@
      -s {{ opendkim_selector }}
      -k {{ opendkim_private_key_file }}
      -vvv
+  when: inventory_hostname in groups.postfix
   become: yes
   register: _opendkim_testkey
   failed_when: not _opendkim_testkey.stdout is search("key OK") or
