@@ -2,6 +2,7 @@
 
 postfix:
    hosts:
+     black:
      red:
      green:
      purple:
