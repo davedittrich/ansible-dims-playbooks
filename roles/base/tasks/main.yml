@@ -176,7 +176,7 @@
   # . . .
   # {% endraw %}
 
-- name: Create base /etc/hosts file (Debian, RedHat, CoreOS)
+- name: Create base /etc/hosts file (Debian, RedHat, CentOS, CoreOS)
   template:
     src: '{{ item }}'
     dest: /etc/hosts
@@ -195,7 +195,7 @@
         - hosts/
   become: yes
   notify: restart dnsmasq
-  when: ansible_os_family in [ "Debian", "RedHat", "Container Linux by CoreOS" ] and manage_dnsmasq
+  when: ansible_os_family in [ "Debian", "RedHat", "CentOS", "Container Linux by CoreOS" ]
   tags: [ base, hosts, config ]
 
 - name: Disable IPv6 in kernel on non-CoreOS
