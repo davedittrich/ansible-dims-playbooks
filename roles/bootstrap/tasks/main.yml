@@ -24,7 +24,7 @@
   tags: [ 'bootstrap', 'hardware' ]
 
 - name: Ensure required packages are present
-  import_tasks: 'packages.yml'
+  import_tasks: '{{ tasks_path }}/packages.yml'
   tags: [ 'bootstrap', 'packages' ]
 
 - name: Ensure timezone set
