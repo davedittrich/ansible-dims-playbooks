@@ -73,6 +73,8 @@ do:
         - trident
       black:
         - vault
+      blue:
+        - vpn
     dns_cname_ttl: 360
     dns_subdomains: '' # e.g., '.subdomain'
     dns_txt:
@@ -129,8 +131,8 @@ do:
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ rabbitmq_ssl_listen_port }} -j ACCEPT',
         ]
-    #'blue':
-    #  epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
+    'blue':
+      epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
     'green':
       trident_fqdn: '{{ dims_fqdn }}'
       custom_rules: [

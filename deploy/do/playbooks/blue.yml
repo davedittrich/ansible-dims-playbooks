@@ -19,9 +19,9 @@
     - { role: base }
     - { role: docker }
     - { role: nginx }
-    - { role: postfix }
     - { role: consul }
-    - { role: python-virtualenv, use_sphinx: true }
+    - { role: postfix }
+    - { role: gosecure }
 
   handlers:
    - import_tasks: "{{ handlers_path }}/restart_services.yml"
