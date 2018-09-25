@@ -272,10 +272,10 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
-  become: yes
   notify:
     - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
     - "conditional restart docker"
+  become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
 
@@ -298,7 +298,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+    - "restart iptables ({{ dims_os_id }})"
     - "conditional restart docker"
   become: yes
   when: ansible_os_family == "Debian"
@@ -322,10 +322,10 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
-  become: yes
   notify:
     - "restart iptables ({{ dims_os_id }})"
     - "conditional restart docker"
+  become: yes
   when: ansible_distribution == "CentOS"
   tags: [ base, config, iptables ]
 
@@ -349,7 +349,7 @@
         - iptables/
   become: yes
   notify:
-    - "restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})"
+    - "restart iptables ({{ dims_os_id }})"
     - "conditional restart docker"
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
