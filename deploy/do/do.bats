@@ -48,37 +48,37 @@
 }
 
 @test "Variable PBR (ansible-dims-playbooks) is defined in environment" {
-    echo "    ==> Export variables with 'psec -R run' " >&2
+    echo "    ==> Export variables with 'psec -E run' " >&2
     [ ! -z "$PBR" ]
 }
 
 @test "Variable TF_VAR_do_token (terraform) is defined in environment" {
-    echo "    ==> Export variables with 'psec -R run' " >&2
+    echo "    ==> Export variables with 'psec -E run' " >&2
     [ ! -z "$TF_VAR_do_token" ]
 }
 
 @test "Variable TF_VAR_region (terraform) is defined in environment" {
-    echo "    ==> Export variables with 'psec -R run' " >&2
+    echo "    ==> Export variables with 'psec -E run' " >&2
     [ ! -z "$TF_VAR_region" ]
 }
 
 @test "Variable TF_VAR_environment (terraform) is defined in environment" {
-    echo "    ==> Export variables with 'psec -R run' " >&2
+    echo "    ==> Export variables with 'psec -E run' " >&2
     [ ! -z "$TF_VAR_environment" ]
 }
 
 @test "Variable TF_VAR_domain (terraform) is defined in environment" {
-    echo "    ==> Export variables with 'psec -R run' " >&2
+    echo "    ==> Export variables with 'psec -E run' " >&2
     [ ! -z "$TF_VAR_domain" ]
 }
 
 @test "Variable TF_VAR_datacenter (terraform) is defined in environment" {
-    echo "    ==> Export variables with 'psec -R run' " >&2
+    echo "    ==> Export variables with 'psec -E run' " >&2
     [ ! -z "$TF_VAR_datacenter" ]
 }
 
 @test "Variable TF_VAR_private_key_file (terraform) is defined in environment" {
-    echo "    ==> Export variables with 'psec -R run' " >&2
+    echo "    ==> Export variables with 'psec -E run' " >&2
     [ ! -z "$TF_VAR_private_key_file" ]
 }
 
