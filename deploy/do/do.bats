@@ -7,6 +7,11 @@
     which terraform
 }
 
+@test "playbooks_root is defined" {
+    echo "    ==> Run 'psec secrets set --undefined'" >&2
+    [ "$(psec -q secrets get playbooks_root)" != '' ] && [ "$(psec -q secrets get playbooks_root)" != 'None' ]
+}
+
 @test "do_domain is defined" {
     echo "    ==> Run 'psec secrets set --undefined'" >&2
     [ "$(psec -q secrets get do_domain)" != '' ] && [ "$(psec -q secrets get do_domain)" != 'None' ]
@@ -40,6 +45,11 @@
 @test "opendkim_selector is defined" {
     echo "    ==> Run 'psec secrets set --undefined'" >&2
     [ "$(psec -q secrets get opendkim_selector)" != '' ] && [ "$(psec -q secrets get opendkim_selector)" != 'None' ]
+}
+
+@test "Variable PBR (ansible-dims-playbooks) is defined in environment" {
+    echo "    ==> Export variables with 'psec -R run' " >&2
+    [ ! -z "$PBR" ]
 }
 
 @test "Variable TF_VAR_do_token (terraform) is defined in environment" {
