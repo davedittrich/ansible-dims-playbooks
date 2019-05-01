@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Identify user based on suggestions in https://alestic.com/2014/01/ec2-ssh-username/
+# See also https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connection-prereqs.html
+for _USER in ec2-user ubuntu centos fedora admin bitnami root 
+do
+  if stat /home/${_USER}/.bash_profile 2>/dev/null >/dev/null
+  then
+    echo "[+] User: $_USER" && break
+  fi
+done
+
+LOG=install.log
+echo "Installation log $(date)" > $LOG
+
+_USER="ec2-user"
+_HOME="/home/${_USER}"
+
+echo "[+] Running user-data script in $(pwd)"
+
+echo "[+] Installing Python3.6"
+(sudo yum install -y python36-virtualenv 2>&1) >> $LOG
+(sudo python3 -m pip install -U pip 2>&1) >> $LOG
+
+echo "[+] Setting authorized_keys file for accessing user ${_USER}"
+mkdir -p ${_HOME}/.ssh
+chmod 700 ${_HOME}/.ssh
+# ssh-keygen -y -f private.pem > public.pub
+cat > ${_HOME}/.ssh/authorized_keys <<EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAyFywFHmweoQVa7NL06g3euKZUNiKc0Lt/mJqgMDUnsIXiJpW/5BTvde5YvQXrZTV+AsE5kBb4Ll2JLmgPRRu4zVqAjzc0Evk+zPBNH3GikoUMPIEZk8Iq8UFKls3p4Wn0jbnW/EmoCfLVJN3oVJrf7lUG80wGtkfZgjiW9MjEhs= deet@ren.local.
+EOF
+chmod 700 ${_HOME}/.ssh/authorized_keys
+
+echo "[+] Enforcing SSH keys for access"
+grep 'PermitRootLogin' /etc/ssh/sshd_config
+#perl -pi -e 's/^PermitRootLogin without-password
+
+echo "[+] Modifying ${_HOME}/.bashrc file"
+cat > ${_HOME}/.bashrc <<EOF
+# .bashrc
+
+export PATH=/usr/bin:$PATH
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+  . /etc/bashrc
+fi
+EOF
+
+echo "[+] Updating patches" 
+(sudo yum update -y 2>&1) >> $LOG
+
+#echo "[+] Installing psec"
+#(sudo python3 -m pip install python_secrets 2>&1) >> $LOG
+
+echo "[+] Installing psec the hard way"
+(sudo yum install -y gcc git 2>&1) >> $LOG
+(cd /tmp &&
+ wget https://github.com/davedittrich/python_secrets/archive/feature/sshkeys.zip &&
+ unzip sshkeys.zip &&
+ cd python_secrets-feature-sshkeys &&
+ python3 setup.py install) >> $LOG
+(sudo yum remove -y gcc 2>&1) >> $LOG
+rm -rf /tmp/python_secrets*
+
+echo "[+] Host: $(/usr/local/bin/psec utils myip)"
+
+echo "[+] Starting web server on port 80/tcp"
+echo "Hello, World!" > index.html
+nohup python -m SimpleHTTPServer 80 &
+
+echo "[+] Done configuring host; exiting"
+exit 0

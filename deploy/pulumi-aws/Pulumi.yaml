@@ -1,0 +1,8 @@
+name: server
+runtime: python
+description: AWS prototype server
+template:
+  config:
+    aws:region:
+      description: AWS deployment region
+      default: us-west-2
