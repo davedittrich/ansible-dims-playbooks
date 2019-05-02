@@ -1,0 +1,10 @@
+---
+
+pulumi_version: '0.16.14'
+pulumi_archive: 'pulumi-v{{ pulumi_version }}-{{ pulumi_os }}-x64'
+pulumi_dist_url: 'https://get.pulumi.com/releases/sdk/{{ pulumi_archive }}'
+# Pulumi doesn't support validation via hash.
+pulumi_sha256_sum: ''
+
+
+# vim: ft=ansible :
