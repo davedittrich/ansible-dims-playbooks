@@ -1,5 +1,6 @@
 SHELL=/bin/bash
 GROUP_NAME:=aws
+ASK_BECOME_PASS:=--ask-become-pass
 INVENTORY:=hosts.yml
 TMP:=$(shell psec environments path --tmpdir)
 
@@ -83,18 +84,18 @@ ping: hosts
 .PHONY: add-keys
 add-keys:
 	@echo "[+] Extracting SSH host public keys and adding to system known_hosts file"
-	psec utils ssh-known-hosts \
+	psec ssh known-hosts add $(ASK_BECOME_PASS) \
 		--public-ip "$(shell pulumi stack output public_ip)" \
 		--instance-id "$(shell pulumi stack output instance_id)"
 	@echo "[+] Saving EC2 instance console-output"
 	$(MAKE) console-output > "$(shell pulumi stack output instance_id)-console-output.txt"
 	@echo "[+] Generating SSH configuration snippet for EC2 instance"
-	psec utils ssh-config --public-ip "$(shell pulumi stack output public_ip)" --public-dns "$(shell pulumi stack output public_dns)"
+	psec ssh config --public-ip "$(shell pulumi stack output public_ip)" --public-dns "$(shell pulumi stack output public_dns)"
 
 .PHONY: remove-keys
 remove-keys:
 	@echo "[+] Removing host keys from system known_hosts file"
-	psec utils ssh-known-hosts --remove-keys --public-ip "$(shell pulumi stack output public_ip)"
+	psec ssh known-hosts remove $(ASK_BECOME_PASS) --public-ip "$(shell pulumi stack output public_ip)"
 
 .PHONY: clean
 clean:
