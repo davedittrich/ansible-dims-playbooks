@@ -1,10 +1,17 @@
 SHELL=/bin/bash
-GROUP_NAME:=aws
+GROUP_NAME:=$(shell psec environments default)
 ASK_BECOME_PASS:=--ask-become-pass
 INVENTORY:=hosts.yml
+INSTANCE_ID=$(shell pulumi stack output instance_id 2>/dev/null)
+LAST_CONSOLE_OUTPUT=$(shell ls -t i-*console-output.txt 2>/dev/null| head -n 1)
+SLEEP=30
 TMP:=$(shell psec environments path --tmpdir)
 
 all: help
+
+test:
+	@echo "INSTANCE_ID=$(INSTANCE_ID)"
+	@echo "LAST-CONSOLE-OUTPUT=$(LAST_CONSOLE_OUTPUT)"
 
 help:
 	@echo "Usage: make [something]"
@@ -17,7 +24,8 @@ help:
 	@echo " console-output - use AWS 'get-console-output' to get instance console log"
 	@echo " hosts - generate an Ansible hosts inventory file"
 	@echo " up - do 'pulimi up --yes'"
-	@echo " update - do 'sudo yum update' and 'sudo reboot' on running instance"
+	@echo " update - do 'pulimi update --yes'"
+	@echo " update-instance - do 'sudo yum update' and 'sudo reboot' on running instance"
 	@echo " destroy - do 'pulimi destroy --yes'"
 	@echo " ping - does Ansible ad-hoc ping of hosts in group '$(GROUP_NAME)'"
 	@echo " add-keys - update system SSH known_hosts file from instance public keys"
@@ -34,6 +42,7 @@ help:
 	@echo "  ec2-34-219-144-62.us-west-2.compute.amazonaws.com"
 	@echo "  $$ pulumi stack output public_dns"
 	@echo "  ec2-34-219-144-62.us-west-2.compute.amazonaws.com"
+	@if [ ! -z "$(INSTANCE_ID)" ]; then echo ""; pulumi stack output; fi
 
 .PHONY: init
 init:
@@ -42,10 +51,10 @@ init:
 
 .PHONY: console-output
 console-output:
-	@ID=$(shell pulumi stack output instance_id) && [ ! -z "$$ID" ] && aws ec2 get-console-output --instance $$ID --output text
+	@ID=$(INSTANCE_ID) && if [ ! -z "$$ID" ]; then aws ec2 get-console-output --instance $$ID --output text; fi
 
 hosts:
-	@(pulumi stack output public_ip 2>&1) >/dev/null || (echo "[-] No instance running?"; exit 1)
+	@(pulumi stack output public_ip 2>/dev/null) >/dev/null || (echo "[-] No instance running?"; exit 1)
 	@echo "[+] Generating 'hosts' file"
 	@(echo "[$(GROUP_NAME)]"; \
 		ansible -i $(shell pulumi stack output public_ip), --list-hosts all 2>/dev/null |\
@@ -61,18 +70,27 @@ ami.py:
 up: ami.py
 	@echo "[+] Bringing EC2 instance up with pulumi"
 	pulumi up --yes
-	@echo "[+] Sleeping to allow console-output to present"
-	sleep 30
-	$(MAKE) add-keys
 	$(MAKE) hosts
+	@echo "[+] Sleeping $(SLEEP) seconds to allow console-output to present"
+	sleep $(SLEEP)
+	$(MAKE) add-keys
+	@echo "[+] Saving EC2 instance console-output"
+	@ID=$(INSTANCE_ID) && if [ ! -z "$$ID" ]; then $(MAKE) console-output > "$$ID-console-output.txt"; fi
 
 .PHONY: update
 update:
+	@echo "[+] Updating state"
+	pulumi update --yes
+
+.PHONY: update-instance
+update-instance:
 	@echo "[+] Updating patches in EC2 instance and rebooting"
 	ssh "$(shell pulumi stack output public_ip)" "sudo yum update -y && sudo reboot"
 
 .PHONY: destroy
-destroy: remove-keys
+destroy:
+	@if [ -z "$(INSTANCE_ID)" ]; then (echo '[-] There is no running instance to destroy'; exit 1); fi
+	$(MAKE) remove-keys || true
 	@echo "[+] Destroying EC2 instance with pulumi"
 	pulumi destroy --yes
 	rm -f hosts
@@ -84,23 +102,20 @@ ping: hosts
 .PHONY: add-keys
 add-keys:
 	@echo "[+] Extracting SSH host public keys and adding to system known_hosts file"
-	psec ssh known-hosts add $(ASK_BECOME_PASS) \
-		--public-ip "$(shell pulumi stack output public_ip)" \
-		--instance-id "$(shell pulumi stack output instance_id)"
-	@echo "[+] Saving EC2 instance console-output"
-	$(MAKE) console-output > "$(shell pulumi stack output instance_id)-console-output.txt"
+	psec ssh known-hosts add $(ASK_BECOME_PASS) --instance-id "$(INSTANCE_ID)"
 	@echo "[+] Generating SSH configuration snippet for EC2 instance"
 	psec ssh config --public-ip "$(shell pulumi stack output public_ip)" --public-dns "$(shell pulumi stack output public_dns)"
 
 .PHONY: remove-keys
 remove-keys:
 	@echo "[+] Removing host keys from system known_hosts file"
-	psec ssh known-hosts remove $(ASK_BECOME_PASS) --public-ip "$(shell pulumi stack output public_ip)"
+	psec ssh known-hosts remove $(ASK_BECOME_PASS) --instance-id "$(shell pulumi stack output instance_id)" || \
+	psec ssh known-hosts remove $(ASK_BECOME_PASS) $(LAST_CONSOLE_OUTPUT)
 
 .PHONY: clean
 clean:
 	(pulumi stack output instance_id 2>/dev/null 1>/dev/null) && \
-		for F in $(shell ls i-*-console-output.txt | egrep -v "$(shell pulumi stack output instance_id)"); do rm -f $$F; done
+		for F in $(shell ls i-*-console-output.txt | egrep -v "$(INSTANCE_ID)"); do rm -f $$F; done
 
 .PHONY: spotless
 spotless:
