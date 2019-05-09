@@ -1,3 +1,4 @@
+import arrow
 import logging
 import pulumi
 import os
@@ -6,8 +7,10 @@ from ami import get_linux_ami
 from get_console_output import get_console_output
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from jinja2 import Markup
 from jinja2 import StrictUndefined
 from jinja2 import Undefined
+from jinja2 import contextfunction
 from jinja2 import make_logging_undefined
 from jinja2 import select_autoescape
 from psec.secrets import SecretsEnvironment
@@ -23,30 +26,52 @@ def attributes(object=object()):
             not i.startswith('translate_')]
 
 
-log = logging.getLogger(__name__)
+@contextfunction
+def include_raw(ctx, name):
+    env = ctx.environment
+    return Markup(env.loader.get_source(env, name)[0]).strip
 
-env = SecretsEnvironment(environment='xgt')
+
+log = logging.getLogger(__name__)
+LoggingUndefined = make_logging_undefined(
+    logger=log,
+    base=Undefined
+    )
+
+# Use the default environment
+env = SecretsEnvironment()
 env.read_secrets()
+aws_private_keypath = env.get_secret('aws_privatekey_path')
+with open(aws_private_keypath + '.pub', 'r') as f:
+    aws_publickey = f.read().strip()
 
 instance_type = env.get_secret('aws_instance_type')
 pulumi.info(msg="instance_type={}".format(instance_type))
 try:
     ami = env.get_secret('aws_ami_id')
 except RuntimeError:
-    ami = get_linux_am(instance_type))
+    ami = ''
+if ami == '':
+    ami = get_linux_ami(instance_type)
+pulumi.info(msg="ami={}".format(ami))
 
 web_group = ec2.SecurityGroup('web-secgrp',
     description='Enable HTTP/HTTPS access',
     ingress=[
-        { 'protocol': 'tcp', 'from_port': 80, 'to_port': 80, 'cidr_blocks': ['0.0.0.0/0'] },
-        { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] }
+        { 'protocol': 'tcp', 'from_port': 80, 'to_port': 80,
+          'cidr_blocks': ['0.0.0.0/0'] },
+        { 'protocol': 'tcp', 'from_port': 443, 'to_port': 443,
+          'cidr_blocks': ['0.0.0.0/0'] }
     ],
     egress=[
-        { 'protocol': 'tcp', 'from_port': 0, 'to_port': 80, 'cidr_blocks': ['0.0.0.0/0'] },
-        { 'protocol': 'tcp', 'from_port': 0, 'to_port': 443, 'cidr_blocks': ['0.0.0.0/0'] }
+        { 'protocol': 'tcp', 'from_port': 0, 'to_port': 80,
+          'cidr_blocks': ['0.0.0.0/0'] },
+        { 'protocol': 'tcp', 'from_port': 0, 'to_port': 443,
+          'cidr_blocks': ['0.0.0.0/0'] }
     ])
 
-pulumi.info(msg="aws_cidr_allowed={}".format(env.get_secret('aws_cidr_allowed')))
+pulumi.info(msg="aws_cidr_allowed={}".format(
+    env.get_secret('aws_cidr_allowed')))
 ssh_group = ec2.SecurityGroup('ssh-secgrp',
     description='Enable SSH access',
     ingress=[
@@ -54,23 +79,31 @@ ssh_group = ec2.SecurityGroup('ssh-secgrp',
           'cidr_blocks': [ env.get_secret('aws_cidr_allowed') ] }
     ])
 
-if os.path.exists('user-data.txt'):
+if os.path.exists('user-data.j2'):
+    template_vars = dict(env.items())
+    template_vars['aws_publickey'] = aws_publickey
+    template_vars['aws_ami_id'] = ami
+    template_loader = FileSystemLoader(
+        ['.', os.path.expanduser('~')],
+        followlinks=True)
+    template_env = Environment(
+        loader=template_loader,
+        autoescape=select_autoescape(
+            disabled_extensions=('txt',),
+            default_for_string=True,
+            default=True,
+        ),
+        undefined=LoggingUndefined)
+    template_env.globals['include_raw'] = include_raw
+    template = template_env.get_template('user-data.j2')
+    user_data = template.render(template_vars)
+    with open('user-data.test', 'w') as f:
+        f.write(user_data)
+    pulumi.info(msg='generated user-data from user-data.j2')
+elif os.path.exists('user-data.txt'):
     with open('user-data.txt') as f:
         user_data = f.read()
-elif os.path.exists('user-data.j2'):
-    with open('user-data.j2') as f:
-        template_vars = dict()
-        template_loader = FileSystemLoader('.')
-        template_env = Environment(
-            loader=template_loader,
-            autoescape=select_autoescape(
-                disabled_extensions=('txt',),
-                default_for_string=True,
-                default=True,
-            ),
-            undefined=LoggingUndefined)
-        template = template_env.get_template('user-data.j2')
-        user_data = template.render(template_vars)
+    pulumi.info(msg='read user-data from user-data.txt')
 
 server = ec2.Instance('server',
     instance_type=instance_type,
