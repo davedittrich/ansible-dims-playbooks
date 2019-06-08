@@ -53,18 +53,8 @@ EOF
 echo "[+] Updating patches" 
 (sudo yum update -y 2>&1) >> $LOG
 
-#echo "[+] Installing psec"
-#(sudo python3 -m pip install python_secrets 2>&1) >> $LOG
-
-echo "[+] Installing psec the hard way"
-(sudo yum install -y gcc git 2>&1) >> $LOG
-(cd /tmp &&
- wget https://github.com/davedittrich/python_secrets/archive/feature/sshkeys.zip &&
- unzip sshkeys.zip &&
- cd python_secrets-feature-sshkeys &&
- python3 setup.py install) >> $LOG
-(sudo yum remove -y gcc 2>&1) >> $LOG
-rm -rf /tmp/python_secrets*
+echo "[+] Installing psec"
+(sudo python3 -m pip install python_secrets 2>&1) >> $LOG
 
 echo "[+] Host: $(/usr/local/bin/psec utils myip)"
 
