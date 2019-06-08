@@ -36,11 +36,3 @@
     [ '{{ ['node01','node02','node03'] | names_to_ips(category='devops',deployment='local') }}' == '['192.168.56.21', '192.168.56.22', '192.168.56.23']' ]
 }
 
-
-@test "[U][EV] tolower filter turns 'STOPYELLING' into 'stopyelling'" {
-    [ '{{ 'STOPYELLING' | lowercase }}' == 'stopyelling' ]
-}
-
-@test "[U][EV] toupper filter turns 'canyouhearmenow?' into 'CANYOUHEARMENOW?'" {
-    [ '{{ 'canyouhearmenow?' | uppercase }}' == 'CANYOUHEARMENOW?' ]
-}

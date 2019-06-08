@@ -45,8 +45,8 @@
     state: present
     update_cache: yes
   with_items:
-    - deb http://nginx.org/packages/{{ ansible_distribution | lowercase }}/ {{ ansible_lsb.codename }} nginx
-    - deb-src http://nginx.org/packages/{{ ansible_distribution | lowercase }}/ {{ ansible_lsb.codename }} nginx
+    - deb http://nginx.org/packages/{{ ansible_distribution | lower }}/ {{ ansible_lsb.codename }} nginx
+    - deb-src http://nginx.org/packages/{{ ansible_distribution | lower }}/ {{ ansible_lsb.codename }} nginx
   become: yes
   when: ansible_pkg_mgr == "apt"
   tags: [ nginx, packages ]
