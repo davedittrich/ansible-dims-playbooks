@@ -13,7 +13,7 @@
 # both "ansible-playbook" and "ansible".  For that reason, "vars/global.yml"
 # variables are being moved here and that file is being phased out.
 
-dims_os_id: '{{ ansible_distribution|lowercase }}{{ ansible_distribution_major_version }}'
+dims_os_id: '{{ ansible_distribution|lower }}{{ ansible_distribution_major_version }}'
 dims_adminemail: '{{ lookup("pipe", "git config user.email")|default("") }}'
 
 # Legacy DIMS directory path variables.

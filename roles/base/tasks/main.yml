@@ -21,7 +21,7 @@
   tags: [ always ]
 
 - fail: msg="Variable 'packages_install' is not defined.
-    Make sure inventory/all.yml includes '{{ inventory_hostname }}' in group '{{ ansible_distribution|lowercase }}'"
+    Make sure inventory/all.yml includes '{{ inventory_hostname }}' in group '{{ ansible_distribution|lower }}'"
   when: packages_install is not defined
   tags: [ base, packages, updates ]
 
@@ -112,6 +112,7 @@
     state: latest
   with_items:
     - python-pip
+    - python3-pip
   become: yes
   when: ansible_pkg_mgr == "yum"
   tags: [ base, config, updates ]

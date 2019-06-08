@@ -173,22 +173,6 @@ def _ip_to_in_addr_arpa(_str):
         return "{}".format(_str)
 
 
-def _lowercase(_str):
-    '''Return the lowercase version of a string'''
-    if isinstance(_str, basestring):
-        return _str.lower()
-    else:
-        return "{}".format(_str).lower()
-
-
-def _uppercase(_str):
-    '''Return the uppercase version of a string'''
-    if isinstance(_str, basestring):
-        return _str.upper()
-    else:
-        return "{}".format(_str).upper()
-
-
 def _bcrypt_hashpw(_str):
     '''Return the salted bcrypt hash of a password string'''
     # TODO(dittrich): Jenkins 2.89.2 dies with incompatible salt error when using default bcrypt salt prefix ("2y")
@@ -227,8 +211,6 @@ class FilterModule(object):
             'ip_to_in_addr_arpa': _ip_to_in_addr_arpa,
 
             # String filters
-            'lowercase': _lowercase,
-            'uppercase': _uppercase,
             'bcrypt_hashpw': _bcrypt_hashpw,
 
             # Other filters go here...

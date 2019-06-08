@@ -8,7 +8,7 @@
   tags: [ virtualbox, packages ]
 
 - name: Make deb sources for virtualbox present
-  shell: echo "deb http://download.virtualbox.org/virtualbox/{{ ansible_os_family|lowercase }} {{ ansible_distribution_release }} contrib" > /etc/apt/sources.list.d/virtualbox.list
+  shell: echo "deb http://download.virtualbox.org/virtualbox/{{ ansible_os_family|lower }} {{ ansible_distribution_release }} contrib" > /etc/apt/sources.list.d/virtualbox.list
   when: ansible_os_family == "Debian"
   become: yes
   tags: [ virtualbox, packages ]
