@@ -7,7 +7,7 @@ INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
 
-REQUIRED_APT_PACKAGES=bats ansible git make jq opendkim
+REQUIRED_APT_PACKAGES=bats ansible git make jq opendkim-tools
 REQUIRED_BREW_PACKAGES=bats ansible git make jq opendkim-tools
 
 # Generate SSH public key fingerprint for terraform to use
