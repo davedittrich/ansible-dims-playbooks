@@ -6,10 +6,12 @@ PLAN:=$(TMP)/tfplan
 INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
+
 # Ensure Digital Ocean env vars set
 DO_API_VERSION=2
 DO_TOKEN=$(shell psec secrets show do_token 2>/dev/null || echo "")
 
+GROUP_NAME:=$(shell psec secrets show do_environment)
 REQUIRED_APT_PACKAGES=bats ansible git make jq opendkim-tools
 REQUIRED_BREW_PACKAGES=bats ansible git make jq opendkim-tools
 
@@ -22,7 +24,7 @@ TF_VARS=-var 'ssh_fingerprint=$(SSH_FINGERPRINT)'
 ASK_BECOME_PASS:=$(shell ansible -i localhost, -m shell -a date --become localhost -c local | grep -q "password is required" && echo "--ask-become-pass")
 
 define get_domain_var
-   $(shell ansible -i $(INVENTORY) -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line do | head -n 1 | cut -d^ -f 2)
+   $(shell ansible -i $(INVENTORY) -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line $(GROUP_NAME) | head -n 1 | cut -d^ -f 2)
 endef
 
 # By nature of being defined first, 'make help' is the default.
@@ -40,26 +42,26 @@ help:
 	@echo " prerequisites - install prerequisite programs"
 	@echo " pre.test - run pre-requisite tests for using terraform with DigitalOcean"
 	@echo " droplets - show list of active droplets using digital_ocean.py dynamic inventory"
-	@echo " hosts - show list of hosts in group 'do'"
+	@echo " hosts - show list of hosts in group '$(GROUP_NAME)'"
 	@echo " dumpjson - dump all DigitalOcean image related information in JSON"
-	@echo " dumpvars - produces Ansible debug output of vars for hosts in group 'do'"
+	@echo " dumpvars - produces Ansible debug output of vars for hosts in group '$(GROUP_NAME)'"
 	@echo " updatefacts - run 'ansible -m setup' to refresh cached facts"
-	@echo " images - lists available DigitalOcean images"
-	@echo " regions - lists available DigitalOcean regions"
-	@echo " provider - generate terraform provider.tf and user-data file for creating nodes in group 'do'"
+	@echo " images - lists available images"
+	@echo " regions - lists available regions"
+	@echo " provider - generate terraform provider.tf and user-data file for creating nodes in group '$(GROUP_NAME)'"
 	@echo " plan - show the terraform plan for the current state"
 	@echo " graph - generate terraform graph (output is 'graph.png')"
 	@echo " newkeypair - generate a new SSH user keypair"
-	@echo " insertpubkey - insert SSH public key on DigitalOcean"
-	@echo " removepubkey - remove SSH public key on DigitalOcean"
+	@echo " insertpubkey - insert SSH public key on cloud provider"
+	@echo " removepubkey - remove SSH public key on cloud provider"
 	@echo " addhostkeys - adds SSH host public keys to selected known_hosts files"
 	@echo " removehostkeys - removes SSH host public keys from selected known_hosts files"
-	@echo " destroy - destroys droplets and related resources for hosts in group 'do'"
+	@echo " destroy - destroys droplets and related resources for hosts in group '$(GROUP_NAME)'"
 	@echo " spotless - remove terraform log and state files"
 	@echo ""
 	@echo " ---- Provisioning functions ----"
-	@echo " create - applies terraform plan to create droplets for hosts in group 'do'"
-	@echo " ping - does Ansible ad-hoc ping of hosts in group 'do'"
+	@echo " create - applies terraform plan to create droplets for hosts in group '$(GROUP_NAME)'"
+	@echo " ping - does Ansible ad-hoc ping of hosts in group '$(GROUP_NAME)'"
 	@echo " bootstrap - create, then run bootstrap.yml and ca-certs.yml playbooks"
 	@echo " bootstrap-opendkim - just create opendkim keys and terraform modules"
 	@echo " installcerts - run 'certbot-installcert.yml' playbook to install SSL certs"
@@ -122,32 +124,32 @@ hosts:
 	$(MAKE) --always-make inventory/hosts 2>/dev/null
 
 inventory/hosts:
-	(echo "[droplets]"; ansible -i $(INVENTORY) --list-hosts do $(DIMS_ANSIBLE_ARGS)|sed 's/ *//g'|tail -n +2) |\
+	(echo "[droplets]"; ansible -i $(INVENTORY) --list-hosts $(GROUP_NAME) $(DIMS_ANSIBLE_ARGS)|sed 's/ *//g'|tail -n +2) |\
 		tee inventory/hosts
 
 .PHONY: etchosts
 etchosts:
-	@#ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' do |\
+	@#ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' $(GROUP_NAME) |\
 		grep '\"msg\":' |\
 		awk -F\" '{ print $$4; }'
-	@$ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' do |\
+	@$ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' $(GROUP_NAME) |\
 		grep '\"msg\":' |\
 		awk -F\" '{ print $$4; }'
 
 .PHONY: dumpjson
 dumpjson:
-	curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" |\
+	curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(TF_VAR_do_token)" |\
 		python -m json.tool |\
 		less
 
 .PHONY: images
 images:
-	@curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" |\
+	@curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(TF_VAR_do_token)" |\
 		jq -rc '.images[] | select(.slug | length >= 1) | { slug: .slug, distribution: .distribution, name: .name }' | sort
 
 .PHONY: regions
 regions:
-	@curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" |\
+	curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(TF_VAR_do_token)" |\
 		jq -rc '.images[] | select(.slug | length >= 1) | .regions' | sort | uniq
 
 .PHONY: provider
@@ -213,7 +215,7 @@ bootstrap:
 	(terraform plan $(TF_VARS) | grep -q "No changes") || $(MAKE) create
 	ansible-playbook -i $(INVENTORY) \
 		$(PBR)/playbooks/bootstrap.yml \
-		-e host=do \
+		-e host=$(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
 	$(MAKE) bootstrap-opendkim
 
@@ -230,7 +232,7 @@ bootstrap-opendkim:
 installcerts:
 	ansible-playbook -i $(INVENTORY) \
 		$(PBR)/playbooks/certbot-installcert.yml \
-		-e host=do \
+		-e host=$(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
 
 # TODO(dittrich): Remove the trident_backup_restorefrom after debugging. :(
@@ -258,7 +260,7 @@ reboot:
 		--become \
 		-m shell \
 		-a '/sbin/shutdown -r +1' \
-		do \
+		$(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: cancel
@@ -267,7 +269,7 @@ cancel:
 		--become \
 		-m shell \
 		-a '/sbin/shutdown -c && echo "[+] Whew! That was close!"' \
-		do \
+		$(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: addhostkeys
@@ -283,7 +285,7 @@ addhostkeys:
 		$(DIMS_ANSILE_ARGS) \
 		$(PBR)/playbooks/do_rekey.yml \
 		-e known_hosts_root="$(shell pwd)/known_hosts" \
-		-e host=do
+		-e host=$(GROUP_NAME)
 
 .PHONY: removehostkeys
 removehostkeys:
@@ -296,20 +298,20 @@ removehostkeys:
 .PHONY: dumpvars
 dumpvars:
 	ansible -i $(INVENTORY) \
-		-m debug -a "var=hostvars[inventory_hostname]" do \
+		-m debug -a "var=hostvars[inventory_hostname]" $(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS) |\
 			pygmentize -ljson |\
 			less -R
 .PHONY: updatefacts
 updatefacts:
 	ansible -i $(INVENTORY) \
-		-m setup do \
+		-m setup $(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: ping
 ping:
 	ansible -i $(INVENTORY) \
-		-m ping do
+		-m ping $(GROUP_NAME)
 
 .PHONY: pre.test
 pre.test:
@@ -320,7 +322,7 @@ post.test:
 	ansible -i $(INVENTORY) \
 		-m shell \
 		-a 'test.runner --terse --tap' \
-		do \
+		$(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS) || (echo '[!] Some test(s) failed' && exit 1)
 	@echo '[+] All tests passed!'
 
@@ -346,7 +348,7 @@ backup.letsencrypt:
 		$(ASK_BECOME_PASS) \
 		-e@"$(shell psec secrets path)" \
 		$(PBR)/playbooks/letsencrypt_backup.yml \
-		-e host=do \
+		-e host=$(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: destroy
