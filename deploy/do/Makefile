@@ -6,6 +6,9 @@ PLAN:=$(TMP)/tfplan
 INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
+# Ensure Digital Ocean env vars set
+DO_API_VERSION=2
+DO_TOKEN=$(shell psec secrets show do_token 2>/dev/null || echo "")
 
 REQUIRED_APT_PACKAGES=bats ansible git make jq opendkim-tools
 REQUIRED_BREW_PACKAGES=bats ansible git make jq opendkim-tools
