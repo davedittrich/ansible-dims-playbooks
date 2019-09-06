@@ -6,10 +6,14 @@ PLAN:=$(TMP)/tfplan
 INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
-GROUP_NAME:=do
-REQUIRED_APT_PACKAGES=bats ansible git make jq
+
+# Ensure Digital Ocean env vars set
+DO_API_VERSION=2
+DO_TOKEN=$(shell psec -q secrets get do_token 2>/dev/null || echo "")
+
+GROUP_NAME:=$(shell psec -q secrets get do_environment)
+REQUIRED_APT_PACKAGES=bats ansible git make jq opendkim-tools
 REQUIRED_BREW_PACKAGES=bats ansible git make jq opendkim-tools
-DO_API_TOKEN=$(TF_VAR_do_token)
 
 # Generate SSH public key fingerprint for terraform to use
 SSH_FINGERPRINT=$(shell ssh-keygen -E md5 -lf ${TF_VAR_private_key_file}.pub|awk '{print $$2}'|sed 's/^[Mm][Dd]5://')
