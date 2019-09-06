@@ -1,0 +1,40 @@
+---
+
+# File: roles/pulumi/tasks/main.yml
+
+# Prepare system for using Pulumi
+
+- import_tasks: "{{ tasks_path }}/pre_tasks.yml"
+  tags: [ pulumi, packages ]
+
+  # Generalize this to map to  ansible_facts['os_family']
+- name: Set pulumi_os
+  set_fact:
+    pulumi_os: 'linux'
+  when: pulumi_os is not defined
+  tags: [ always ]
+
+# Pulumi doesn't support validation via hash
+- name: Get Pulumi zip
+  get_url:
+    url: "{{ pulumi_dist_url }}"
+    #sha256sum: "{{ pulumi_sha256_sum }}"
+    dest: "{{ dims_deploy }}/{{ role_name }}/{{ pulumi_archive }}"
+    validate_certs: true
+  become: yes
+  tags: [ pulumi, packages ]
+
+- name: Unpack pulumi archive file
+  unarchive:
+    src: "{{ dims_deploy }}/{{ role_name }}/{{ pulumi_archive }}"
+    dest: "{{ dims_bin }}"
+    owner: "{{ dims_user }}"
+    group: "{{ dims_group }}"
+    mode: 0o755
+    remote_src: True
+  become: yes
+  tags: [ pulumi, packages ]
+
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
+  tags: [ pulumi, tests ]
+

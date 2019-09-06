@@ -1,0 +1,7 @@
+arrow
+ansible
+boto3
+jinja2
+pulumi>=0.16.4
+pulumi-aws>=0.16.2
+python_secrets
