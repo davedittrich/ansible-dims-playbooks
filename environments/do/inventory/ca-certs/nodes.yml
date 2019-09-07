@@ -10,18 +10,18 @@
 ca_certs:
   vars:
     # For ansible-role-ca
-    #ca_rootca_password set in vault or inventory/private/nodes.yml
-    # Customization of certs
     ca_certs_dir: '/usr/share/ca-certs'
+    # Customization of certs
+    ca_rootca_password: '{{ lookup("psec", "secrets get ca_rootca_password") }}'
     ca_distribution_certs_dir: '{{ dims_private }}/files/certs'
-    ca_country: 'US'
-    ca_state: 'WA'
-    ca_locality: 'Seattle'
-    ca_organization: '{{ dims_domain }}'
-    ca_domain: '{{ dims_domain }}'
-    ca_organizationalunit: 'DIMS'
-    ca_commonname: '{{ dims_domain }}'
-    ca_email: 'dave.dittrich@gmail.com'
+    ca_country: '{{ lookup("psec", "secrets get ca_country") }}'
+    ca_state: '{{ lookup("psec", "secrets get ca_state") }}'
+    ca_locality: '{{ lookup("psec", "secrets get ca_locality") }}'
+    ca_organization: '{{ lookup("psec", "secrets get ca_organization") }}'
+    ca_domain: '{{ lookup("psec", "secrets get ca_domain") }}'
+    ca_organizationalunit: '{{ lookup("psec", "secrets get ca_organizationalunit") }}'
+    ca_commonname: '{{ lookup("psec", "secrets get ca_commonname") }}'
+    ca_email: '{{ lookup("psec", "secrets get ca_email") }}'
   hosts:
     'red':
     'blue':

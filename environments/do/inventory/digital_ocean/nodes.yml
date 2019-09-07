@@ -20,10 +20,10 @@ do:
     certbot_backup_dir: '{{ dims_backups }}/{{ dims_fqdn }}'
     certbot_backup_restorefrom: 'latest'
     certbot_save_backups: yes
-    dims_secrets_dir: '{{ lookup("psec", "environments path", environment=do_environment) }}'
+    dims_secrets_dir: '{{ lookup("psec", "environments path") }}'
     dims_keys: '{{ dims_secrets_dir }}/keys'
     dims_backups: '{{ dims_secrets_dir }}/backups'
-    do_api_token: '{{ lookup("env", "DO_API_TOKEN") }}'
+    do_api_token: '{{ lookup("psec", "secrets get do_api_token") }}'
     do_droplets:
       - name: 'red'
         region: '{{ do_region }}'
@@ -60,8 +60,8 @@ do:
         backups_enabled: 'no'
     do_manage_etc_hosts: false
     do_preserve_hostname: true
-    do_region: '{{ lookup("env", "TF_VAR_region") }}'
-    do_ssh_key_id: '{{ lookup("env", "TF_VAR_ssh_fingerprint") }}'
+    do_region: '{{ lookup("psec", "secrets get do_region") }}'
+    do_ssh_key_id: '{{ lookup("psec", "secrets get do_ssh_key_id") }}'
     dns_a_ttl: 360
     dns_cname:
       red:

@@ -1,0 +1,9 @@
+---
+
+live:
+  hosts:
+  vars:
+    git_authorized_keys: []
+    jenkins_authorized_keys: []
+
+# vim: ft=ansible :

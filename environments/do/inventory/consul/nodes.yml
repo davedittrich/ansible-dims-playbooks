@@ -1,5 +1,7 @@
 ---
 
 consul:
+  vars:
+    consul_key: '{{ lookup("psec", "secrets get consul_key") }}'
 
 # vim: ft=ansible:
