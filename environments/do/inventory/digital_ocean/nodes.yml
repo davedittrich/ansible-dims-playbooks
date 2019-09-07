@@ -102,6 +102,7 @@ do:
         value: '{{ hostvars[groups.postfix_mx.0].dims_fqdn|default("mail" + dims_domain) }}'
         priority: 10
     dns_mx_ttl: 360
+    opendkim_selector: '{{ lookup("psec", "secrets get opendkim_selector") }}'
     # Custom rules for default networks
     # (NOTE: Hard-coded device names. Must match above.)
     zone_iface:
