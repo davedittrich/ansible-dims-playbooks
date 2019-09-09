@@ -3,15 +3,19 @@
 SHELL=/bin/bash
 TMP:=$(shell psec environments path --tmpdir)
 PLAN:=$(TMP)/tfplan
+DATE=$(shell date +%Y%m%d%H%M)
+LOGFILE=terraform-$(DATE).log
+PBR=$(shell pwd)/ansible-dims-playbooks
 INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
+TFSTATE:=$(shell psec utils tfstate backend --path)
 
 # Ensure Digital Ocean env vars set
 DO_API_VERSION=2
-DO_TOKEN=$(shell psec -q secrets get do_token 2>/dev/null || echo "")
+DO_API_TOKEN=$(shell psec -q secrets get do_token 2>/dev/null || echo "")
 
-GROUP_NAME:=$(shell psec -q secrets get do_environment)
+GROUP_NAME:=$(shell psec environments default)
 REQUIRED_APT_PACKAGES=bats ansible git make jq opendkim-tools
 REQUIRED_BREW_PACKAGES=bats ansible git make jq opendkim-tools
 
@@ -21,10 +25,13 @@ TF_VARS=-var 'ssh_fingerprint=$(SSH_FINGERPRINT)'
 
 # The following checks to see if local sudo requires a password. If so,
 # the flag is added to the command line when invoking Ansible.
-ASK_BECOME_PASS:=$(shell ansible -i localhost, -m shell -a date --become localhost -c local | grep -q "password is required" && echo "--ask-become-pass")
+ASK_BECOME_PASS:=$(shell ansible -i localhost, -m shell -a date --become localhost -c local 2>/dev/null | grep -q "password is required" && echo "--ask-become-pass")
 
+# define get_domain_var
+#    $(shell ansible -i $(INVENTORY) -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line $(GROUP_NAME) | head -n 1 | cut -d^ -f 2)
+# endef
 define get_domain_var
-   $(shell ansible -i $(INVENTORY) -m debug -a 'msg=^DIMS_DOMAIN={{ dims_domain }}^' --one-line $(GROUP_NAME) | head -n 1 | cut -d^ -f 2)
+   $(shell echo DIMS_DOMAIN=`psec secrets get do_domain`)
 endef
 
 # By nature of being defined first, 'make help' is the default.
@@ -50,6 +57,7 @@ help:
 	@echo " regions - lists available regions"
 	@echo " provider - generate terraform provider.tf and user-data file for creating nodes in group '$(GROUP_NAME)'"
 	@echo " plan - show the terraform plan for the current state"
+	@echo " refresh - refresh terraform state"
 	@echo " graph - generate terraform graph (output is 'graph.png')"
 	@echo " newkeypair - generate a new SSH user keypair"
 	@echo " insertpubkey - insert SSH public key on cloud provider"
@@ -84,18 +92,14 @@ help:
 	@echo '     $$ make DIMS_ANSIBLE_ARGS="--limit trident" backup.postgresql'
 
 .PHONY: init
-init: terraform.tfstate ansible.cfg
-	@[ -d $(HOME)/.secrets/digital-ocean ] || mkdir -p $(HOME)/.secrets/digital-ocean
-	@chmod 700 $(HOME)/.secrets $(HOME)/.secrets/digital-ocean
-	@touch $(HOME)/.secrets/digital-ocean/token
-	@chmod 600 $(HOME)/.secrets/digital-ocean/token
+init: $(TFSTATE) ansible.cfg
 
 ansible.cfg:
 	wget https://raw.githubusercontent.com/ansible/ansible/devel/examples/ansible.cfg
 	patch ansible.cfg < diffs.ansible_cfg
 
-
-terraform.tfstate:
+$(TFSTATE):
+	psec utils tfstate backend
 	terraform init
 
 .PHONY: prerequisites
@@ -113,19 +117,24 @@ prerequisites:
 		venv/bin/pip install -r requirements.txt; \
 	fi; \
 
+digital_ocean.py:
+	wget https://raw.githubusercontent.com/ansible/ansible/devel/contrib/inventory/digital_ocean.py
+
 .PHONY: droplets
-droplets:
-	ansible -i $(INVENTORY)/digital_ocean.py --list-hosts all $(DIMS_ANSIBLE_ARGS) |\
+droplets: digital_ocean.py
+	@python digital_ocean.py --list | python -m json.tool
+	@# ansible -i $(INVENTORY)/digital_ocean.py --list-hosts all $(DIMS_ANSIBLE_ARGS) |\
 	       sed 's/ *//g' |\
 	       tail -n +2
 
 .PHONY: hosts
 hosts:
-	$(MAKE) --always-make inventory/hosts 2>/dev/null
+	$(MAKE) --always inventory/hosts
 
 inventory/hosts:
-	(echo "[droplets]"; ansible -i $(INVENTORY) --list-hosts $(GROUP_NAME) $(DIMS_ANSIBLE_ARGS)|sed 's/ *//g'|tail -n +2) |\
-		tee inventory/hosts
+	@(echo "[$(GROUP_NAME)]"; \
+	 for I in $(shell DO_API_TOKEN=$(DO_API_TOKEN) python digital_ocean.py --list | jq -rc '.all.hosts[]' | sort); do echo "  $$I"; \
+	 done) | tee inventory/hosts
 
 .PHONY: etchosts
 etchosts:
@@ -155,13 +164,24 @@ regions:
 .PHONY: provider
 provider:
 	ansible-playbook -i $(INVENTORY) \
+		-i inventory \
 		create-provider.tf.yml \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: plan
-plan: init provider
-	terraform plan $(TF_VARS) -out=$(PLAN)
+plan: $(PLAN)
+
+# Generate plan in the secrets environment directory (see definintion of PLAN variable
+# above for location). This keeps the plan (which contains secrets) outside of the
+# source repository for greater security against secrets leaks.
+
+$(PLAN): init provider
+	psec -E run -- terraform plan $(TF_VARS) -out=$(PLAN)
 	$(MAKE) --always-make $(INVENTORY_GENERATED)
+
+.PHONY: refresh
+refresh:
+	psec -E run -- terraform refresh $(TF_VARS)
 
 .PHONY: graph
 graph: graph.png
@@ -173,11 +193,11 @@ graph.png: init
 	terraform graph $(TF_VARS) | dot -Tpng -o graph.png
 
 $(INVENTORY_GENERATED):
-	$(COMMON_SCRIPTS)/terraform.inventory.generate.sh > $(INVENTORY_GENERATED)
+	$(COMMON_SCRIPTS)/terraform.inventory.generate.sh $(GROUP_NAME) > $(INVENTORY_GENERATED)
 
 .PHONY: newkeypair
 newkeypair:
-	@if [ -f terraform.tfstate -a "$(shell jq -r '.resources' terraform.tfstate)" != "null" ]; then \
+	@if [ -f $(TFSTATE) -a "$(shell jq -r '.resources' $(TFSTATE)" != "null" ]; then \
 	        echo '[!] Refusing to replace SSH keys while droplets are running'; \
 	        echo '[!] Use "make destroy" first or manually re-key droplets'; \
 	        false; \
@@ -188,7 +208,7 @@ newkeypair:
 
 .PHONY: insertpubkey
 insertpubkey:
-	terraform apply -target=digitalocean_ssh_key.default -auto-approve
+	psec -E run -- terraform apply -target=digitalocean_ssh_key.default -auto-approve
 
 .PHONY: removepubkey
 removepubkey:
@@ -196,15 +216,12 @@ removepubkey:
 
 .PHONY: create
 create: init hosts provider
-	terraform apply $(PLAN) | tee -a terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)//keys.host.extract.sh
-	! grep -q "Error: Error applying plan:" terraform.log
-	$(MAKE) --always-make $(INVENTORY_GENERATED)
+	psec -E run -- terraform apply $(PLAN) | tee $(LOGFILE)
+	! grep -q "Error: Error applying plan:" $(LOGFILE)
+	psec ssh known-hosts add --ask-sudo-pass $(LOGFILE)
+	@# $(MAKE) --always-make $(INVENTORY_GENERATED)
 	$(MAKE) addhostkeys
 	$(MAKE) ping
-
-.PHONY: sshkeys
-sshkeys:
-	cat terraform.log | $(call get_domain_var) $(COMMON_SCRIPTS)/keys.host.extract.sh > /dev/null
 
 .bootstrapped: bootstrap
 	touch .bootstrapped
@@ -212,8 +229,9 @@ sshkeys:
 .PHONY: bootstrap
 bootstrap:
 	rm -f .bootstrapped
-	(terraform plan $(TF_VARS) | grep -q "No changes") || $(MAKE) create
+	psec -E run -- terraform plan $(TF_VARS) | grep -q "No changes") || $(MAKE) create
 	ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		$(PBR)/playbooks/bootstrap.yml \
 		-e host=$(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
@@ -222,6 +240,7 @@ bootstrap:
 .PHONY: bootstrap-opendkim
 bootstrap-opendkim:
 	ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		-e@"$(shell psec secrets path)" \
 		--tags opendkim-genkey \
@@ -231,6 +250,7 @@ bootstrap-opendkim:
 .PHONY: installcerts
 installcerts:
 	ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		$(PBR)/playbooks/certbot-installcert.yml \
 		-e host=$(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
@@ -239,6 +259,7 @@ installcerts:
 .PHONY: deploy
 deploy:
 	ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		-e@"$(shell psec secrets path)" \
 		-e trident_backup_restorefrom='' \
@@ -248,6 +269,7 @@ deploy:
 .PHONY: update
 update:
 	ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		-e@"$(shell psec secrets path)" \
 		--tags updates \
 		-e packages_upgrade=yes \
@@ -257,6 +279,7 @@ update:
 .PHONY: reboot
 reboot:
 	ansible -i $(INVENTORY) \
+	        -i inventory \
 		--become \
 		-m shell \
 		-a '/sbin/shutdown -r +1' \
@@ -266,6 +289,7 @@ reboot:
 .PHONY: cancel
 cancel:
 	ansible -i $(INVENTORY) \
+	        -i inventory \
 		--become \
 		-m shell \
 		-a '/sbin/shutdown -c && echo "[+] Whew! That was close!"' \
@@ -274,14 +298,17 @@ cancel:
 
 .PHONY: addhostkeys
 addhostkeys:
-	@echo "[+] Adding host keys to known_hosts on localhost"
-	ansible-playbook -i $(INVENTORY) \
+	@# @echo "[+] Adding host keys to known_hosts on localhost"
+	@# TODO(dittrich): Can this be removed now that psec handles ssh known_hosts?
+	@# ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		$(PBR)/playbooks/do_rekey.yml \
 		-e known_hosts_root="$(shell pwd)/known_hosts" \
 		$(DIMS_ANSILE_ARGS)
 	@echo "[+] Adding host keys to known_hosts on droplets"
 	ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		$(DIMS_ANSILE_ARGS) \
 		$(PBR)/playbooks/do_rekey.yml \
 		-e known_hosts_root="$(shell pwd)/known_hosts" \
@@ -290,6 +317,7 @@ addhostkeys:
 .PHONY: removehostkeys
 removehostkeys:
 	-ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		$(PBR)/playbooks/do_rekey.yml \
 		-e remove_keys=true \
@@ -298,6 +326,7 @@ removehostkeys:
 .PHONY: dumpvars
 dumpvars:
 	ansible -i $(INVENTORY) \
+	        -i inventory \
 		-m debug -a "var=hostvars[inventory_hostname]" $(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS) |\
 			pygmentize -ljson |\
@@ -305,12 +334,14 @@ dumpvars:
 .PHONY: updatefacts
 updatefacts:
 	ansible -i $(INVENTORY) \
+	        -i inventory \
 		-m setup $(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: ping
 ping:
 	ansible -i $(INVENTORY) \
+	        -i inventory \
 		-m ping $(GROUP_NAME)
 
 .PHONY: pre.test
@@ -320,6 +351,7 @@ pre.test:
 .PHONY: post.test
 post.test:
 	ansible -i $(INVENTORY) \
+	        -i inventory \
 		-m shell \
 		-a 'test.runner --terse --tap' \
 		$(GROUP_NAME) \
@@ -329,6 +361,7 @@ post.test:
 .PHONY: backup.trident
 backup.trident:
 	-ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		-e@"$(shell psec secrets path)" \
 		$(PBR)/playbooks/trident_backup.yml \
@@ -337,6 +370,7 @@ backup.trident:
 .PHONY: restore.trident
 restore.trident:
 	-ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		-e@"$(shell psec secrets path)" \
 		$(PBR)/playbooks/trident_restore.yml \
@@ -345,6 +379,7 @@ restore.trident:
 .PHONY: backup.letsencrypt
 backup.letsencrypt:
 	-ansible-playbook -i $(INVENTORY) \
+	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		-e@"$(shell psec secrets path)" \
 		$(PBR)/playbooks/letsencrypt_backup.yml \
@@ -358,13 +393,14 @@ destroy:
 	-rm -rf fingerprints/ known_hosts/ user-data/
 	-rm -f ansible-digital_ocean.cache
 	-rm -f inventory/hosts inventory/nodes-generated.yml
-	-rm -f provider.tf graph.png
 	-rm -f .bootstrapped
 	-$(MAKE) removepubkey
+	-rm -f provider.tf graph.png
 
 .PHONY: spotless
 spotless: destroy
 	-rm -f terraform.log
-	-rm -f terraform.tfstate terraform.tfstate.backup
+	-rm -f digital_ocean.py
+	-rm -f $(TFSTATE) $(TFSTATE).backup
 
 # vim: ft=make:
