@@ -123,7 +123,7 @@ digital_ocean.py:
 .PHONY: droplets
 droplets: digital_ocean.py
 	@python digital_ocean.py --list | python -m json.tool
-	@# ansible -i $(INVENTORY)/digital_ocean.py --list-hosts all $(DIMS_ANSIBLE_ARGS) |\
+	@# ansible -i digital_ocean.py --list-hosts all $(DIMS_ANSIBLE_ARGS) |\
 	       sed 's/ *//g' |\
 	       tail -n +2
 
@@ -177,7 +177,7 @@ plan: $(PLAN)
 
 $(PLAN): init provider
 	psec -E run -- terraform plan $(TF_VARS) -out=$(PLAN)
-	$(MAKE) --always-make $(INVENTORY_GENERATED)
+	# TODO(dittrich): Remove?   $(MAKE) --always-make $(INVENTORY_GENERATED)
 
 .PHONY: refresh
 refresh:
@@ -218,8 +218,9 @@ removepubkey:
 create: init hosts provider
 	psec -E run -- terraform apply $(PLAN) | tee $(LOGFILE)
 	! grep -q "Error: Error applying plan:" $(LOGFILE)
-	psec ssh known-hosts add --ask-sudo-pass $(LOGFILE)
+	psec ssh known-hosts add --ask-become-pass $(LOGFILE)
 	@# $(MAKE) --always-make $(INVENTORY_GENERATED)
+	$(MAKE) hosts
 	$(MAKE) addhostkeys
 	$(MAKE) ping
 
@@ -388,7 +389,7 @@ backup.letsencrypt:
 
 .PHONY: destroy
 destroy:
-	terraform destroy $(TF_VARS) --force
+	psec -E run -- terraform destroy $(TF_VARS) --force
 	-$(MAKE) removehostkeys
 	-rm -rf fingerprints/ known_hosts/ user-data/
 	-rm -f ansible-digital_ocean.cache
