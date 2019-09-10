@@ -165,12 +165,13 @@
   # to include a task that then performs the with_first_found.
   # This only works with Ansible >2.1 and its dynamic
   # inclusion behavior.
-- name: Install sites in nginx_sites_available
-  include_tasks: 'install-site-available.yml'
-  with_items:
-    - '{{ nginx_sites_available }}'
-  loop_control:
-    loop_var: _sitename
+- block:
+  - name: Install sites in nginx_sites_available
+    include_tasks: 'install-site-available.yml'
+    with_items:
+      - '{{ nginx_sites_available }}'
+    loop_control:
+      loop_var: _sitename
   become: yes
   when: nginx_sites_available is defined
   tags: [ nginx, config ]
