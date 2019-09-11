@@ -16,6 +16,6 @@
 
   "provisioners": [{
     "type": "shell",
-    "script": "install-script.sh"
+    "script": "ubuntu-14.04-install.sh"
   }]
 }
