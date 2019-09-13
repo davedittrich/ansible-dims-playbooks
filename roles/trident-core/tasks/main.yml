@@ -239,8 +239,8 @@
   with_items: '{{ trident_dist_bundle }}'
   become: yes
   notify:
-    - restart trident
-    - restart nginx
+    - 'restart trident'
+    - 'restart nginx'
   tags: [ trident-core, packages ]
 
 - name: Ensure trident is disabled with service
@@ -316,8 +316,8 @@
        - trident/default/
   become: yes
   notify:
-    - restart trident
-    - restart nginx
+    - 'restart trident'
+    - 'restart nginx'
   tags: [ trident-core, config ]
 
 - name: Ensure /etc/trident/trident.conf is present
@@ -339,8 +339,8 @@
        - trident/trident.conf/
   become: yes
   notify:
-    - restart trident
-    - restart nginx
+    - 'restart trident'
+    - 'restart nginx'
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
@@ -367,8 +367,8 @@
        - trident/siteconfig/
   become: yes
   notify:
-    - restart trident
-    - restart nginx
+    - 'restart trident'
+    - 'restart nginx'
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
@@ -391,8 +391,8 @@
        - nginx/sites-available/
   become: yes
   notify:
-    - restart trident
-    - restart nginx
+    - 'restart trident'
+    - 'restart nginx'
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 
@@ -403,8 +403,8 @@
     state: link
   become: yes
   notify:
-    - restart trident
-    - restart nginx
+    - 'restart trident'
+    - 'restart nginx'
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
 

@@ -133,7 +133,7 @@
  - name: Copy OpenVPN configuration file into place
    template: src=etc_openvpn_server.conf.j2 dest=/etc/openvpn/server.conf
    notify:
-     - Restart Openvpn
+     - 'Restart Openvpn'
 
  # OpenVPN must restart first so the 10.8.0.0 interface is available to dnsmasq
  - meta: flush_handlers
@@ -141,7 +141,7 @@
  - name: Copy dnsmasq configuration file into place
    template: src=etc_dnsmasq.conf.j2 dest=/etc/dnsmasq.conf backup=yes
    notify: 
-     - Restart DnsMasq
+     - 'Restart DnsMasq'
 
  - name: Update the "rc.local" file
    lineinfile: dest=/etc/rc.local regexp="/etc/init.d/dnsmasq restart" line="/etc/init.d/dnsmasq restart" insertbefore="exit 0" backup=yes state=present

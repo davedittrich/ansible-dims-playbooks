@@ -16,4 +16,4 @@
     mode: 0o644
     backup: yes
   notify:
-    - Update timezone
+    - 'Update timezone'

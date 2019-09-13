@@ -56,7 +56,7 @@
         mode=0o644
         backup=yes
   notify:
-    - update timezone
+    - 'update timezone'
   tags: [ base, config ]
 
 # NOTE(mboggess): from common tasks/ntpcheck.yml
@@ -79,7 +79,7 @@
       - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
       - iptables/
   notify:
-    - restart iptables
+    - 'restart iptables'
   tags: [ base, config ]
 
 # NOTE(mboggess): from fakebase
@@ -100,7 +100,7 @@
       - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
       - iptables/
   notify:
-    - restart ip6tables
+    - 'restart ip6tables'
   tags: [ base, config ]
 
 # Handle the configuration of network interfaces in a manner that
@@ -144,7 +144,7 @@
         - sshd/
   become: yes
   notify:
-    - restart ssh
+    - 'restart ssh'
   tags: [ base, config ]
 
 # vim: ft=ansible :

@@ -35,7 +35,7 @@
     - "{{ files }}/iptables/iptables.{{ env }}"
     - "{{ files }}/iptables/iptables"
   notify:
-  - restart iptables
+  - 'restart iptables'
   tags:
   - iptables
   - config

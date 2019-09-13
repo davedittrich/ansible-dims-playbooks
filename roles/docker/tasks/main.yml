@@ -242,14 +242,14 @@
         - docker.service/
   when: ansible_service_mgr == "systemd"
   become: yes
-  notify: restart docker
+  notify: 'restart docker'
   tags: [ docker, config ]
 
 - name: Reload the consul service configuration (systemd)
   shell: "systemctl daemon-reload"
   when: ansible_service_mgr == "systemd"
   become: yes
-  notify: restart docker
+  notify: 'restart docker'
   tags: [ docker, config ]
 
 - name: Make Docker defaults present

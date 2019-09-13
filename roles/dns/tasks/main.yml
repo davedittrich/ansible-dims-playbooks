@@ -52,7 +52,7 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify:
-    - restart dnsmasq
+    - 'restart dnsmasq'
   tags: [ dns, config ]
 
 - name: Make dnsmasq configuration file present on Debian
@@ -75,7 +75,7 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify:
-    - restart dnsmasq
+    - 'restart dnsmasq'
   tags: [ dns, config ]
 
 - name: Make service defaults present on Debian
@@ -98,7 +98,7 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify:
-    - restart dnsmasq
+    - 'restart dnsmasq'
   tags: [ dns, config ]
 
 - name: Make service initialization script present on Debian
@@ -121,7 +121,7 @@
   become: yes
   when: ansible_os_family == "Debian"
   notify:
-    - restart dnsmasq
+    - 'restart dnsmasq'
   tags: [ dns, config ]
 
 - name: Get zone configurations
@@ -150,7 +150,7 @@
     - '{{ configs_list.results }}'
   become: yes
   notify:
-    - restart dnsmasq
+    - 'restart dnsmasq'
   tags: [ dns, dnsfiles, config ]
 
 # It isn't necessary to have a 1:1 configuration file to mapping file, so don't
@@ -177,7 +177,7 @@
   with_items:
     - '{{ maps_list.results }}'
   notify:
-    - restart dnsmasq
+    - 'restart dnsmasq'
   tags: [ dns, dnsfiles, config ]
 
 - import_tasks: "{{ tasks_path }}/post_tasks.yml"

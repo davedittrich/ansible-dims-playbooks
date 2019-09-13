@@ -28,7 +28,7 @@
     state: stopped
   become: yes
   ignore_errors: true
-  notify: restart consul
+  notify: 'restart consul'
 
 # Download and install Consul from source
 # TODO(dittrich): The certificate check fails (SNI?), but the SHA256 hash exists to validate download.
@@ -45,7 +45,7 @@
 - name: Unzip contents of Consul archive into DIMS bin directory
   shell: 'unzip -u -o {{ dims_deploy }}/{{ role_name }}/{{ consul_artifact }} -d {{ dims_bin }}'
   become: yes
-  notify: restart consul
+  notify: 'restart consul'
 
 - name: Make base Consul configuration directory present
   file:
@@ -77,7 +77,7 @@
     group: '{{ dims_user }}'
     mode: 0o640
   become: yes
-  notify: restart consul
+  notify: 'restart consul'
 
 - name: Create persistence directory for use by Consul
   file:
@@ -106,7 +106,7 @@
     group: '{{ dims_group }}'
     mode: 0o755
   become: yes
-  notify: restart consul
+  notify: 'restart consul'
 
 - name: Make consul upstart configuration present (upstart)
   template:
@@ -117,7 +117,7 @@
     mode: 0o644
   when: ansible_service_mgr in [ "upstart", "service" ]
   become: yes
-  notify: restart consul
+  notify: 'restart consul'
 
 - name: Validate consul config file syntax (upstart)
   shell: "init-checkconf /etc/init/consul.conf"
@@ -153,7 +153,7 @@
   shell: "initctl reload-configuration"
   when: ansible_service_mgr in [ "upstart", "service" ]
   become: yes
-  notify: restart consul
+  notify: 'restart consul'
 
 - name: Make consul.service unit present (systemd)
   template:
@@ -174,13 +174,13 @@
         - systemd/
   when: ansible_service_mgr == "systemd"
   become: yes
-  notify: restart consul
+  notify: 'restart consul'
 
 - name: Reload the consul service configuration (systemd)
   shell: "systemctl daemon-reload"
   when: ansible_service_mgr == "systemd"
   become: yes
-  notify: restart consul
+  notify: 'restart consul'
 
 - name: Ensure consul is started and enabled
   service:

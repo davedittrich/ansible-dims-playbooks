@@ -174,7 +174,7 @@
   become: yes
   ignore_errors: yes
   notify:
-  - restart rabbitmq-server
+  - 'restart rabbitmq-server'
   tags: [ rabbitmq ]
 
 - name: Install rabbitmq-server package
@@ -243,7 +243,7 @@
        - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/'
        - nginx/
   become: yes
-  notify: restart nginx
+  notify: 'restart nginx'
   tags: [ rabbitmq, config ]
 
 - name: Create symlink to enable site
@@ -253,7 +253,7 @@
     state: link
   with_items:
     - rabbitmq
-  notify: restart nginx
+  notify: 'restart nginx'
   tags: [ rabbitmq, config ]
 
 - name: Ensure rabbitmq-server defaults present
@@ -295,7 +295,7 @@
         - default/
   become: yes
   notify:
-  - restart rabbitmq-server
+  - 'restart rabbitmq-server'
   tags: [ rabbitmq ]
 
 - name: Ensure rabbitmq environment config is present
@@ -316,7 +316,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rabbitmq-env.conf/'
         - default/
   become: yes
-  notify: restart rabbitmq-server
+  notify: 'restart rabbitmq-server'
   when: rabbitmq_environment is defined
   tags: [ rabbitmq ]
 
@@ -381,7 +381,7 @@
       - '{{ rabbitmq_plugins }}'
   become: yes
   notify:
-  - restart rabbitmq-server
+  - 'restart rabbitmq-server'
   tags: [ rabbitmq ]
 
 - name: "Wait for mgmt port ({{ rabbitmq_mgmt_listen_port }})"

@@ -85,7 +85,7 @@
 
 #- name: Stop virtualbox if it is active
 #  service: name=virtualbox state=stopped
-#  notify: restart virtualbox
+#  notify: 'restart virtualbox'
 #  become: yes
 #  tags: [ virtualbox, packages ]
 

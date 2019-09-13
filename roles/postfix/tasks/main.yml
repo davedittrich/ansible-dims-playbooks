@@ -79,8 +79,8 @@
         - aliases/
   become: yes
   notify:
-    - rebuild postfix aliases
-    - restart postfix
+    - 'rebuild postfix aliases'
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/virtual file present
@@ -103,8 +103,8 @@
         - virtual/
   become: yes
   notify:
-    - rebuild postfix virtual
-    - restart postfix
+    - 'rebuild postfix virtual'
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/transport file present
@@ -126,8 +126,8 @@
         - transport/
   become: yes
   notify:
-    - rebuild postfix transport
-    - restart postfix
+    - 'rebuild postfix transport'
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/generic file present
@@ -149,8 +149,8 @@
         - generic/
   become: yes
   notify:
-    - rebuild postfix generic
-    - restart postfix
+    - 'rebuild postfix generic'
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/access file present
@@ -173,8 +173,8 @@
         - access/
   become: yes
   notify:
-    - rebuild postfix access
-    - restart postfix
+    - 'rebuild postfix access'
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/client_access file present
@@ -197,8 +197,8 @@
         - client_access/
   become: yes
   notify:
-    - rebuild postfix client_access
-    - restart postfix
+    - 'rebuild postfix client_access'
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/helo_access file present
@@ -221,8 +221,8 @@
         - helo_access/
   become: yes
   notify:
-    - rebuild postfix helo_access
-    - restart postfix
+    - 'rebuild postfix helo_access'
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/relay_recipients file present
@@ -244,8 +244,8 @@
         - relay_recipients/
   become: yes
   notify:
-    - rebuild postfix relay_recipients
-    - restart postfix
+    - 'rebuild postfix relay_recipients'
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/main.cf present
@@ -268,7 +268,7 @@
         - main.cf/
   become: yes
   notify:
-    - restart postfix
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - name: Make /etc/postfix/master.cf file present
@@ -290,7 +290,7 @@
         - master.cf/
   become: yes
   notify:
-    - restart postfix
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - name: Force postmap where necessary
@@ -305,7 +305,7 @@
     - transport
     - virtual
   notify:
-    - restart postfix
+    - 'restart postfix'
   tags: [ postfix, config ]
 
 - import_tasks: "opendkim.yml"

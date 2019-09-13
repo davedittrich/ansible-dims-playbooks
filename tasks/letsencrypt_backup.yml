@@ -40,7 +40,6 @@
     shell: >
       mktemp -d '{{ ansible_env["TMPDIR"] | default("/tmp", true) }}/ansible.XXXX'
     register: mktemp_output
-    become: yes
 
   - name: Define _tmpdir variable
     set_fact:
@@ -66,7 +65,6 @@
       group: root
       mode: 0o700
       remove: false
-    become: yes
 
   - name: Ensure local cert directory exists
     file:
@@ -111,7 +109,6 @@
   file:
     path: '{{ _tmpdir }}'
     state: absent
-  become: yes
   when: _backedup
 
 - fail: msg="Backup failed. Temporary directory {{ _tmpdir }} preserved."

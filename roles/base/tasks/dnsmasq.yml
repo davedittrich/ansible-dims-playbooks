@@ -37,7 +37,7 @@
         - dnsmasq.conf/
   become: yes
   when: ansible_os_family == "Debian"
-  notify: restart dnsmasq
+  notify: 'restart dnsmasq'
   tags: [ base, config, dns ]
 
 - name: Ensure dnsmasq is restarted

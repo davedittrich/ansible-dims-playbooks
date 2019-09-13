@@ -23,7 +23,9 @@
     - ansible-role-certbot
 
   tasks:
-    - include_tasks: '{{ tasks_path }}/install-certbot-certs.yml'
+    - block:
+      - include_tasks: '{{ tasks_path }}/install-certbot-certs.yml'
+      become: true
 
   handlers:
     - name: restart nginx

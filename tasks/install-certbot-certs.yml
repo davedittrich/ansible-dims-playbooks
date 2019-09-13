@@ -209,7 +209,6 @@
       --no-self-upgrade
     args:
       warn: no
-    become: yes
     register: _update_results
     when: use_letsencrypt and _have_cert
 
@@ -247,7 +246,6 @@
     file_type: file
     patterns: "*"
     use_regex: false
-  become: true
   register: _find_hooks
 
 - name: Run renewal-hook scripts
@@ -255,7 +253,6 @@
     bash -x {{ item }}
   with_items: '{{ _find_hooks.files|map(attribute="path")|list }}'
   when: _find_hooks is defined and _find_hooks.files is defined
-  become: true
   register: _renewal_hooks_exec
 
 - name: Debug renewal-hook script execution

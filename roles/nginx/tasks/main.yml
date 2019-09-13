@@ -82,7 +82,7 @@
     dpkg_options: 'force-confold,force-confdef'
   when: ansible_pkg_mgr == "apt"
   become: yes
-  notify: restart nginx
+  notify: 'restart nginx'
   tags: [ nginx, packages ]
 
 - name: Make Nginx present (yum)
@@ -91,7 +91,7 @@
     state: present
   become: yes
   when: ansible_pkg_mgr == "yum"
-  notify: restart nginx
+  notify: 'restart nginx'
   tags: [ nginx, packages ]
 
 - name: Ensure www-data user+group is present
@@ -143,7 +143,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/'
         - nginx/
   become: yes
-  notify: restart nginx
+  notify: 'restart nginx'
   tags: [ nginx, config ]
 
 - name: Ensure nginx is enabled
@@ -190,7 +190,7 @@
     - '{{ nginx_sites_enabled }}'
   become: yes
   ignore_errors: yes
-  notify: restart nginx
+  notify: 'restart nginx'
   tags: [ nginx, config ]
 
 - name: Create health_check directory if selected
@@ -223,7 +223,7 @@
         - html/
   become: yes
   when: '"health_check" in nginx_sites_available'
-  notify: restart nginx
+  notify: 'restart nginx'
   tags: [ nginx, config ]
 
 - name: Make artifacts (source) directory present
@@ -235,7 +235,7 @@
     mode: 0o775
   become: yes
   when: nginx_source_dir is defined
-  notify: restart nginx
+  notify: 'restart nginx'
   tags: [ nginx, config ]
 
   # We only need to worry about bootstrapping the source directory

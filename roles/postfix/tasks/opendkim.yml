@@ -179,8 +179,8 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/opendkim/default/'
         - opendkim/default/
   notify:
-    - restart opendkim
-    - restart postfix
+    - 'restart opendkim'
+    - 'restart postfix'
 
 - name: Make /etc/opendkim/TustedHosts present
   template:
@@ -201,8 +201,8 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/opendkim/TrustedHosts/'
         - opendkim/TrustedHosts/
   notify:
-    - restart opendkim
-    - restart postfix
+    - 'restart opendkim'
+    - 'restart postfix'
 
 - name: Make /etc/opendkim/KeyTable present
   template:
@@ -223,8 +223,8 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/opendkim/KeyTable/'
         - opendkim/KeyTable/
   notify:
-    - restart opendkim
-    - restart postfix
+    - 'restart opendkim'
+    - 'restart postfix'
 
 - name: Make /etc/opendkim/SigningTable present
   template:
@@ -245,8 +245,8 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/opendkim/SigningTable/'
         - opendkim/SigningTable/
   notify:
-    - restart opendkim
-    - restart postfix
+    - 'restart opendkim'
+    - 'restart postfix'
 
 - name: Make /etc/opendkim.conf present
   template:
@@ -267,7 +267,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/opendkim.conf/'
         - opendkim.conf/
   notify:
-    - restart postfix
-    - restart opendkim
+    - 'restart postfix'
+    - 'restart opendkim'
 
 # vim: ft=ansible :

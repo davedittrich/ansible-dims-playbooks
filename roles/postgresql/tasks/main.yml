@@ -70,7 +70,7 @@
         - postgresql/
   when: ansible_os_family == "Debian"
   become: yes
-  notify: restart postgresql
+  notify: 'restart postgresql'
   tags: [ postgresql, config ]
 
 - name: Configure pg_hba.conf
@@ -92,7 +92,7 @@
         - postgresql/
   when: ansible_os_family == "Debian"
   become: yes
-  notify: restart postgresql
+  notify: 'restart postgresql'
   tags: [ postgresql, config ]
 
 - name: Configure pg_ident.conf
@@ -114,7 +114,7 @@
         - postgresql/
   when: ansible_os_family == "Debian"
   become: yes
-  notify: restart postgresql
+  notify: 'restart postgresql'
   tags: [ postgresql, config ]
 
 - name: Ensure postgresql is running and enabled

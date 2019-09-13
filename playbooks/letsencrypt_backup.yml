@@ -13,6 +13,8 @@
   vars_files:
     - "{{ playbooks_root }}/vars/global.yml"
   tasks:
-    - include_tasks: '{{ tasks_path }}/letsencrypt_backup.yml'
+    - block:
+      - include_tasks: '{{ tasks_path }}/letsencrypt_backup.yml'
+      become: true
 
 # vim: ft=ansible :

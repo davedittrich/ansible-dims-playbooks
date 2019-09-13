@@ -252,7 +252,7 @@
     name: supervisor
     state: stopped
   become: yes
-  notify: restart supervisor
+  notify: 'restart supervisor'
   when: _result is defined and _result.stdout is search(_venv_path)
   ignore_errors: yes
   tags: [ python-virtualenv ]
