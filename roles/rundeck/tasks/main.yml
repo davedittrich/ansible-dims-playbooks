@@ -10,7 +10,8 @@
 - name: Stop rundeckd daemon
   service: name=rundeckd state=stopped
   become: yes
-  notify: 'restart rundeckd'
+  notify:
+    - 'restart rundeckd'
   ignore_errors: true
   when: ansible_os_family == "Debian"
   tags: [ rundeck ]
@@ -37,7 +38,8 @@
   shell: "dpkg -i {{ dims_deploy }}/{{ role_name }}/{{ rundeck_artifact }}"
   become: yes
   when: ansible_os_family == "Debian"
-  notify: 'restart rundeckd'
+  notify:
+    - 'restart rundeckd'
   tags: [ rundeck, packages ]
 
 - name: Make realm.properties present
@@ -59,7 +61,8 @@
         - realm.properties/
   become: yes
   when: ansible_os_family == "Debian"
-  notify: 'restart rundeckd'
+  notify:
+    - 'restart rundeckd'
   tags: [ rundeck, config ]
 
 - name: Ensure rundeckd is running and enabled

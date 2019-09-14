@@ -195,9 +195,14 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/hosts/'
         - hosts/
   become: yes
-  notify: 'restart dnsmasq'
   when: ansible_os_family in [ "Debian", "RedHat", "CentOS", "Container Linux by CoreOS" ]
   tags: [ base, hosts, config ]
+
+- name: Restart dnsmasq
+  service:
+    name: dnsmasq
+    state: restarted
+  ignore_errors: yes
 
 - name: Disable IPv6 in kernel on non-CoreOS
   shell: "sysctl net.ipv6.conf.all.disable_ipv6=1"
@@ -224,7 +229,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - 'restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})'
+    - 'restart iptables {{ ansible_distribution }}_{{ ansible_distribution_release }}'
     - 'conditional restart docker'
   become: yes
   when: ansible_os_family == "Debian"
@@ -249,7 +254,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - 'restart iptables ({{ dims_os_id }})'
+    - 'restart iptables {{ dims_os_id }}'
     - 'conditional restart docker'
   become: yes
   when: ansible_distribution == "CentOS"
@@ -274,7 +279,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - 'restart iptables ({{ ansible_distribution }}/{{ ansible_distribution_release }})'
+    - 'restart iptables {{ ansible_distribution }}_{{ ansible_distribution_release }}'
     - 'conditional restart docker'
   become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
@@ -299,7 +304,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - 'restart iptables ({{ dims_os_id }})'
+    - 'restart iptables {{ dims_os_id }}'
     - 'conditional restart docker'
   become: yes
   when: ansible_os_family == "Debian"
@@ -324,7 +329,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - 'restart iptables ({{ dims_os_id }})'
+    - 'restart iptables {{ dims_os_id }}'
     - 'conditional restart docker'
   become: yes
   when: ansible_distribution == "CentOS"
@@ -350,7 +355,7 @@
         - iptables/
   become: yes
   notify:
-    - 'restart iptables ({{ dims_os_id }})'
+    - 'restart iptables {{ dims_os_id }}'
     - 'conditional restart docker'
   when: ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
@@ -376,7 +381,7 @@
   become: yes
   notify:
     - 'restart rsyslog'
-    - 'restart fail2ban ({{ ansible_service_mgr }})'
+    - 'restart fail2ban'
   tags: [ base, config, iptables ]
 
 - name: Ensure /etc/fail2ban/fail2ban.local is present
@@ -399,7 +404,7 @@
   become: yes
   notify:
     - 'restart rsyslog'
-    - 'restart fail2ban ({{ ansible_service_mgr }})'
+    - 'restart fail2ban'
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
 
@@ -413,7 +418,7 @@
   with_items: '{{ fail2ban_filters|default([]) }}'
   become: yes
   notify:
-    - 'restart fail2ban ({{ ansible_service_mgr }})'
+    - 'restart fail2ban'
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
 
@@ -436,7 +441,7 @@
         - fail2ban/jail.local/
   become: yes
   notify:
-    - 'restart fail2ban ({{ ansible_service_mgr }})'
+    - 'restart fail2ban'
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, iptables ]
 
@@ -516,6 +521,8 @@
 # Using "meta: flush_handlers" will run any handlers that have
 # been set up to this point.
 # http://docs.ansible.com/ansible/playbooks_intro.html#handlers-running-operations-on-change
+# NOTE(dittrich): Commenting this out to try to get around what appears to be a bug
+# in Ansible.
 - meta: flush_handlers
 
 # TODO(mboggess): unsure if chony usable on CoreOS
@@ -628,7 +635,8 @@
   service:
     name: rsyslog
     state: stopped
-  notify: 'restart rsyslog'
+  notify:
+    - 'restart rsyslog'
   when: ansible_os_family != "Container Linux by CoreOS"
   ignore_errors: yes
   tags: [ base, config, rsyslogd ]
@@ -1304,6 +1312,8 @@
 # Using "meta: flush_handlers" will run any handlers that have
 # been set up to this point.
 # http://docs.ansible.com/ansible/playbooks_intro.html#handlers-running-operations-on-change
+# NOTE(dittrich): Commenting this out to try to get around what appears to be a bug
+# in Ansible.
 - meta: flush_handlers
 
 - name: Ensure cron environment is present

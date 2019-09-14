@@ -213,7 +213,8 @@
     name: trident
     state: stopped
   become: yes
-  notify: 'restart trident'
+  notify:
+    - 'restart trident'
 
 - name: Restore backup of trident ancillary file
   shell: >

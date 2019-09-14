@@ -2,7 +2,13 @@
 
 # File: roles/postfix/handlers/main.yml
 
-- include_tasks: "{{ handlers_path }}/restart_services.yml"
+# - include_tasks: "{{ handlers_path }}/restart_services.yml"
+
+- name: restart postfix
+  service:
+    name: postfix
+    state: restarted
+  become: yes
 
 - name: reload postfix
   shell: /usr/sbin/postfix reload

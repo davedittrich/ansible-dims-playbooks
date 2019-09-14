@@ -2,4 +2,5 @@
 
 # File: roles/base/handlers/main.yml
 
-- include_tasks: "{{ handlers_path }}/restart_services.yml"
+- name: 'Include handlers'
+  include_tasks: '{{ handlers_path }}/restart_services.yml'

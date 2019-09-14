@@ -34,11 +34,11 @@
     - { role: nginx }
 
   tasks:
-    - import_tasks: '{{ tasks_path }}/synchronize_vm.yml'
+    - include_tasks: '{{ tasks_path }}/synchronize_vm.yml'
       when: host is defined and host not in [ 'localhost', 'vmhost.devops.local' ]
       tags: [ 'always' ]
 
   handlers:
-   - import_tasks: "{{ handlers_path }}/restart_services.yml"
+   - include_tasks: "{{ handlers_path }}/restart_services.yml"
 
 # vim: ft=ansible :

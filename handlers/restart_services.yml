@@ -2,15 +2,12 @@
 
 # File: handlers/restart_services.yml
 
-# Handlers for restarting services. This file is modelled after
-# the way the Fedora Project does things.
-#
 # This is the global service restart/reload definition file. It should
 # be included in the handlers/main.yml file for each role that requires
 # restarting services (i.e., installs or alters configuration files
 # for a service daemon) as follows:
 #
-# - import_tasks: "{{ handlers_path }}/restart_services.yml"
+# - include_tasks: "{{ handlers_path }}/restart_services.yml"
 #
 # These handlers are just for restarting services. You should *not*
 # be using "enabled=yes" here. Instead, in the tasks file where a
@@ -24,7 +21,6 @@
 #     state: started
 #     enabled: yes
 #   ...
-
 
 - name: 'update Ubuntu locales'
   command: "dpkg-reconfigure --frontend noninteractive locales"
@@ -42,7 +38,9 @@
   ignore_errors: yes
 
 - name: 'restart network-manager on Debian'
-  action: service name=network-manager state=restarted
+  service:
+    name: network-manager
+    state: restarted
 
 # Note: Debian jessie and on use netfilter-persistent alongside of
 # (sort of instead of) iptables-persistent, so we are chaining the
@@ -59,114 +57,172 @@
 # for the base strings using a general form such as
 # 'restart iptables .*' or 'restart ip6tables .*'
 
-- name: 'restart iptables (Container Linux by CoreOS/NA)'
-  shell: systemctl restart iptables-restore.service
+- name: 'restart iptables Container Linux by CoreOS_NA'
+  systemd:
+    name: iptables-restore.service
+    state: restarted
 
-- name: 'restart ip6tables (Container Linux by CoreOS/NA)'
-  shell: systemctl restart ip6tables-restore.service
+- name: 'restart ip6tables Container Linux by CoreOS_NA'
+  systemd:
+    name: ip6tables-restore.service
+    state: restarted
 
-- name: 'restart iptables (Debian/jessie)'
-  action: service name=netfilter-persistent state=restarted
+- name: 'restart iptables Debian_jessie'
+  service:
+    name: netfilter-persistent
+    state: restarted
 
-- name: 'restart ip6tables (Debian/jessie)'
-  action: service name=netfilter-persistent state=restarted
+- name: 'restart iptables debian8'
+  service:
+    name: netfilter-persistent
+    state: restarted
 
-- name: 'restart iptables (Ubuntu/trusty)'
-  action: service name=iptables-persistent state=reloaded
+- name: 'restart ip6tables Debian_jessie'
+  service:
+    name: netfilter-persistent
+    state: restarted
 
-- name: 'restart ip6tables (Ubuntu/trusty)'
-  action: service name=ip6tables-persistent state=reloaded
+- name: 'restart iptables Ubuntu_trusty'
+  service:
+    name: iptables-persistent
+    state: reloaded
 
-- name: 'restart iptables (Ubuntu/xenial)'
-  action: service name=netfilter-persistent state=restarted
+- name: 'restart ip6tables Ubuntu_trusty'
+  service:
+    name: ip6tables-persistent
+    state: reloaded
 
-- name: 'restart ip6tables (Ubuntu/xenial)'
-  action: service name=netfilter-persistent state=reloaded
+- name: 'restart iptables Ubuntu_xenial'
+  service:
+    name: netfilter-persistent
+    state: restarted
 
-- name: 'restart iptables (centos7)'
-  action: service name=iptables state=restarted
+- name: 'restart ip6tables Ubuntu_xenial'
+  service:
+    name: netfilter-persistent
+    state: reloaded
 
-- name: 'restart iptables6 (centos7)'
-  action: service name=iptables6 state=restarted
+- name: 'restart iptables centos7'
+  service:
+    name: iptables
+    state: restarted
+
+- name: 'restart iptables6 centos7'
+  service:
+    name: iptables6
+    state: restarted
 
 - name: 'restart virtualbox'
-  action: service name=virtualbox state=restarted
+  service:
+    name: virtualbox
+    state: restarted
 
 - name: 'restart ntpd'
-  action: service name=ntpd state=restarted
+  service:
+    name: ntpd
+    state: restarted
 
 - name: 'restart chrony'
-  action: service name=chrony state=restarted
+  service:
+    name: chrony
+    state: restarted
 
 - name: 'restart rsyslog'
-  action: service name=rsyslog state=restarted
+  service:
+    name: rsyslog
+    state: restarted
 
-- name: 'restart rsyslog (service)'
-  action: service name=rsyslog state=restarted
+- name: 'restart rsyslog service'
+  service:
+    name: rsyslog
+    state: restarted
 
-- name: 'restart rsyslog (systemd)'
+- name: 'restart rsyslog systemd'
   systemd:
     name: rsyslog
     state: restarted
 
 - name: 'restart ssh'
-  action: service name=ssh state=restarted
+  service:
+    name: ssh
+    state: restarted
 
 - name: 'restart network'
-  action: service name=network state=restarted
+  service:
+    name: network
+    state: restarted
 
 - name: 'restart supervisor'
-  service: name=supervisor state=restarted
+  service:
+    name: supervisor
+    state: restarted
 
 - name: 'reload systemd'
   command: systemctl daemon-reload
 
 - name: 'restart consul'
-  service: name=consul state=restarted
+  service:
+    name: consul
+    state: restarted
 
 - name: 'restart vault'
-  service: name=vault state=restarted
+  service:
+    name: vault
+    state: restarted
 
 - name: 'restart rundeckd'
-  service: name=rundeckd state=restarted
+  service:
+    name: rundeckd
+    state: restarted
 
 - name: 'restart postgresql'
-  service: name=postgresql state=restarted
+  service:
+    name: postgresql
+    state: restarted
 
 - name: 'restart nginx'
-  service: name=nginx state=restarted
+  service:
+    name: nginx
+    state: restarted
 
 - name: 'restart postfix'
-  service: name=postfix state=restarted
+  service:
+    name: postfix
+    state: restarted
 
 - name: 'restart opendkim'
-  service: name=opendkim state=restarted
+  service:
+    name: opendkim
+    state: restarted
 
 - name: 'restart trident'
-  service: name=trident state=restarted
+  service:
+    name: trident
+    state: restarted
 
 # Docker requires an iptables chain DOCKER to work
 # properly. It needs to be restarted if/when iptables
 # is restarted to have the chain present.
 
 - name: 'conditional restart docker'
-  service: name=docker state=restarted
+  service:
+    name: docker
+    state: restarted
   when: hostvars[inventory_hostname].ansible_docker0 is defined
   ignore_errors: true
 
 - name: 'restart docker'
-  service: name=docker state=restarted
-
-- name: 'restart rabbitmq-server'
-  service: name=rabbitmq-server state=restarted
-
-- name: 'restart fail2ban (service)'
   service:
-    name: fail2ban
+    name: docker
     state: restarted
 
-- name: 'restart fail2ban (systemd)'
-  systemd:
+- name: 'restart rabbitmq-server'
+  service:
+    name: rabbitmq-server
+    state: restarted
+
+- name: 'restart fail2ban'
+  service:
     name: fail2ban
     state: restarted
 

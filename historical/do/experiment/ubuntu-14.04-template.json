@@ -1,14 +1,15 @@
 {
   "variables": {
-    "do_api_token": "{{ env `DO_API_TOKEN` }}"
+    "do_token": "{{ env `do_token` }}",
+    "do_region": "{{ env `do_region` }}"
   },
 
   "builders": [{
     "type": "digitalocean",
     "ssh_username": "root",
-    "api_token": "{{user `do_api_token`}}",
+    "api_token": "{{ user `do_token` }}",
     "size": "512mb",
-    "region": "sfo1",
+    "region": "{{ user `do_region` ",
     "image": "ubuntu-14-04-x64",
     "droplet_name": "packer",
     "snapshot_name": "ubuntu-14-04-x64-{{ timestamp }}"

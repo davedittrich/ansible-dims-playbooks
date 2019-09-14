@@ -242,14 +242,8 @@
         - docker.service/
   when: ansible_service_mgr == "systemd"
   become: yes
-  notify: 'restart docker'
-  tags: [ docker, config ]
-
-- name: Reload the consul service configuration (systemd)
-  shell: "systemctl daemon-reload"
-  when: ansible_service_mgr == "systemd"
-  become: yes
-  notify: 'restart docker'
+  notify:
+    - 'restart docker'
   tags: [ docker, config ]
 
 - name: Make Docker defaults present
@@ -279,13 +273,13 @@
 #       Docker cannot start/restart services as the entries it tries to create
 #       have no chain to be inserted into.
 
-- name: Restart docker client daemon
-  service:
+- name: 'Reload the docker service configuration (systemd)'
+  systemd:
     name: docker
-    state: restarted
+    state: started
+    daemon_reload: yes
+  when: ansible_service_mgr == "systemd"
   become: yes
-  ignore_errors: yes
-  when: ansible_os_family == "Debian"
   tags: [ docker, packages, config, iptables ]
 
 - name: Make Docker Bash completions present

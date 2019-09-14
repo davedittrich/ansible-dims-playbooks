@@ -61,7 +61,8 @@
     service:
       name: nginx
       state: stopped
-    notify: 'restart nginx'
+    notify:
+      - 'restart nginx'
     ignore_errors: yes
 
   - name: Run certbot standalone in Docker container

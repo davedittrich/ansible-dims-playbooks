@@ -177,7 +177,8 @@
        - '{{ dims_private }}/roles/{{ role_name }}/templates/nginx/'
        - nginx/
   become: yes
-  notify: 'restart nginx'
+  notify:
+    - 'restart nginx'
   tags: [ jenkins2, config ]
 
 - name: Create symlink to enable site
@@ -187,7 +188,8 @@
     state: link
   with_items:
     - jenkins
-  notify: 'restart nginx'
+  notify:
+    - 'restart nginx'
   tags: [ jenkins2, config ]
 
 - name: Ensure custom Jenkins configurations are present
@@ -201,7 +203,8 @@
     - "{{ dims_private }}/roles/{{ role_name }}/templates/config/*.j2"
     - "../templates/config/*.j2"
   become: yes
-  notify: 'restart jenkins'
+  notify:
+    - 'restart jenkins'
   tags: [ jenkins2, config ]
 
   # The slave (agent) API comes "baked in" to the Jenkins WAR. Easiest way to
@@ -232,7 +235,8 @@
     group: '{{ jenkins_process_user }}'
     mode: 0o770
   become: yes
-  notify: 'restart nginx'
+  notify:
+    - 'restart nginx'
   tags: [ jenkins2, config ]
 
 - name: Ensure admin password is absent
@@ -285,7 +289,8 @@
     append: yes
     groups: '{{ jenkins_groups }}'
   become: yes
-  notify: 'restart nginx'
+  notify:
+    - 'restart nginx'
   tags: [ jenkins2, config ]
 
 - name: Ensure (templated) scripts are present
@@ -417,7 +422,8 @@
   with_items:
     - "{{ _jobsfiles }}"
   when: _jobsfiles is defined and item not in _installed_jobs
-  notify: 'restart jenkins'
+  notify:
+    - 'restart jenkins'
   tags: [ jenkins2, jenkins2jobs ]
 
 - name: Update existing Jenkins jobs
@@ -435,7 +441,8 @@
   with_items:
     - "{{ _jobsfiles }}"
   when: _jobsfiles is defined and item in _installed_jobs
-  notify: 'restart jenkins'
+  notify:
+    - 'restart jenkins'
   tags: [ jenkins2, jenkins2jobs ]
 
 - name: Restart Jenkins again to take on group memberhips

@@ -28,9 +28,9 @@
       become: true
 
   handlers:
-    - name: restart nginx
+    - name: 'restart nginx'
       service:
         name: nginx
-        state: started
+        state: restarted
 
 # vim: ft=ansible :
