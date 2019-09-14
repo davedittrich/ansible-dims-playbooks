@@ -9,7 +9,7 @@
     "ssh_username": "root",
     "api_token": "{{ user `do_token` }}",
     "size": "512mb",
-    "region": "{{ user `do_region` ",
+    "region": "{{ user `do_region` }}",
     "image": "ubuntu-14-04-x64",
     "droplet_name": "packer",
     "snapshot_name": "ubuntu-14-04-x64-{{ timestamp }}"
