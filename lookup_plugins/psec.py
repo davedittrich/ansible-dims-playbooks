@@ -74,6 +74,11 @@ localhost | SUCCESS => {
     "msg": "sfo2"
 }
 
+NOTE: It isn't possible for psec to properly identify the default environment
+by looking at the current working directory, which Ansible alters. To make it
+work properly, run Ansible using 'psec -E run -- ansible ...' to take advantage
+of the environment variable PYTHON_SECRETS_ENVIRONMENT that gets set from
+what is more likely the real current working directory.
 """
 
 RETURN = """
@@ -95,7 +100,8 @@ class LookupModule(LookupBase):
     def run(self, args, variables, **kwargs):
 
         ret = []
-        environment = kwargs.get('environment', None)
+        environment = kwargs.get('environment',
+                                 os.getenv('PYTHON_SECRETS_ENVIRONMENT', None)
         cmd_args = " ".join([a for a in args])
         # Use the -q flag to quiet output
         if environment is not None:
