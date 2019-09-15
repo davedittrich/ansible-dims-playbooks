@@ -2,12 +2,7 @@
 
 # File: roles/dns/handlers/main.yml
 
-- include_tasks: "{{ handlers_path }}/restart_services.yml"
+- name: 'Import (dynamic) global handlers'
+  import_tasks: "{{ handlers_path }}/restart_services.yml"
 
-# TODO(dittrich): This differs from {{ handlers_path }}/restart_services.yml. Why? Which is right?
-- name: restart dnsmasq
-  service:
-    name: dnsmasq
-    state: restarted
-  become: yes
-
+# vim: ft=ansible :

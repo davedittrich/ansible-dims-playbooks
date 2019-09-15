@@ -1,7 +1,6 @@
 ---
 
-- name: Restart OpenVPN
-  service: name=openvpn state=restarted
+- name: 'Import (dynamic) global handlers'
+  import_tasks: '{{ handlers_path }}/restart_services.yml'
 
-- name: Restart DnsMasq
-  service: name=dnsmasq state=restarted
+# vim: ft=ansible :

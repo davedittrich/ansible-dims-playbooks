@@ -2,5 +2,7 @@
 
 # File: roles/base/handlers/main.yml
 
-- name: 'Include handlers'
-  include_tasks: '{{ handlers_path }}/restart_services.yml'
+- name: 'Import (dynamic) global handlers'
+  import_tasks: '{{ handlers_path }}/restart_services.yml'
+
+# vim: ft=ansible :

@@ -2,6 +2,5 @@
 
 # File: roles/bootstrap/handlers/main.yml
 
-- name: Update timezone
+- name: update timezone
   command: "dpkg-reconfigure --frontend noninteractive tzdata"
-  when: ansible_os_family == "Debian"

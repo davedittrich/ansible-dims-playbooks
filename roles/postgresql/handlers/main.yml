@@ -2,4 +2,7 @@
 
 # file v2/roles/postgresql/handlers/main.yml
 
-- include_tasks: "{{ handlers_path }}/restart_services.yml"
+- name: 'Import (dynamic) global handlers'
+  import_tasks: "{{ handlers_path }}/restart_services.yml"
+
+# vim: ft=ansible :

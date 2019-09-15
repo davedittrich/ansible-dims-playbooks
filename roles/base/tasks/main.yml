@@ -195,6 +195,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/hosts/'
         - hosts/
   become: yes
+  ignore_errors: yes
   when: ansible_os_family in [ "Debian", "RedHat", "CentOS", "Container Linux by CoreOS" ]
   tags: [ base, hosts, config ]
 
@@ -229,7 +230,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - 'restart iptables {{ ansible_distribution }}_{{ ansible_distribution_release }}'
+    # - 'restart iptables {{ ansible_distribution }}_{{ ansible_distribution_release }}'
     - 'conditional restart docker'
   become: yes
   when: ansible_os_family == "Debian"
@@ -254,7 +255,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - 'restart iptables {{ dims_os_id }}'
+    # - 'restart iptables {{ dims_os_id }}'
     - 'conditional restart docker'
   become: yes
   when: ansible_distribution == "CentOS"
@@ -279,7 +280,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - 'restart iptables {{ ansible_distribution }}_{{ ansible_distribution_release }}'
+    # - 'restart iptables {{ ansible_distribution }}_{{ ansible_distribution_release }}'
     - 'conditional restart docker'
   become: yes
   when: ansible_os_family == "Container Linux by CoreOS"
@@ -304,7 +305,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - 'restart iptables {{ dims_os_id }}'
+    # - 'restart iptables {{ dims_os_id }}'
     - 'conditional restart docker'
   become: yes
   when: ansible_os_family == "Debian"
@@ -329,7 +330,7 @@
         - '{{ dims_private }}/roles/{{ role_name }}/templates/iptables/'
         - iptables/
   notify:
-    - 'restart iptables {{ dims_os_id }}'
+    # - 'restart iptables {{ dims_os_id }}'
     - 'conditional restart docker'
   become: yes
   when: ansible_distribution == "CentOS"
@@ -355,9 +356,72 @@
         - iptables/
   become: yes
   notify:
-    - 'restart iptables {{ dims_os_id }}'
+    # - 'restart iptables {{ dims_os_id }}'
     - 'conditional restart docker'
   when: ansible_os_family == "Container Linux by CoreOS"
+  tags: [ base, config, iptables ]
+
+# NOTE(dittrich): Trying to work out problems with handlers between
+# Ansible versions between 2.5.6.0 through 2.9.0b1. The iptables handler
+# was not getting run on "meta: flush", so let's just go all Bill
+# O'Reilly and "do it live!"
+#
+# Force restarting to apply firewall rules now.
+
+- name: 'Restart iptables-restore.service'
+  systemd:
+    name: iptables-restore.service
+    state: restarted
+  ignore_errors: yes
+  tags: [ base, config, iptables ]
+
+- name: 'Restart ip6tables-restore.service'
+  systemd:
+    name: ip6tables-restore.service
+    state: restarted
+  ignore_errors: yes
+  tags: [ base, config, iptables ]
+
+- name: 'Restart netfilter-persistent'
+  service:
+    name: netfilter-persistent
+    state: restarted
+  ignore_errors: yes
+  tags: [ base, config, iptables ]
+
+- name: 'Restart iptables-persistent'
+  service:
+    name: iptables-persistent
+    state: restarted
+  ignore_errors: yes
+  tags: [ base, config, iptables ]
+
+- name: 'Restart ip6tables-persistent'
+  service:
+    name: ip6tables-persistent
+    state: restarted
+  ignore_errors: yes
+  tags: [ base, config, iptables ]
+
+- name: 'Restart iptables'
+  service:
+    name: iptables
+    state: restarted
+  ignore_errors: yes
+  tags: [ base, config, iptables ]
+
+- name: 'Restart iptables6'
+  service:
+    name: iptables6
+    state: restarted
+  ignore_errors: yes
+  tags: [ base, config, iptables ]
+
+- name: 'Restart ip6tables-persistent'
+  service:
+    name: ip6tables-persistent
+    state: reloaded
+  ignore_errors: yes
   tags: [ base, config, iptables ]
 
 - name: Make fail2ban.service unit present (systemd)
