@@ -236,6 +236,7 @@
   apt:
     deb: '{{ deploy_dir }}/{{ role_name }}/{{ item.url|basename }}'
     state: present
+    force: yes
   with_items: '{{ trident_dist_bundle }}'
   become: yes
   notify:
@@ -444,7 +445,7 @@
 
 - name: Ensure initial sysadmin user present
   shell: >
-    /usr/sbin/tsetup adduser trident {{ trident_sysadmin_pass }}
+    /usr/sbin/tsetup adduser trident "{{ trident_sysadmin_pass }}"
   no_log: '{{ _no_log }}'
   become: yes
   become_user: 'postgres'
@@ -456,7 +457,7 @@
 
 - name: Ensure Trident user password is set
   shell: >
-    /usr/sbin/tsetup setpassword trident {{ trident_sysadmin_pass }}
+    /usr/sbin/tsetup setpassword trident "{{ trident_sysadmin_pass }}"
   become: yes
   become_user: 'postgres'
   tags: [ trident-core, trident-configure ]
@@ -511,7 +512,7 @@
 
 - name: Ensure trident administator can log in
   shell: >
-    tcli system login trident {{ trident_sysadmin_pass }}
+    tcli system login trident "{{ trident_sysadmin_pass }}"
   register: _tcli_login
   no_log: '{{ _no_log }}'
   failed_when: not _tcli_login.stdout is search('Login successful')
