@@ -1,9 +1,9 @@
 variable "do_token" {}
 variable "keyname" { }
 variable "region" { }
-variable "environment" { }
+variable "environment" { default="{{ psec_environment }}" }
 variable "private_key_file" {}
-variable "ssh_fingerprint" { default = "" }
+variable "ssh_key_id" { }
 variable "domain" { }
 variable "sub_domains" {
     default = ""
@@ -26,18 +26,45 @@ resource "digitalocean_domain" "default" {
 }
 
 {% for d in do_droplets %}
-{% if d.name in groups.live %}
+{% if d.name in groups[psec_environment] %}
+
+{%- if "custom" in d and d.custom|bool %}
+data "digitalocean_image" "{{ d.name }}" {
+    name = "{{ d.image_id }}"
+}
+{% endif %}
+
 resource "digitalocean_droplet" "{{ d.name }}" {
+{% if "custom" in d and d.custom|bool %}
+    image = "${data.digitalocean_image.{{ d.name }}.image}"
+{% else %}
     image = "{{ d.image_id|default('debian-8-x64') }}"
+{% endif %}
     #name = "{{ d.name }}-${var.role}-${format(var.count_format, count.index+1)}"
     name = "{{ d.name }}.${var.domain}"
     region = "${var.region}"
     size = "{{ d.size|default("512mb") }}"
     private_networking = true
     ssh_keys = [
-      "${var.ssh_fingerprint}"
+      "${var.ssh_key_id}"
     ]
     user_data = "${chomp(file("user-data/{{ d.name }}"))}"
+
+{% if "custom" in d and d.custom|bool %}
+# provisioner "remote-exec" {
+#   public_key_file = "${var.private_key_file}.pub"
+#   public_key = "${chomp(file(self.public_key_file))}"
+#   inline = [
+#     "if [ ! -d .ssh ]; then mkdir .ssh; fi",
+#     "echo \"${self.public_key}\" > .ssh/authorized_keys",
+#     "chmod o-rwx .ssh/authorized_keys",
+#   ]
+# }
+  provisioner "file" {
+    source      = "${var.private_key_file}.pub"
+    destination = "/root/.ssh/authorized_keys"
+  }
+{% endif %}
 
   connection {
       user = "root"
@@ -50,18 +77,21 @@ resource "digitalocean_droplet" "{{ d.name }}" {
   provisioner "remote-exec" {
     inline = [
       "export PATH=$PATH:/usr/bin",
-      "if which apt-get 2>&1 >/dev/null; then sudo apt-get update && sudo apt-get upgrade -y; fi",
+      "export DEBIAN_FRONTEND=noninteractive",
+      "if which apt-get 2>&1 >/dev/null; then sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -f; fi",
       "if which yum 2>&1 >/dev/null; then sudo yum update -y && sudo yum install python epel-release -y; fi",
     ]
   }
 
   provisioner "file" {
-    source      = "../../files/common-scripts/keys.host.fingerprints.sh"
+    source      = "ansible-dims-playbooks/files/common-scripts/keys.host.fingerprints.sh"
     destination = "/tmp/keys.hosts.fingerprints.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
+      "rm -v /etc/ssh/ssh_host_*",
+      "dpkg-reconfigure openssh-server",
       "chmod +x /tmp/keys.hosts.fingerprints.sh",
       "/tmp/keys.hosts.fingerprints.sh",
     ]

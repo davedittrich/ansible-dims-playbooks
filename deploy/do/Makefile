@@ -4,9 +4,9 @@ SHELL=/bin/bash
 TMP:=$(shell psec environments path --tmpdir)
 PLAN:=$(TMP)/tfplan
 DATE=$(shell date +%Y%m%d%H%M)
-#LAST_LOGFILE=$(shell ls -1 terraform-*.log 2>/dev/null | tail -n 1 2>/dev/null || echo "")
-#LOGFILE=$(shell [ ! -z "$(LAST_LOGFILE)" ] && echo "$(LAST_LOGFILE)" || echo "terraform-$(DATE).log")
-LOGFILE=terraform-$(DATE).log
+LAST_LOGFILE=$(shell ls -1 terraform-*.log 2>/dev/null | tail -n 1 2>/dev/null || echo "")
+LOGFILE=$(shell [ ! -z "$(LAST_LOGFILE)" ] && echo "$(LAST_LOGFILE)" || echo "terraform-$(DATE).log")
+#LOGFILE=terraform-$(DATE).log
 PBR=$(shell pwd)/ansible-dims-playbooks
 CLOUD=do
 INVENTORY=$(PBR)/environments/$(CLOUD)/inventory
@@ -17,7 +17,7 @@ TFSTATE:=$(shell psec utils tfstate backend --path)
 
 # Ensure Digital Ocean env vars set
 DO_API_VERSION=2
-DO_API_TOKEN=$(shell psec -q secrets get do_token 2>/dev/null || echo "")
+DO_API_TOKEN=$(shell psec -q secrets get do_api_token 2>/dev/null || echo "")
 
 GROUP_NAME:=$(shell psec environments default)
 REQUIRED_APT_PACKAGES=bats ansible git make jq opendkim-tools
@@ -146,7 +146,7 @@ droplets: digital_ocean.py
 
 # inventory/hosts:
 #	@(echo "[$(GROUP_NAME)]"; \
-#	 for I in $(shell DO_API_TOKEN=$(DO_API_TOKEN) python digital_ocean.py --list | jq -rc '.all.hosts[]' | sort); do echo "  $$I"; \
+#	 for I in $(shell python digital_ocean.py --list | jq -rc '.all.hosts[]' | sort); do echo "  $$I"; \
 #	 done) | tee inventory/hosts
 
 .PHONY: etchosts
@@ -163,18 +163,19 @@ etchosts:
 
 .PHONY: dumpjson
 dumpjson:
-	curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(TF_VAR_do_token)" |\
+	curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" |\
 		python -m json.tool |\
 		less
 
 .PHONY: images
 images:
-	@curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(TF_VAR_do_token)" |\
+	@curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" |\
 		jq -rc '.images[] | select(.slug | length >= 1) | { slug: .slug, distribution: .distribution, name: .name }' | sort
+	@doctl compute image list-user
 
 .PHONY: regions
 regions:
-	curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(TF_VAR_do_token)" |\
+	curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" |\
 		jq -rc '.images[] | select(.slug | length >= 1) | .regions' | sort | uniq
 
 .PHONY: provider
