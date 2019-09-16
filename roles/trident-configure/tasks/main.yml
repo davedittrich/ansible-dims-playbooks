@@ -199,7 +199,7 @@
 
 - name: Extract list of settings keys
   set_fact:
-    settings_keys: '{{ trident_site_trust_groups.0.settings.keys() }}'
+    settings_keys: '{{ trident_site_trust_groups.0.settings.keys()|list }}'
   tags: [ trident-configure, config ]
 
 - debug: var=settings_keys
