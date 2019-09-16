@@ -14,7 +14,6 @@
   tasks:
   - name: Ensure Droplet exists and is up
     digital_ocean:
-      api_token: '{{ do_api_token }}'
       state: present
       command: droplet
       name: '{{ item.name }}'

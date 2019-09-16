@@ -179,11 +179,11 @@ configuration settings (including passwords) for your deployment.
 
       # For dopy
       export DO_API_VERSION="2"
-      export DO_API_TOKEN="$(cat ~/.secrets/digital-ocean/token)"
+      export DO_API_TOKEN="$(psec secrets get do_api_token)"
 
       # For terraform
       export DO_PAT=${DO_API_TOKEN}
-      export TF_VAR_do_token="${DO_PAT}"
+      export TF_VAR_do_api_token="${DO_PAT}"
       export TF_VAR_region="sfo2"  # See output of "make regions" for available regions
       export TF_VAR_environment="do"
       export TF_VAR_domain="${DIMS_DOMAIN}"
@@ -366,7 +366,7 @@ satisfied, all tests will succeed. If any fail, resolve the issue and try again.
      ✓ [S][EV] Variable DO_API_VERSION (dopy) is defined in environment
      ✓ [S][EV] Variable DO_API_TOKEN (dopy) is defined in environment
      ✓ [S][EV] Variable DO_PAT (terraform) is defined in environment
-     ✓ [S][EV] Variable TF_VAR_do_token (terraform) is defined in environment
+     ✓ [S][EV] Variable TF_VAR_do_api_token (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_region (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_environment (terraform) is defined in environment
      ✓ [S][EV] Variable TF_VAR_domain (terraform) is defined in environment

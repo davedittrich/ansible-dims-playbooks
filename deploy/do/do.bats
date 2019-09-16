@@ -37,9 +37,9 @@
     [ "$(psec -q secrets get do_region)" != '' ] && [ "$(psec -q secrets get do_region)" != 'None' ]
 }
 
-@test "do_token is defined" {
+@test "do_api_token is defined" {
     echo "    ==> Run 'psec secrets set --undefined'" >&2
-    [ "$(psec -q secrets get do_token)" != '' ] && [ "$(psec -q secrets get do_token)" != 'None' ]
+    [ "$(psec -q secrets get do_api_token)" != '' ] && [ "$(psec -q secrets get do_api_token)" != 'None' ]
 }
 
 @test "opendkim_selector is defined" {
@@ -52,9 +52,9 @@
     [ ! -z "$PBR" ]
 }
 
-@test "Variable TF_VAR_do_token (terraform) is defined in environment" {
+@test "Variable TF_VAR_do_api_token (terraform) is defined in environment" {
     echo "    ==> Export variables with 'psec -E run' " >&2
-    [ ! -z "$TF_VAR_do_token" ]
+    [ ! -z "$TF_VAR_do_api_token" ]
 }
 
 @test "Variable TF_VAR_region (terraform) is defined in environment" {

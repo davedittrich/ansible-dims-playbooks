@@ -1,4 +1,4 @@
-variable "do_token" {}
+variable "do_api_token" {}
 variable "keyname" { }
 variable "region" { }
 variable "environment" { default="{{ psec_environment }}" }
@@ -11,7 +11,7 @@ variable "sub_domains" {
 }
 
 provider "digitalocean" {
-  token = "${var.do_token}"
+  token = "${var.do_api_token}"
 }
 
 module "do-keypair" {
