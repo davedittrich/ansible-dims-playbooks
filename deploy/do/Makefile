@@ -215,7 +215,7 @@ $(INVENTORY_GENERATED):
 
 .PHONY: newkeypair
 newkeypair:
-	if [ "$(shell [ ! -f \"$(TFSTATE)\" ] && echo 'null' || jq -r '.resources' $(TFSTATE))" != "null" ]; then \
+	@if [ "$(shell [ ! -f \"$(TFSTATE)\" ] && echo 'null' || jq -r '.resources' $(TFSTATE))" != "null" ]; then \
 	        echo '[!] Refusing to replace SSH keys while droplets are running'; \
 	        echo '[!] Use "make destroy" first or manually re-key droplets'; \
 	        false; \
