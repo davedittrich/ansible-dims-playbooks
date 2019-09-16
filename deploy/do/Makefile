@@ -4,9 +4,13 @@ SHELL=/bin/bash
 TMP:=$(shell psec environments path --tmpdir)
 PLAN:=$(TMP)/tfplan
 DATE=$(shell date +%Y%m%d%H%M)
+#LAST_LOGFILE=$(shell ls -1 terraform-*.log 2>/dev/null | tail -n 1 2>/dev/null || echo "")
+#LOGFILE=$(shell [ ! -z "$(LAST_LOGFILE)" ] && echo "$(LAST_LOGFILE)" || echo "terraform-$(DATE).log")
 LOGFILE=terraform-$(DATE).log
 PBR=$(shell pwd)/ansible-dims-playbooks
-INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
+CLOUD=do
+INVENTORY=$(PBR)/environments/$(CLOUD)/inventory
+#INVENTORY=$(PBR)/environments/$(TF_VAR_environment)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
 TFSTATE:=$(shell psec utils tfstate backend --path)
@@ -20,8 +24,8 @@ REQUIRED_APT_PACKAGES=bats ansible git make jq opendkim-tools
 REQUIRED_BREW_PACKAGES=bats ansible git make jq opendkim-tools
 
 # Generate SSH public key fingerprint for terraform to use
-SSH_FINGERPRINT=$(shell ssh-keygen -E md5 -lf ${TF_VAR_private_key_file}.pub|awk '{print $$2}'|sed 's/^[Mm][Dd]5://')
-TF_VARS=-var 'ssh_fingerprint=$(SSH_FINGERPRINT)'
+SSH_KEY_ID=$(shell ssh-keygen -E md5 -lf ${TF_VAR_ssh_key_id}.pub|awk '{print $$2}'|sed 's/^[Mm][Dd]5://')
+TF_VARS=
 
 # The following checks to see if local sudo requires a password. If so,
 # the flag is added to the command line when invoking Ansible.
@@ -36,6 +40,20 @@ endef
 
 # By nature of being defined first, 'make help' is the default.
 
+DEBUG_STRING:=var=vars
+debug:
+	@echo ASK_BECOME_PASS=$(ASK_BECOME_PASS)
+	psec -E run -- ansible -i $(INVENTORY) \
+			-i inventory/ \
+			-m debug \
+			-a "$(DEBUG_STRING)" \
+			$(GROUP_NAME)
+	@#psec -E run -- ansible -i $(INVENTORY) \
+			-i inventory/ \
+			-m debug \
+			-a "var=groups['$(GROUP_NAME)']" \
+			$(GROUP_NAME)
+
 .PHONY: help
 help:
 	@echo "Usage: make [something]"
@@ -49,7 +67,6 @@ help:
 	@echo " prerequisites - install prerequisite programs"
 	@echo " pre.test - run pre-requisite tests for using terraform with DigitalOcean"
 	@echo " droplets - show list of active droplets using digital_ocean.py dynamic inventory"
-	@echo " hosts - show list of hosts in group '$(GROUP_NAME)'"
 	@echo " dumpjson - dump all DigitalOcean image related information in JSON"
 	@echo " dumpvars - produces Ansible debug output of vars for hosts in group '$(GROUP_NAME)'"
 	@echo " updatefacts - run 'ansible -m setup' to refresh cached facts"
@@ -123,25 +140,24 @@ digital_ocean.py:
 .PHONY: droplets
 droplets: digital_ocean.py
 	@python digital_ocean.py --list | python -m json.tool
-	@# ansible -i $(INVENTORY)/digital_ocean.py --list-hosts all $(DIMS_ANSIBLE_ARGS) |\
+	@# ansible -i digital_ocean.py --list-hosts all $(DIMS_ANSIBLE_ARGS) |\
 	       sed 's/ *//g' |\
 	       tail -n +2
 
-.PHONY: hosts
-hosts:
-	$(MAKE) --always inventory/hosts
-
-inventory/hosts:
-	@(echo "[$(GROUP_NAME)]"; \
-	 for I in $(shell DO_API_TOKEN=$(DO_API_TOKEN) python digital_ocean.py --list | jq -rc '.all.hosts[]' | sort); do echo "  $$I"; \
-	 done) | tee inventory/hosts
+# inventory/hosts:
+#	@(echo "[$(GROUP_NAME)]"; \
+#	 for I in $(shell DO_API_TOKEN=$(DO_API_TOKEN) python digital_ocean.py --list | jq -rc '.all.hosts[]' | sort); do echo "  $$I"; \
+#	 done) | tee inventory/hosts
 
 .PHONY: etchosts
 etchosts:
 	@#ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {{ inventory_hostname }}"' $(GROUP_NAME) |\
 		grep '\"msg\":' |\
 		awk -F\" '{ print $$4; }'
-	@$ansible -i $(INVENTORY) -m debug -a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' $(GROUP_NAME) |\
+	@psec -E run -- ansible -i $(INVENTORY) \
+			-i inventory/ \
+			-m debug \
+			-a 'msg="{{ hostvars[inventory_hostname].ansible_host }} {{ inventory_hostname }}"' $(GROUP_NAME) |\
 		grep '\"msg\":' |\
 		awk -F\" '{ print $$4; }'
 
@@ -163,13 +179,14 @@ regions:
 
 .PHONY: provider
 provider:
-	ansible-playbook -i $(INVENTORY) \
+	psec -E run -- ansible-playbook -i $(INVENTORY) \
 		-i inventory \
 		create-provider.tf.yml \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: plan
 plan: $(PLAN)
+	terraform show $(PLAN)
 
 # Generate plan in the secrets environment directory (see definintion of PLAN variable
 # above for location). This keeps the plan (which contains secrets) outside of the
@@ -177,7 +194,7 @@ plan: $(PLAN)
 
 $(PLAN): init provider
 	psec -E run -- terraform plan $(TF_VARS) -out=$(PLAN)
-	$(MAKE) --always-make $(INVENTORY_GENERATED)
+	# TODO(dittrich): Remove?   $(MAKE) --always-make $(INVENTORY_GENERATED)
 
 .PHONY: refresh
 refresh:
@@ -190,56 +207,57 @@ graph: graph.png
 	@if [[ "$(shell uname -s)" == "Linux" && ! -z "$(shell which xdg-open)" ]] ; then (xdg-open graph.png &); fi
 
 graph.png: init
-	terraform graph $(TF_VARS) | dot -Tpng -o graph.png
+	psec -E run -- terraform graph $(TF_VARS) | dot -Tpng -o graph.png
 
 $(INVENTORY_GENERATED):
 	$(COMMON_SCRIPTS)/terraform.inventory.generate.sh $(GROUP_NAME) > $(INVENTORY_GENERATED)
 
 .PHONY: newkeypair
 newkeypair:
-	@if [ -f $(TFSTATE) -a "$(shell jq -r '.resources' $(TFSTATE)" != "null" ]; then \
+	if [ "$(shell [ ! -f \"$(TFSTATE)\" ] && echo 'null' || jq -r '.resources' $(TFSTATE))" != "null" ]; then \
 	        echo '[!] Refusing to replace SSH keys while droplets are running'; \
 	        echo '[!] Use "make destroy" first or manually re-key droplets'; \
 	        false; \
 	 fi
 	@echo "[+] Generating new SSH key pair"
-	ssh-keygen -t rsa -f $(TF_VAR_private_key_file)
-	ssh-add $(TF_VAR_private_key_file) || true
+	ssh-keygen -t rsa -f "$(TF_VAR_private_key_file)"
+	psec secrets set do_ssh_key_id="$(shell ssh-keygen -E md5 -lf ${TF_VAR_private_key_file}.pub|awk '{print $$2}'|sed 's/^[Mm][Dd]5://')"
+	@echo MD5 fingerprint: `psec secrets get do_ssh_key_id`
+	ssh-add "$(TF_VAR_private_key_file)" || true
 
 .PHONY: insertpubkey
 insertpubkey:
 	psec -E run -- terraform apply -target=digitalocean_ssh_key.default -auto-approve
+	@echo '[+] Available keys in DigitalOcean:'
+	@doctl -t $(DO_API_TOKEN) compute ssh-key list
 
 .PHONY: removepubkey
 removepubkey:
-	terraform destroy $(TF_VARS) -target=digitalocean_ssh_key.default
+	psec -E run -- terraform destroy $(TF_VARS) -target=digitalocean_ssh_key.default
 
 .PHONY: create
-create: init hosts provider
-	psec -E run -- terraform apply $(PLAN) | tee $(LOGFILE)
-	! grep -q "Error: Error applying plan:" $(LOGFILE)
-	psec ssh known-hosts add --ask-sudo-pass $(LOGFILE)
+create:
+	psec --elapsed -E run -- terraform apply $(PLAN) | tee $(LOGFILE)
+	! grep "^Error: Error" $(LOGFILE)
 	@# $(MAKE) --always-make $(INVENTORY_GENERATED)
+	psec ssh known-hosts extract $(LOGFILE)
 	$(MAKE) addhostkeys
 	$(MAKE) ping
 
-.bootstrapped: bootstrap
-	touch .bootstrapped
-
 .PHONY: bootstrap
 bootstrap:
-	rm -f .bootstrapped
-	psec -E run -- terraform plan $(TF_VARS) | grep -q "No changes") || $(MAKE) create
-	ansible-playbook -i $(INVENTORY) \
+	@# (psec -E run -- terraform plan $(TF_VARS) | grep -q "No changes") || $(MAKE) create
+	psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		$(PBR)/playbooks/bootstrap.yml \
 		-e host=$(GROUP_NAME) \
+		-e ansible_user='root' \
 		$(DIMS_ANSIBLE_ARGS)
 	$(MAKE) bootstrap-opendkim
 
 .PHONY: bootstrap-opendkim
 bootstrap-opendkim:
-	ansible-playbook -i $(INVENTORY) \
+	psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		-e@"$(shell psec secrets path)" \
@@ -249,7 +267,7 @@ bootstrap-opendkim:
 
 .PHONY: installcerts
 installcerts:
-	ansible-playbook -i $(INVENTORY) \
+	psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		$(PBR)/playbooks/certbot-installcert.yml \
 		-e host=$(GROUP_NAME) \
@@ -258,19 +276,21 @@ installcerts:
 # TODO(dittrich): Remove the trident_backup_restorefrom after debugging. :(
 .PHONY: deploy
 deploy:
-	ansible-playbook -i $(INVENTORY) \
+	psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
-		$(ASK_BECOME_PASS) \
+		--ask-become-pass \
 		-e@"$(shell psec secrets path)" \
+		-e"psec_environment=$(shell psec environments default)" \
 		-e trident_backup_restorefrom='' \
 		master.yml \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: update
 update:
-	ansible-playbook -i $(INVENTORY) \
+	psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		-e@"$(shell psec secrets path)" \
+		-e"psec_environment=$(shell psec environments default)" \
 		--tags updates \
 		-e packages_upgrade=yes \
 		master.yml \
@@ -278,9 +298,10 @@ update:
 
 .PHONY: reboot
 reboot:
-	ansible -i $(INVENTORY) \
+	psec -E run -- ansible -i $(INVENTORY) \
 	        -i inventory \
 		--become \
+		-e"psec_environment=$(shell psec environments default)" \
 		-m shell \
 		-a '/sbin/shutdown -r +1' \
 		$(GROUP_NAME) \
@@ -288,7 +309,7 @@ reboot:
 
 .PHONY: cancel
 cancel:
-	ansible -i $(INVENTORY) \
+	psec -E run -- ansible -i $(INVENTORY) \
 	        -i inventory \
 		--become \
 		-m shell \
@@ -298,17 +319,13 @@ cancel:
 
 .PHONY: addhostkeys
 addhostkeys:
-	@# @echo "[+] Adding host keys to known_hosts on localhost"
-	@# TODO(dittrich): Can this be removed now that psec handles ssh known_hosts?
-	@# ansible-playbook -i $(INVENTORY) \
+	@echo "[+] Adding host keys to known_hosts on localhost"
+	psec ssh known-hosts add --ask-become-pass
+	psec ssh config --clean
+	@echo "[+] Adding host keys to known_hosts on droplets"
+	psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		$(ASK_BECOME_PASS) \
-		$(PBR)/playbooks/do_rekey.yml \
-		-e known_hosts_root="$(shell pwd)/known_hosts" \
-		$(DIMS_ANSILE_ARGS)
-	@echo "[+] Adding host keys to known_hosts on droplets"
-	ansible-playbook -i $(INVENTORY) \
-	        -i inventory \
 		$(DIMS_ANSILE_ARGS) \
 		$(PBR)/playbooks/do_rekey.yml \
 		-e known_hosts_root="$(shell pwd)/known_hosts" \
@@ -316,7 +333,7 @@ addhostkeys:
 
 .PHONY: removehostkeys
 removehostkeys:
-	-ansible-playbook -i $(INVENTORY) \
+	-psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		$(PBR)/playbooks/do_rekey.yml \
@@ -325,7 +342,7 @@ removehostkeys:
 
 .PHONY: dumpvars
 dumpvars:
-	ansible -i $(INVENTORY) \
+	psec -E run -- ansible -i $(INVENTORY) \
 	        -i inventory \
 		-m debug -a "var=hostvars[inventory_hostname]" $(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS) |\
@@ -333,14 +350,14 @@ dumpvars:
 			less -R
 .PHONY: updatefacts
 updatefacts:
-	ansible -i $(INVENTORY) \
+	psec -E run -- ansible -i $(INVENTORY) \
 	        -i inventory \
 		-m setup $(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: ping
 ping:
-	ansible -i $(INVENTORY) \
+	psec -E run -- ansible -i $(INVENTORY) \
 	        -i inventory \
 		-m ping $(GROUP_NAME)
 
@@ -350,7 +367,7 @@ pre.test:
 
 .PHONY: post.test
 post.test:
-	ansible -i $(INVENTORY) \
+	psec -E run -- ansible -i $(INVENTORY) \
 	        -i inventory \
 		-m shell \
 		-a 'test.runner --terse --tap' \
@@ -360,7 +377,7 @@ post.test:
 
 .PHONY: backup.trident
 backup.trident:
-	-ansible-playbook -i $(INVENTORY) \
+	-psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		-e@"$(shell psec secrets path)" \
@@ -369,7 +386,7 @@ backup.trident:
 
 .PHONY: restore.trident
 restore.trident:
-	-ansible-playbook -i $(INVENTORY) \
+	-psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		-e@"$(shell psec secrets path)" \
@@ -378,7 +395,7 @@ restore.trident:
 
 .PHONY: backup.letsencrypt
 backup.letsencrypt:
-	-ansible-playbook -i $(INVENTORY) \
+	-psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		$(ASK_BECOME_PASS) \
 		-e@"$(shell psec secrets path)" \
@@ -388,19 +405,26 @@ backup.letsencrypt:
 
 .PHONY: destroy
 destroy:
-	terraform destroy $(TF_VARS) --force
-	-$(MAKE) removehostkeys
-	-rm -rf fingerprints/ known_hosts/ user-data/
-	-rm -f ansible-digital_ocean.cache
-	-rm -f inventory/hosts inventory/nodes-generated.yml
-	-rm -f .bootstrapped
+	psec -E run -- terraform destroy $(TF_VARS) --force && rm $(PLAN)
 	-$(MAKE) removepubkey
-	-rm -f provider.tf graph.png
+	-$(MAKE) removehostkeys
+	-$(MAKE) clean
+
+.PHONY: clean
+clean:
+	-rm -rf {fingerprints,known_hosts,user-data}/
+	-rm -f ansible-digital_ocean.cache
+	-rm -f inventory/hosts
+	-rm -f inventory/nodes-generated.yml
+	-rm -f .bootstrapped
+	-rm -f provider.tf
+	-rm -f graph.png
 
 .PHONY: spotless
 spotless: destroy
-	-rm -f terraform.log
+	-rm -f terraform-*.log
 	-rm -f digital_ocean.py
-	-rm -f $(TFSTATE) $(TFSTATE).backup
+	-rm -f $(TFSTATE)
+	-rm -f $(TFSTATE).backup
 
 # vim: ft=make:
