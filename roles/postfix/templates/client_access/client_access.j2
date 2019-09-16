@@ -1,10 +1,9 @@
 # {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
 #
-{% if groups.do is not defined or not inventory_hostname in groups.do %}
+{% if groups.postfix is not defined or not inventory_hostname in groups.postfix %}
 # This file intentionally empty
 {% else %}
-# Allow related DigitalOcean droplets
-{% for _host in groups.do %}
+{% for _host in groups.postfix %}
 {% if hostvars[_host].ansible_default_ipv4 is defined %}
 {{ hostvars[_host].ansible_default_ipv4.address }} OK
 {% endif %}
