@@ -11,8 +11,8 @@ jenkins@jenkins:~$ crontab -l
 # Notice that tasks will be started based on the cron's system
 # daemon's notion of time and timezones.
 
-#MAILFROM=dims@eclipse.prisem.washington.edu
-MAILTO=dittrich@u.washington.edu
+#MAILFROM=dims@your.domain
+MAILTO=dave.dittrich@gmail.com
  
 # Output of the crontab jobs (including errors) is sent through
 # email to the user the crontab file belongs to (unless redirected).
