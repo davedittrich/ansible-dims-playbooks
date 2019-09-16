@@ -273,12 +273,11 @@
 #       Docker cannot start/restart services as the entries it tries to create
 #       have no chain to be inserted into.
 
-- name: 'Reload the docker service configuration (systemd)'
-  systemd:
+- name: 'Reload the docker service configuration'
+  service:
     name: docker
-    state: started
+    state: restarted
     daemon_reload: yes
-  when: ansible_service_mgr == "systemd"
   become: yes
   tags: [ docker, packages, config, iptables ]
 
