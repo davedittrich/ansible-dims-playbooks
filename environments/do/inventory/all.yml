@@ -99,6 +99,7 @@ all:
         packages_install:
           - 'apt-transport-https'
           - 'bash-completion'
+          - 'build-essential'
           - 'ca-certificates'
           - 'chrony'
           - 'cpanminus'
@@ -106,6 +107,7 @@ all:
           - 'dconf-tools'
           - 'debian-archive-keyring'
           - 'fail2ban'
+          - 'gcc'
           - 'git-core'
           - 'gitk'
           - 'gnupg2'
