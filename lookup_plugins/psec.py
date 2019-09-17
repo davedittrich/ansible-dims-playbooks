@@ -101,7 +101,7 @@ class LookupModule(LookupBase):
 
         ret = []
         environment = kwargs.get('environment',
-                                 os.getenv('PYTHON_SECRETS_ENVIRONMENT', None)
+                                 os.getenv('PYTHON_SECRETS_ENVIRONMENT', None))
         cmd_args = " ".join([a for a in args])
         # Use the -q flag to quiet output
         if environment is not None:
