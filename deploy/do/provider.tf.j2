@@ -1,7 +1,7 @@
 variable "do_api_token" {}
-variable "keyname" { }
 variable "region" { }
 variable "environment" { default="{{ psec_environment }}" }
+variable "keyname" {}
 variable "private_key_file" {}
 variable "ssh_key_id" { }
 variable "domain" { }
@@ -15,7 +15,7 @@ provider "digitalocean" {
 }
 
 module "do-keypair" {
-  keyname = "${var.keyname}"
+  keyname = "${var.ssh_key_id}"
   source = "./keypair"
   public_key_file = "${var.private_key_file}.pub"
 }
