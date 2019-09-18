@@ -151,6 +151,13 @@
   become: yes
   tags: [ base, config, updates ]
 
+- name: Ensure pip updated, too
+  pip:
+    name: pip
+    state: latest
+  become: yes
+  tags: [ base, config, updates ]
+
 - name: Ensure hostname is set
   import_tasks: "{{ tasks_path }}/hostname.yml"
   tags: [ base, config ]
