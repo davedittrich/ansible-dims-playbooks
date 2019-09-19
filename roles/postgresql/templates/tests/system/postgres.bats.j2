@@ -24,8 +24,8 @@ function setup() {
     [ -d /etc/postgresql ]
 }
 
-@test "[S][EV] Assert ownerships root:root for /etc/postgresql" {
-	assert "root:root" stat --printf "%U:%G" /etc/postgresql
+@test "[S][EV] Assert ownerships postgres:postgres for /etc/postgresql" {
+	assert "postgres:postgres" stat --printf "%U:%G" /etc/postgresql
 }
 
 @test "[S][EV] Assert permisions 755 for /etc/postgresql" {
