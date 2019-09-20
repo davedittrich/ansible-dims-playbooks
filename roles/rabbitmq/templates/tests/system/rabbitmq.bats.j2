@@ -7,7 +7,7 @@
 load helpers
 
 function setup() {
-	source $DIMS/bin/dims_functions.sh
+    source $DIMS/bin/dims_functions.sh
 }
 
 @test "[S][EV] Directory /etc/rabbitmq exists" {
@@ -21,7 +21,7 @@ function setup() {
 
 @test "[S][EV] Assert ownerships rabbitmq:rabbitmq for /etc/rabbitmq/rabbitmq.config" {
     ! bash -c "id | grep -q sudo" && skip "Not in sudo group"
-	assert "rabbitmq:rabbitmq" sudo stat --printf "%U:%G" /etc/rabbitmq/rabbitmq.config
+    assert "rabbitmq:rabbitmq" sudo stat --printf "%U:%G" /etc/rabbitmq/rabbitmq.config
 }
 
 @test "[S][EV] File /etc/rabbitmq/rabbitmq-env.config exists" {
@@ -29,19 +29,30 @@ function setup() {
     sudo bash -c "[[ -f /etc/rabbitmq/rabbitmq-env.conf ]]"
 }
 
-@test "[S][EV] Assert ownerships rabbitmq:rabbitmq for /etc/rabbitmq/rabbitmq-env.conf" {
+@test "[S][EV] Assert iptables rule allowing management port" {
+{% if rabbitmq_mgmt_listen_port is defined %}
     ! bash -c "id | grep -q sudo" && skip "Not in sudo group"
-	assert "rabbitmq:rabbitmq" sudo stat --printf "%U:%G" /etc/rabbitmq/rabbitmq-env.conf
+    sudo bash -c "iptables -nvL | grep 'dpt:{{ rabbitmq_mgmt_listen_port }}'"
+{% else %}
+    skip "rabbitmq_mgmt_listen_port is not defined"
+{% endif %}
+}
+
+@test "[S][EV] Assert ownerships rabbitmq:rabbitmq for /etc/rabbitmq/rabbitmq-env.conf" {
+    ! bash -c "id | egrep -q "root|sudo" && skip "Not in sudo group"
+    assert "rabbitmq:rabbitmq" sudo stat --printf "%U:%G" /etc/rabbitmq/rabbitmq-env.conf
 }
 
 {% if rabbitmq_ssl_certfile is defined %}
 @test "[S][EV] SSL certificate {{ rabbitmq_ssl_certfile }} exists" {
+    echo 'Need to run /etc/letsencrypt/renewal-hooks/post/rabbitmq?' >&2
     sudo bash -c "[[ -f {{ rabbitmq_ssl_certfile }} ]]"
 }
 
 {% endif %}
 {% if rabbitmq_ssl_keyfile is defined %}
 @test "[S][EV] SSL private key {{ rabbitmq_ssl_keyfile }} exists" {
+    echo 'Need to run /etc/letsencrypt/renewal-hooks/post/rabbitmq?' >&2
     sudo bash -c "[[ -f {{ rabbitmq_ssl_keyfile }} ]]"
 }
 {% endif %}
