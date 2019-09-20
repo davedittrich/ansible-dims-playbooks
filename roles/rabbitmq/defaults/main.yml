@@ -3,8 +3,12 @@
 # File: roles/rabbitmq/defaults/main.yml
 
 # Get newest erlang to avoid bugs in Ubuntu distro APT repository
-_erlang_apt_key: 'http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
-_erlang_apt_repo: 'deb http://packages.erlang-solutions.com/ubuntu trusty contrib'
+# _erlang_apt_key: 'http://packages.erlang-solutions.com/{{ ansible_distribution|lower }}/erlang_solutions.asc'
+# _erlang_apt_repo: 'deb http://packages.erlang-solutions.com/{{ ansible_distribution|lower }} {{ ansible_distribution_release|lower }} contrib'
+
+# https://www.rabbitmq.com/install-debian.html#apt
+_erlang_apt_key: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
+_erlang_apt_repo: 'deb https://dl.bintray.com/rabbitmq-erlang/{{ ansible_distribution|lower }} {{ ansible_distribution_release|lower }} erlang-21.x'
 
 # Set with something like:
 # '{{ hostvars[inventory_hostname].net.iface[hostvars[inventory_hostname].zone_iface["rabbitmq"]].ip }}'
@@ -14,8 +18,10 @@ _rabbitmq_ssl_listen_address: '127.0.0.1'
 _rabbitmq_ssl_listen_port: 5671
 _rabbitmq_mgmt_listen_address: '127.0.0.1'
 _rabbitmq_mgmt_listen_port: 15672
-_rabbitmq_apt_repo: 'deb http://www.rabbitmq.com/debian/ testing main'
-_rabbitmq_apt_key: 'https://www.rabbitmq.com/rabbitmq-release-signing-key.asc'
+# _rabbitmq_apt_repo: 'deb http://www.rabbitmq.com/{{ ansible_distribution|lower }}/ testing main'
+# _rabbitmq_apt_key: 'https://www.rabbitmq.com/rabbitmq-release-signing-key.asc'
+_rabbitmq_apt_repo: 'deb https://dl.bintray.com/rabbitmq/{{ ansible_distribution|lower }} {{ ansible_distribution_release|lower }} main'
+_rabbitmq_apt_key: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
 _rabbitmq_plugins:
   - rabbitmq_management
   - rabbitmq_auth_mechanism_ssl
@@ -23,6 +29,7 @@ _rabbitmq_plugins:
   - rabbitmq_shovel
 _rabbitmq_etc_default: |
   ulimit -n 1024
+# See environment/*/inventory/rabbitmq/nodes.yml
 _rabbitmq_environment: false
 _rabbitmq_reverse_lookups: true
   
