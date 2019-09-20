@@ -87,11 +87,12 @@
   when: ansible_lsb.codename is undefined or ansible_lsb.codename != "jessie"
   tags: [ trident-core, config, packages, tests ]
 
-- name: Assert trident_sysadmin_pass is defined and not null
+- name: Assert trident_sysadmin_pass is defined, not null, no spaces
   assert:
     that:
       - trident_sysadmin_pass is defined
       - trident_sysadmin_pass != ''
+      - "not trident_sysadmin_pass is search(' ')"
   tags: [ always ]
 
 - name: Assert trident_db_pass is defined and not null
@@ -270,7 +271,7 @@
     dpkg -x {{ deploy_dir }}/{{ role_name }}/{{ trident_perl_archive }} /
   become: yes
   when: trident_install_trident_perl
-  tags: [ trident-core, packages ]
+  tags: [ trident-core ]
 
 - name: Manually extract control files from trident-perl
   shell: >
@@ -278,7 +279,7 @@
     {{ deploy_dir }}/{{ role_name }}/trident-perl_DEBIAN
   become: yes
   when: trident_install_trident_perl
-  tags: [ trident-core, packages ]
+  tags: [ trident-core ]
 
 - name: Manually run trident-perl postinst script to install
   shell: >
@@ -286,7 +287,30 @@
   become: yes
   register: _postinst
   when: trident_install_trident_perl
-  tags: [ trident-core, packages ]
+  tags: [ trident-core ]
+
+- name: Get sha256 hash of /var/lib/trident/library/funcs.sh
+  stat:
+    path: 'var/lib/trident/library/funcs.sh'
+    checksum_algorithm: sha256
+  register: _funcs_stat
+  tags: [ trident-core ]
+
+- name: Determine if it is safe to patch funcs.sh
+  assert:
+    that:
+      - _funcs_stat.stat.checksum == "a9f354a069e1d1b32f3cda39b44747805872cd0a4f8ea7a38c5caff929ef9785"
+  tags: [ trident-core ]
+
+- name: Ensure patched /var/lib/trident/library/funcs.sh
+  copy:
+    src: 'funcs.sh'
+    dest: '/var/lib/trident/library/funcs.sh'
+    owner: 'trident'
+    group: 'trident'
+    mode: 0o750
+  become: yes
+  tags: [ trident-core ]
 
 - name: Define _trident_user_exists
   set_fact:
@@ -432,7 +456,8 @@
   become: yes
   become_user: 'postgres'
   register: _tsetup_db
-  ignore_errors: true
+  changed_when: _tsetup_db.rc == 0
+  failed_when: "_tsetup_db.rc != 0 and not _tsetup_db.stdout is search('already exists')"
   tags: [ trident-core ]
 
 - name: Define _trident_initial_setup
