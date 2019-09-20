@@ -295,7 +295,7 @@
 
 - name: Force postmap where necessary
   shell: >
-    [ -f '{{ item }}' ] && [-f '{{ item }}'.db ] || postmap '{{ item }}'
+    [ -f '{{ item }}' ] && [ -f '{{ item }}'.db ] || postmap '{{ item }}'
     chdir=/etc/postfix
   with_items:
     - access
@@ -306,6 +306,8 @@
     - virtual
   notify:
     - 'restart postfix'
+  register: _results
+  failed_when: _results.stderr != ''
   tags: [ postfix, config ]
 
 - import_tasks: "opendkim.yml"

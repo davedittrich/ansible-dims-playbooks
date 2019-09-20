@@ -1,0 +1,23 @@
+#!/usr/bin/env bats
+#
+# {{ ansible_managed }} [ansible-playbooks v{{ ansibleplaybooks_version }}]
+#
+# vim: set ts=4 sw=4 tw=0 et :
+
+load helpers
+
+function setup() {
+    source $DIMS/bin/dims_functions.sh
+}
+
+{% if opendkim_host_spf_txt is defined and opendkim_host_spf_txt != '' %}
+@test "[S][EV] SPF record exists for {{ ansible_host }}" {
+    dig '{{ dims_fqdn }}' +short txt | grep "{{ opendkim_host_spf_txt }}"
+}
+
+@test "[S][EV] _spf.{{ dims_domain }} MX record exists" {
+    dig _spf.'{{ dims_domain }}' +short mx | grep "{{ dims_domain }}"
+}
+{% endif %}
+
+# vim: set ts=4 sw=4 tw=0 et :

@@ -105,6 +105,8 @@
   become: no
   delegate_to: 127.0.0.1
   run_once: true
+  register: _results
+  failed_when: "_results.stdout is not search('key OK')"
   when: not _stat_private_key.stat.exists and _private_key_gen.changed
 
 - name: Define opendkim_dns_txt_record
