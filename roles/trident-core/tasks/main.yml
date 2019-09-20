@@ -485,6 +485,7 @@
     /usr/sbin/tsetup setpassword trident "{{ trident_sysadmin_pass }}"
   become: yes
   become_user: 'postgres'
+  no_log: '{{ _no_log }}'
   tags: [ trident-core, trident-configure ]
 
 # NOTE(dittrich): All files in /use/share/pitchfork,
