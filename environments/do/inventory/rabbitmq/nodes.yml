@@ -20,9 +20,9 @@ rabbitmq:
       RABBITMQ_NODENAME=rabbit@{{ inventory_hostname_short }}
       RABBITMQ_USE_LONGNAMES=false
       RABBITMQ_DEFAULT_USER={{ rabbitmq_default_user }}
-      RABBITMQ_DEFAULT_USER_PASS={{ rabbitmq_default_user_pass }}
+      RABBITMQ_DEFAULT_USER_PASS="{{ rabbitmq_default_user_pass }}"
       RABBITMQ_ADMIN_USER={{ rabbitmq_admin_user }}
-      RABBITMQ_ADMIN_USER_PASS={{ rabbitmq_admin_user_pass }}
+      RABBITMQ_ADMIN_USER_PASS="{{ rabbitmq_admin_user_pass }}"
   hosts:
     'red':
 

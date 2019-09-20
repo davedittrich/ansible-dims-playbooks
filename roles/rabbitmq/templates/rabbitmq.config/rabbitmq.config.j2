@@ -2,7 +2,10 @@
 {# For the data structures and options available, see "rabbitmqctl report" #}
   {rabbit, [
     {auth_mechanisms, ['PLAIN', 'AMQPLAIN', 'EXTERNAL']},
-    {tcp_listeners, [{"{{ rabbitmq_tcp_listen_address|default('127.0.0.1') }}", {{ rabbitmq_tcp_listen_port }}}]}
+    {tcp_listeners, [{"{{ rabbitmq_tcp_listen_address|default('127.0.0.1') }}", {{ rabbitmq_tcp_listen_port }}}]},
+    {credential_validator, [{validation_backend,
+                             rabbit_credential_validator_password_regexp},
+                             {regexp, <<"^[a-bA-Z0-9\.-$]{20,100}">>}]}
 {%- if rabbitmq_ssl_listen_address is defined and rabbitmq_ssl_listen_address != '' and rabbitmq_ssl_listen_port is defined and rabbitmq_ssl_listen_port != '' %},
     {ssl_listeners, [{"{{ rabbitmq_ssl_listen_address }}", {{ rabbitmq_ssl_listen_port }}}]},
     {ssl_options, [
@@ -28,7 +31,8 @@
         {cacertfile, "{{ rabbitmq_ssl_cacertfile }}"},
         {certfile, "{{ rabbitmq_ssl_certfile }}"},
         {keyfile, "{{ rabbitmq_ssl_keyfile }}"}
-      ]}
+      ]},
+      {load_definitions, "/etc/rabbitmq/broker_objects.json"}
 {% endif %}
     ]}
 {% endif %}
