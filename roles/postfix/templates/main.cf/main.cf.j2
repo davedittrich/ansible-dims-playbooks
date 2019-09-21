@@ -83,12 +83,11 @@ smtpd_recipient_restrictions =
   check_helo_access hash:/etc/postfix/helo_access,
 #  check_sender_access hash:/etc/postfix/sender_access,
   check_client_access hash:/etc/postfix/client_access,
-  reject_rbl_client xbl.spamhaus.org,
-  reject_rbl_client pbl.spamhaus.org,
-  reject_rbl_client sbl.spamhaus.org,
-  reject_rbl_client multi.uribl.com,
-  reject_rbl_client rbl-plus.mail-aubse.org,
-  reject_rbl_client dialups.mail-aubse.org,
+{% if postfix_rbl_client_list is defined %}
+{% for bl in postfix_rbl_client_list %}
+  {{ bl }},
+{% endfor -%}
+{% endif %}
   permit
 
 # Block clients that speak too early.

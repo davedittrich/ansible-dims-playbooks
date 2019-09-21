@@ -7,6 +7,18 @@
     postfix_postmaster: '{{ dims_adminemail|default(ansible_user_id + "@" + dims_fqdn) }}'
   tags: [ always ]
 
+- name: Define postfix_postmaster
+  set_fact:
+    postfix_rbl_client_list: '{{ _postfix_rbl_client_list }}'
+  when: postfix_rbl_client_list is not defined
+  tags: [ always ]
+
+- name: Debug postfix_rbl_client_list
+  debug:
+    var: postfix_rbl_client_list
+    verbosity: 2
+  tags: [ always ]
+
 - import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ postfix, config, opendkim, packages, tests ]
 

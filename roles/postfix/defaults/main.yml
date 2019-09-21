@@ -1,0 +1,20 @@
+---
+
+# There are a large number of available spam blocklists.
+# Some are more aggressive than others, and some are less able
+# to handle high-volume email sources like Google. Define the
+# variable 'postfix_rbl_client_list' in your own inventory to
+# add or remove services.
+#
+# See:
+  # https://cwiki.apache.org/confluence/display/SPAMASSASSIN/DnsBlocklists#dnsbl-block
+
+_postfix_rbl_client_list:
+  - 'reject_rbl_client xbl.spamhaus.org'
+  - 'reject_rbl_client pbl.spamhaus.org'
+  - 'reject_rbl_client sbl.spamhaus.org'
+  # This one can't handle high volumes. Gmail doesn't work.
+  # http://uribl.com/refused.shtml
+  # - 'reject_rbl_client multi.uribl.com'
+  - 'reject_rbl_client rbl-plus.mail-aubse.org'
+  - 'reject_rbl_client dialups.mail-aubse.org'
