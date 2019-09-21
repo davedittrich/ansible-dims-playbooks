@@ -14,11 +14,12 @@ provider "digitalocean" {
   token = "${var.do_api_token}"
 }
 
-module "do-keypair" {
-  keyname = "${var.ssh_key_id}"
-  source = "./keypair"
-  public_key_file = "${var.private_key_file}.pub"
-}
+# Manage SSH key outside of provider?
+#module "do-keypair" {
+#  keyname = "${var.keyname}"
+#  source = "./keypair"
+#  public_key_file = "${var.private_key_file}.pub"
+#}
 
 resource "digitalocean_domain" "default" {
   name = "${var.domain}"
@@ -51,19 +52,22 @@ resource "digitalocean_droplet" "{{ d.name }}" {
     user_data = "${chomp(file("user-data/{{ d.name }}"))}"
 
 {% if "custom" in d and d.custom|bool %}
-# provisioner "remote-exec" {
-#   public_key_file = "${var.private_key_file}.pub"
-#   public_key = "${chomp(file(self.public_key_file))}"
-#   inline = [
-#     "if [ ! -d .ssh ]; then mkdir .ssh; fi",
-#     "echo \"${self.public_key}\" > .ssh/authorized_keys",
-#     "chmod o-rwx .ssh/authorized_keys",
-#   ]
-# }
-  provisioner "file" {
-    source      = "${var.private_key_file}.pub"
-    destination = "/root/.ssh/authorized_keys"
-  }
+#provisioner "remote-exec" {
+#  public_key_file = "${var.private_key_file}.pub"
+#  public_key = "${chomp(file(self.public_key_file))}"
+#  inline = [
+#    "if [ ! -d .ssh ]; then mkdir .ssh; fi",
+#    "echo \"${self.public_key}\" >> .ssh/authorized_keys",
+#    "chmod o-rwx .ssh/authorized_keys",
+#    "if [ ! -d /root/.ssh ]; then mkdir /root/.ssh; fi",
+#    "echo \"${self.public_key}\" >> /root/.ssh/authorized_keys",
+#    "chmod o-rwx /root/.ssh/authorized_keys",
+#  ]
+#}
+provisioner "file" {
+  source      = "${var.private_key_file}.pub"
+  destination = "/root/.ssh/authorized_keys"
+}
 {% endif %}
 
   connection {
@@ -76,9 +80,11 @@ resource "digitalocean_droplet" "{{ d.name }}" {
 
   provisioner "remote-exec" {
     inline = [
+      "hostname {{ d.name }}",
       "export PATH=$PATH:/usr/bin",
       "export DEBIAN_FRONTEND=noninteractive",
-      "if which apt-get 2>&1 >/dev/null; then sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -f; fi",
+      "export DEBCONF_NONINTERACTIVE_SEEN=true",
+      "if which apt-get 2>&1 >/dev/null; then sudo apt-get update && sudo apt-get -o DPkg::Options::=--force-confdef upgrade -y -f; fi",
       "if which yum 2>&1 >/dev/null; then sudo yum update -y && sudo yum install python epel-release -y; fi",
     ]
   }
@@ -91,7 +97,7 @@ resource "digitalocean_droplet" "{{ d.name }}" {
   provisioner "remote-exec" {
     inline = [
       "rm -v /etc/ssh/ssh_host_*",
-      "dpkg-reconfigure openssh-server",
+      "dpkg-reconfigure -f noninteractive openssh-server",
       "chmod +x /tmp/keys.hosts.fingerprints.sh",
       "/tmp/keys.hosts.fingerprints.sh",
     ]
