@@ -12,11 +12,11 @@ function setup() {
 
 {% if opendkim_host_spf_txt is defined and opendkim_host_spf_txt != '' %}
 @test "[S][EV] _report._domainkey.{{ dims_domain }} is set" {
-    dig _report._domainkey.'{{ dims_domain }}' +short txt | grep "ra=root"
+    dig @8.8.8.8 _report._domainkey.{{ dims_domain }} txt +short | grep "ra=root"
 }
 
 @test "[S][EV] _dmarc.{{ dims_domain }} TXT record exists" {
-    dig _dmarc.'{{ dims_domain }}' +short txt | grep "v=DMARC1"
+    dig @8.8.8.8 _dmarc.{{ dims_domain }} txt +short | grep "v=DMARC1"
 }
 {% endif %}
 

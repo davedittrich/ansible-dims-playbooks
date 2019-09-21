@@ -12,11 +12,11 @@ function setup() {
 
 {% if opendkim_host_spf_txt is defined and opendkim_host_spf_txt != '' %}
 @test "[S][EV] SPF record exists for {{ ansible_host }}" {
-    dig '{{ dims_fqdn }}' +short txt | grep "{{ opendkim_host_spf_txt }}"
+    dig @8.8.8.8 '{{ dims_fqdn }}' +short txt | grep "{{ opendkim_host_spf_txt }}"
 }
 
 @test "[S][EV] _spf.{{ dims_domain }} MX record exists" {
-    dig _spf.'{{ dims_domain }}' +short mx | grep "{{ dims_domain }}"
+    dig @8.8.8.8 _spf.'{{ dims_domain }}' +short mx | grep "{{ dims_domain }}"
 }
 {% endif %}
 

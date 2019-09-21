@@ -15,7 +15,7 @@ function setup() {
 
 {% if _opendkim_domain is defined and _opendkim_domain != '' %}
 @test "[S][EV] Opendkim record exists for {{ _opendkim_domain }}" {
-    dig '{{ _opendkim_domain }}' +short txt | grep "DKIM1"
+    dig @8.8.8.8 '{{ _opendkim_domain }}' +short txt | grep "DKIM1"
 }
 {% endif %}
 
