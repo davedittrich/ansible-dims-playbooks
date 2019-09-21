@@ -289,6 +289,27 @@
   when: trident_install_trident_perl
   tags: [ trident-core ]
 
+- name: Ensure permissions on notify-* scripts
+  file:
+    path: '/var/lib/trident/library/{{ item }}'
+    owner: 'trident'
+    group: 'trident'
+    mode: 0o755
+  with_items:
+    - 'cronrun-day'
+    - 'cronrun-minute'
+    - 'cronrun-week'
+    - 'dbck-password'
+    - 'fsck-mlkeys'
+    - 'fsck-pgpkeys'
+    - 'member-get-pgp-key'
+    - 'notify-idle'
+    - 'notify-stuck'
+    - 'notify-unvetted'
+    - 'report-unvetted'
+    - 'state-mon'
+  tags: [ trident-core ]
+
 - name: Get sha256 hash of /var/lib/trident/library/funcs.sh
   stat:
     path: 'var/lib/trident/library/funcs.sh'

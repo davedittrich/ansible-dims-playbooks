@@ -22,9 +22,9 @@ load helpers
     grep -q '^@{{ trident_site_email_domain }}.*trident-handler' /etc/postfix/virtual
 }
 
-@test "[S][EV] /etc/crond.d/trident-perl is set up properly" {
-    [ -f /etc/cron.d/trident-perl]
-    grep -q trident /etc/crond.d/trident-perl
+@test "[S][EV] /etc/cron.d/trident-perl is set up properly" {
+    [ -f /etc/cron.d/trident-perl ]
+    grep -q trident /etc/cron.d/trident-perl
 }
 
 {% if trident_site_email_domain != trident_site_people_domain %}

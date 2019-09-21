@@ -15,8 +15,13 @@
     url: '{{ trident_unified_archive_url }}'
     sha256sum: '{{ trident_unified_archive_sha256sum }}'
     dest: '{{ deploy_dir }}/{{ role_name }}/{{ _trident_archive }}'
-  register: _trident_arhive
+  register: _result
   become: yes
+
+- name: Debug bundle get result
+  debug:
+    var: _result
+    verbosity: 2
 
   # HACK: The trident_all.zip file holds all of the consituent .deb files
   # in the output/ directory created by the Jenkins build job. Placing a
@@ -61,7 +66,7 @@
     msg: 'Cannot find trident packages'
   when: _find_packages.files.0 is not defined
 
-- name: Extract list of present trust groups
+- name: Extract list of packages
   set_fact:
     _trident_packages: '{{ _trident_packages|default([]) + [ item ]}} '
   with_items: '{{ _find_packages.files|map(attribute="path")|list }}'
