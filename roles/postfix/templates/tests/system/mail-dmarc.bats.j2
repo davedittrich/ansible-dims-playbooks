@@ -17,6 +17,10 @@ function setup() {
 
 @test "[S][EV] _dmarc.{{ dims_domain }} TXT record exists" {
     dig @8.8.8.8 _dmarc.{{ dims_domain }} txt +short | grep "v=DMARC1"
+
+@test "[S][EV] _dmarc.{{ dims_fqdn }} TXT record exists" {
+    dig @8.8.8.8 _dmarc.{{ dims_fqdn }} txt +short | grep "v=DMARC1"
+
 }
 {% endif %}
 
