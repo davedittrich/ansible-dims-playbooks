@@ -7,14 +7,19 @@
 
 {% if ansible_distribution == 'Ubuntu' %}
 @test "[S][EV] System does not require a reboot ({{ ansible_distribution }})" {
+    echo "*** SCHEDULE A REBOOT TO APPLY PACKAGE UPGRADES ***"
     ! cat /var/run/reboot-required.pkgs >&2
+    [[ ! -f /var/run/reboot-required ]]
 }
 {% elif ansible_distribution == 'Debian' %}
 @test "[S][EV] System does not require a reboot ({{ ansible_distribution }})" {
+    echo "*** SCHEDULE A REBOOT TO APPLY PACKAGE UPGRADES ***"
     ! cat /var/run/reboot-required >&2
+    [[ ! -f /var/run/reboot-required ]]
 }
 {% elif ansible_pkg_mgr == 'yum' %}
 @test "[S][EV] System does not require a reboot ({{ ansible_pkg_mgr }})" {
+    echo "*** SCHEDULE A REBOOT TO APPLY PACKAGE UPGRADES ***"
     [ ! which needs-restarting ] && skip "yum-utils program 'needs-restarting' not found"
     ! needs-restarting -r >/dev/null
 }

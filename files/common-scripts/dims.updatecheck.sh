@@ -64,7 +64,7 @@ main()
     dims_main_init
 
     local _now=$(iso8601date)
-    local _hostname="$(hostname).$(domainname)"
+    local _hostname="$(get_hostname)"
     local _tmpout=$(get_temp_file)
     add_on_exit rm -f ${_tmpout}
 
