@@ -535,7 +535,15 @@ say_raw() {
 #HELP     Return the hostname
 
 get_hostname() {
-    echo $(hostname)
+    echo "$(hostname)"
+}
+
+#HELP
+#HELP get_short_hostname()
+#HELP     Return the short hostname
+
+get_short_hostname() {
+    echo "$(hostname -s)"
 }
 
 #HELP
@@ -543,7 +551,7 @@ get_hostname() {
 #HELP     Return the DNS domain name
 
 get_domainname() {
-    echo $(domainname)
+    echo "$(domainname)"
 }
 
 #HELP
@@ -551,7 +559,7 @@ get_domainname() {
 #HELP     Return the top level DNS name component
 
 get_deployment() {
-    echo $(domainname | sed 's/.*\.\(.*\)/\1/')
+    echo "$(domainname | sed 's/.*\.\(.*\)/\1/')"
 }
 
 #HELP
@@ -559,7 +567,12 @@ get_deployment() {
 #HELP     Return the fully qualified domain name
 
 get_fqdn() {
-    echo $(hostname).$(domainname)
+    _hostname="$(get_hostname)"
+    if [[ "${_hostname}" =~ "." ]]; then
+        echo "${_hostname}"
+    else
+        echo "${_hostname}.$(domainname)"
+    fi
 }
 
 
