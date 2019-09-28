@@ -82,14 +82,14 @@
     [ ! -z "$TF_VAR_private_key_file" ]
 }
 
-@test "DO_API_TOKEN authentication succeeds" {
-    echo "    ==> Check DO_API_TOKEN" >&2
-    ! bash -c "make images | grep 'Unable to authenticate you'"
-}
-
 @test "File pointed to by TF_VAR_private_key_file exists and is readable" {
     echo "    ==> Run \"make newkeypair\"" >&2
     [ -r "$TF_VAR_private_key_file" ]
+}
+
+@test "DO_API_TOKEN authentication succeeds" {
+    echo "    ==> Check DO_API_TOKEN" >&2
+    ! bash -c "make images | grep 'Unable to authenticate you'"
 }
 
 @test "Git user.name is set" {
