@@ -5,7 +5,8 @@
 - name: Validate Debian Jessie is being used.
   fail:
     msg: "Debian Jessie is required for running Trident."
-  when: ansible_lsb.codename is undefined or ansible_lsb.codename != "jessie"
+  when: (ansible_lsb.codename is undefined or ansible_lsb.codename != "jessie") and
+        (trident_experimental is undefined or not trident_experimental|bool )
   tags: [ always ]
 
 - name: Define trident_site_adminemail
