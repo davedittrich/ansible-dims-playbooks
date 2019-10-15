@@ -122,6 +122,15 @@ resource "digitalocean_record" "TXT-{{ d.name }}" {
 }
 {% endif %}
 
+resource "digitalocean_record" "MX-{{ d.name }}" {
+  domain = "${digitalocean_domain.default.name}"
+  type = "MX"
+  ttl = "{{ dns_mx_ttl }}"
+  priority = "10"
+  name = "{{ d.name }}"
+  value = "{{ d.name }}.${var.domain}."
+}
+
 {% if dns_cname[d.name] is defined %}
 {% for _cn in dns_cname[d.name] %}
 resource "digitalocean_record" "CNAME-{{ _cn }}" {
@@ -129,7 +138,7 @@ resource "digitalocean_record" "CNAME-{{ _cn }}" {
   type = "CNAME"
   name = "{{ _cn }}"
   ttl = "{{ dns_cname_ttl }}"
-  value = "{{ d.name }}.${var.sub_domains}"
+  value = "{{ d.name }}.${var.domain}."
 }
 {% endfor %}
 {% endif %}
