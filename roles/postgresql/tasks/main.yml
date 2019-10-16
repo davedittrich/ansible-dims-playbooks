@@ -5,21 +5,21 @@
 - import_tasks: "{{ tasks_path }}/pre_tasks.yml"
   tags: [ postgresql, config, packages ]
 
+- name: Import repository signing key
+  apt_key:
+    id: '{{ postgresql_apt_key_id }}'
+    url: '{{ postgresql_apt_key_url }}'
+    state: present
+  become: yes
+  when: ansible_os_family == "Debian"
+  tags: [ postgresql, packages ]
+
   # /etc/apt/sources.list.d/pgdg.list
 - name: Make deb sources for postgresql present
   apt_repository:
     repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg {{ postgresql_pool }}"
     state: present
     update_cache: yes
-  become: yes
-  when: ansible_os_family == "Debian"
-  tags: [ postgresql, packages ]
-
-- name: Import repository signing key
-  apt_key:
-    id: '{{ postgresql_apt_key_id }}'
-    url: '{{ postgresql_apt_key_url }}'
-    state: present
   become: yes
   when: ansible_os_family == "Debian"
   tags: [ postgresql, packages ]
