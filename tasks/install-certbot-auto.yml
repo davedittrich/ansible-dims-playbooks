@@ -62,7 +62,6 @@
     group: 'root'
     mode: 0o755
   become: yes
-  become_user: '{{ dims_user }}'
 
 - name: Add cron job for certbot renewal.
   cron:
