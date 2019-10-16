@@ -26,6 +26,9 @@ trident:
       # If installing from a trident_all.tar.gz bundle, use 'name'
       # to derive installation order.
       trident_dist_bundle:
+        - 'name': 'pitchfork-data'
+          'url': '{{ pitchfork_disturl }}'
+          'sha256sum': '{{ pitchfork_sha256sum }}'
         - 'name': 'trident-server'
           'url': '{{ trident_server_disturl }}'
           'sha256sum': '{{ trident_server_sha256sum }}'
@@ -35,9 +38,6 @@ trident:
         - 'name': 'trident-all'
           'url': '{{ trident_all_disturl }}'
           'sha256sum': '{{ trident_all_sha256sum }}'
-        - 'name': 'pitchfork-data'
-          'url': '{{ pitchfork_disturl }}'
-          'sha256sum': '{{ pitchfork_sha256sum }}'
         - 'name': 'trident-wikiexport'
           'url': '{{ trident_wikiexport_disturl }}'
           'sha256sum': '{{ trident_wikiexport_sha256sum }}'
