@@ -1,11 +1,6 @@
 ---
 
 all:
-  vars:
-    dist_tag: '{{ ansible_distribution_version }}'
-    ip6tables_rules: '{{ (ansible_distribution == "Debian")|ternary("rules-v6-no_conntrack.j2","") }}'
-    use_sphinx: no
-    os_version: '?'
   hosts:
     'red':
       tcp_ports: [ 25, 53, '{{ rsyslog_port }}' ]
@@ -16,14 +11,22 @@ all:
       tcp_ports: [ 25, '{{ nginx_default_port }}', '{{ nginx_ssl_port }}' ]
       udp_ports: [ ]
       jenkins_url_external: 'https://{{ hostvars[inventory_hostname].dims_fqdn }}/jenkins'
+    'yellow':
+      tcp_ports: [ 25, '{{ nginx_default_port }}', '{{ nginx_ssl_port }}' ]
     'purple':
       tcp_ports: [ 25, '{{ nginx_default_port }}', '{{ nginx_ssl_port }}' ]
+  vars:
+    dist_tag: '{{ ansible_distribution_version }}'
+    ip6tables_rules: '{{ (ansible_distribution == "Debian")|ternary("rules-v6-no_conntrack.j2","") }}'
+    use_sphinx: no
+    os_version: '?'
   children:
     production:
       hosts:
         'red':
         'green':
         'black':
+        'yellow':
         'purple':
     development:
       hosts:
@@ -93,6 +96,17 @@ all:
         root_user: 'root'
         root_group: 'root'
     debian:
+      hosts:
+        'red':
+          os_version: '8.5.0'
+        'black':
+          os_version: '8.5.0'
+        'green':
+          os_version: '8.5.0'
+        'yellow':
+          os_version: '8.5.0'
+        'purple':
+          os_version: '8.5.0'
       vars:
         ssl_certs_dir: '/etc/ssl/certs'
         ssl_key_dir: '/etc/ssl/private'
@@ -106,6 +120,7 @@ all:
           - 'curl'
           - 'dconf-tools'
           - 'debian-archive-keyring'
+          - 'dnsutils'
           - 'fail2ban'
           - 'gcc'
           - 'git-core'
@@ -150,16 +165,9 @@ all:
         services_disabled: [ ]
         services_enabled:
           - 'auditd'
-      hosts:
-        'red':
-          os_version: '8.5.0'
-        'black':
-          os_version: '8.5.0'
-        'green':
-          os_version: '8.5.0'
-        'purple':
-          os_version: '8.5.0'
     centos:
+      hosts:
+        'blue':
       vars:
         ssl_certs_dir: '/etc/pki/ca-trust/source/anchors/'
         ssl_key_dir: '/etc/pki/tls/private'
@@ -209,8 +217,6 @@ all:
         services_disabled: []
         services_enabled:
           - 'auditd'
-      hosts:
-        'blue':
     darwin:
       vars:
         syslog_user: 'root'
