@@ -58,6 +58,8 @@
     remote_src: true
     src: '{{ dims_deploy }}/certbot/certbot-auto'
     dest: '{{ _certbot_auto }}'
+    owner: 'root'
+    group: 'root'
     mode: 0o755
   become: yes
   become_user: '{{ dims_user }}'
