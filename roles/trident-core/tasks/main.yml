@@ -109,19 +109,19 @@
 - name: Install required perl libraries
   apt:
     state: present
-    name: '{{ item }}'
+    name:
+     - libdbi-perl
+     - libdbd-pg-perl
+     - libjson-perl
+     - libgnupg-perl
+     - haveged
+     - libdatetime-format-mail-perl
+     - libdatetime-format-pg-perl
+     - libgnupg-interface-perl
+     - libmail-sendeasy-perl
+     - libossp-uuid-perl
+     - libmime-tools-perl
     force: yes
-  with_items:
-   - libdbi-perl
-   - libdbd-pg-perl
-   - libgnupg-perl
-   - haveged
-   - libdatetime-format-mail-perl
-   - libdatetime-format-pg-perl
-   - libgnupg-interface-perl
-   - libmail-sendeasy-perl
-   - libossp-uuid-perl
-   - libmime-tools-perl
   become: yes
   when: trident_install_trident_perl
   tags: [ trident-core, packages ]
@@ -234,34 +234,33 @@
   become: yes
   tags: [ trident-core ]
 
-- name: Ensure core Trident packages are installed
-  apt:
-    deb: '{{ deploy_dir }}/{{ role_name }}/{{ item.url|basename }}'
-    state: present
-    force: yes
+- name: Define list of files from urls
+  set_fact:
+    debs_list: '{{ debs_list|default([]) + [ deploy_dir + "/" + role_name + "/" + item.url|basename ] }}'
   with_items: '{{ trident_dist_bundle }}'
+  when: "not item.url is search('trident-perl')"
+  tags: [ trident-core ]
+
+- name: Debug debs_list
+  debug:
+    var: debs_list
+    verbosity: 2
+
+- name: Ensure core Trident packages are installed
+  shell: >
+    dpkg --install {{ debs_list|join(" ") }}
   become: yes
   notify:
     - 'restart trident'
     - 'restart nginx'
-  tags: [ trident-core, packages ]
+  tags: [ trident-core ]
 
-- name: Ensure trident is disabled with service
+- name: Ensure trident is started/enabled
   service:
     name: trident
-    state: stopped
-    enabled: no
-  become: yes
-  when: ansible_service_mgr == 'systemd'
-  tags: [ trident-core, packages ]
-
-- name: Ensure trident is running/enabled (systemd)
-  systemd:
-    name: trident
-    state: restarted
+    state: started
     enabled: yes
   become: yes
-  when: ansible_service_mgr == 'systemd'
   tags: [ trident-core ]
 
 # Attempting to install trident-perl without any written instructions.
@@ -313,7 +312,7 @@
 
 - name: Get sha256 hash of /var/lib/trident/library/funcs.sh
   stat:
-    path: 'var/lib/trident/library/funcs.sh'
+    path: '/var/lib/trident/library/funcs.sh'
     checksum_algorithm: sha256
   register: _funcs_stat
   tags: [ trident-core ]
@@ -342,6 +341,7 @@
 - name: Debug _trident_user_exists
   debug:
     var: _trident_user_exists
+    verbosity: 2
   tags: [ trident-core, packages ]
 
 - name: Ensure Trident init.d defaults present
@@ -454,6 +454,14 @@
     - 'restart nginx'
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
   tags: [ trident-core, trident-configure, config ]
+
+- name: Ensure trident is restarted
+  service:
+    name: trident
+    state: restarted
+  become: yes
+  ignore_errors: true
+  tags: [ trident-core ]
 
 - name: tcli system get name
   shell: >
