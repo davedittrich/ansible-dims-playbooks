@@ -146,7 +146,6 @@ do:
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
         '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
         ]
-      trident_perl_disturl: 'https://staff.washington.edu/dittrich/{{ trident_perl_archive }}'
     'black':
       hashi_vault_key_shares: 1
       hashi_vault_key_threshold: 1
