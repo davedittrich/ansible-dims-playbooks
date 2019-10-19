@@ -14,6 +14,10 @@ trident:
       trident_db_user: 'trident'
       trident_db_listen_port: 5432
 
+      trident_version: '1.4.6a'
+      trident_repo_branch: 'DEV_1.4.6-RC2'
+      pitchfork_repo_branch: '{{ trident_version }}'
+
       # Several trident packages (server, cli, all) share the same
       # version number. Related packages are in the same directory, too.
       #trident_download_dir: 'https://github.com/tridentli/trident/releases/download/v{{ trident_version }}'
@@ -21,26 +25,6 @@ trident:
       trident_download_dir: 'https://github.com/tridentli/trident/releases/download/{{ trident_repo_branch }}'
       trident_unified_archive_url: '{{ trident_download_dir }}/trident_all.zip'
       trident_unified_archive_sha256sum: 'ab8393bc973005e7f26653436ea5b524465e1c066262c277187bf79da7346f77'
-
-      # Trident components are all loaded at once as a bundle.
-      # If installing from a trident_all.tar.gz bundle, use 'name'
-      # to derive installation order.
-      trident_dist_bundle:
-        - 'name': 'pitchfork-data'
-          'url': '{{ pitchfork_disturl }}'
-          'sha256sum': '{{ pitchfork_sha256sum }}'
-        - 'name': 'trident-cli'
-          'url': '{{ trident_cli_disturl }}'
-          'sha256sum': '{{ trident_cli_sha256sum }}'
-        - 'name': 'trident-server'
-          'url': '{{ trident_server_disturl }}'
-          'sha256sum': '{{ trident_server_sha256sum }}'
-        - 'name': 'trident-all'
-          'url': '{{ trident_all_disturl }}'
-          'sha256sum': '{{ trident_all_sha256sum }}'
-        - 'name': 'trident-wikiexport'
-          'url': '{{ trident_wikiexport_disturl }}'
-          'sha256sum': '{{ trident_wikiexport_sha256sum }}'
 
       trident_cli_version: '{{ trident_version }}'
       trident_cli_archive: 'trident-cli_{{ trident_cli_version }}_amd64.deb'
@@ -65,7 +49,7 @@ trident:
       trident_wikiexport_sha256sum: ''
 
       # Pitchfork tracks its own version
-      pitchfork_version: '1.9.4'
+      pitchfork_version: '1.9.5'
       pitchfork_archive: 'pitchfork-data_{{ pitchfork_version }}_all.deb'
       pitchfork_disturl: '{{ trident_download_dir }}/{{ pitchfork_archive }}'
       pitchfork_sha256sum: ''
@@ -77,6 +61,43 @@ trident:
       trident_perl_disturl: '{{ artifacts_url }}/{{ trident_perl_archive }}'
       trident_perl_sha256sum: '2f120dc75f75f8b2c8e5cdf55a29984e24ee749a75687a10068ed8f353098ffb'
 
+      # Trident components are all loaded at once as a bundle.
+      # If installing from a trident_all.tar.gz bundle, use 'name'
+      # to derive installation order.
+      trident_packages_install:
+        - 'pitchfork-data'
+        - 'trident-cli'
+        - 'trident-server'
+        - 'trident-wikiexport'
+      trident_dist_bundle_dict:
+        'pitchfork-data':
+          'url': '{{ pitchfork_disturl }}'
+          'sha256sum': '{{ pitchfork_sha256sum }}'
+        'trident-cli':
+          'url': '{{ trident_cli_disturl }}'
+          'sha256sum': '{{ trident_cli_sha256sum }}'
+        'trident-server':
+          'url': '{{ trident_server_disturl }}'
+          'sha256sum': '{{ trident_server_sha256sum }}'
+        'trident-wikiexport':
+          'url': '{{ trident_wikiexport_disturl }}'
+          'sha256sum': '{{ trident_wikiexport_sha256sum }}'
+      trident_dist_bundle:
+        - 'name': 'pitchfork-data'
+          'url': '{{ pitchfork_disturl }}'
+          'sha256sum': '{{ pitchfork_sha256sum }}'
+        - 'name': 'trident-cli'
+          'url': '{{ trident_cli_disturl }}'
+          'sha256sum': '{{ trident_cli_sha256sum }}'
+        - 'name': 'trident-server'
+          'url': '{{ trident_server_disturl }}'
+          'sha256sum': '{{ trident_server_sha256sum }}'
+        - 'name': 'trident-all'
+          'url': '{{ trident_all_disturl }}'
+          'sha256sum': '{{ trident_all_sha256sum }}'
+        - 'name': 'trident-wikiexport'
+          'url': '{{ trident_wikiexport_disturl }}'
+          'sha256sum': '{{ trident_wikiexport_sha256sum }}'
   hosts:
     'yellow':
       # Specific site setting overrides

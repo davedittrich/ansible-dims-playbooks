@@ -234,11 +234,27 @@
   become: yes
   tags: [ trident-core ]
 
+- name: Debug trident_dist_bundle_dict
+  debug:
+    var: trident_dist_bundle_dict
+    verbosity: 2
+
+- name: Extract URLs
+  set_fact:
+    urls_list: '{{ urls_list|default([]) + [ item.value.url ] }}'
+  with_dict: '{{ trident_dist_bundle_dict }}'
+  tags: [ trident-core ]
+
+- name: Debug urls_list
+  debug:
+    var: urls_list
+    verbosity: 2
+
 - name: Define list of files from urls
   set_fact:
-    debs_list: '{{ debs_list|default([]) + [ deploy_dir + "/" + role_name + "/" + item.url|basename ] }}'
-  with_items: '{{ trident_dist_bundle }}'
-  when: "not item.url is search('trident-perl')"
+    debs_list: '{{ debs_list|default([]) + [ deploy_dir + "/" + role_name + "/" + item|basename ] }}'
+  with_items: '{{ urls_list }}'
+  when: "not item is search('trident-perl')"
   tags: [ trident-core ]
 
 - name: Debug debs_list
@@ -248,8 +264,9 @@
 
 - name: Ensure core Trident packages are installed
   shell: >
-    dpkg --install {{ debs_list|join(" ") }}
+    dpkg --install {{ item }}
   become: yes
+  with_items: '{{ debs_list }}'
   notify:
     - 'restart trident'
     - 'restart nginx'
