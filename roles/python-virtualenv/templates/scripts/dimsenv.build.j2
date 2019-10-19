@@ -176,19 +176,25 @@ function main()
             if [ ${RESULT} -ne 0 ]; then
                 error_exit ${RESULT} "${PYTHONBASE} compilation/installation failed"
             fi
-            INCLUDEDIR=$(${DIMS_BIN}/python-config --include | awk '{print $1;}' | sed 's/-I//')
-            if [ -z ${INCLUDEDIR} ]; then
-              error_exit ${RESULT} "Can't determine python-config --include directory path"
-            fi
-            if [ ! -f ${DIMS_BIN}/python-config ]; then
-                error_exit ${RESULT} "File not found: ${DIMS_BIN}/python-config"
-            else
-                mkdir -p ${DIMS}/include/python && \
-                cp ${PYTHONBASE}/Include/* \
-                    $(${DIMS_BIN}/python-config --include | awk '{print $1;}' | sed 's/-I//')
-                RESULT=$?
-                if [ ${RESULT} -ne 0 ]; then
-                  error_exit ${RESULT} "Installation of include files for ${PYTHONBASE} failed"
+            # Ensure a link for python exists pointing to python3
+            [[ ! -f "${DIMS_BIN}/python" ]] && ln -s ${DIMS_BIN}/python3 ${DIMS_BIN}/python
+            if [ -f "${DIMS_BIN}/python-config" ]; then
+                INCLUDEDIR=$(${DIMS_BIN}/python-config --include | awk '{print $1;}' | sed 's/-I//')
+                if [ -z "${INCLUDEDIR}" ]; then
+                    error_exit ${RESULT} "Can't determine python-config --include directory path"
+                fi
+                if [ ! -z "${INCLUDEDIR}" ]; then
+                    if [ ! -f ${DIMS_BIN}/python-config ]; then
+                        error_exit ${RESULT} "File not found: ${DIMS_BIN}/python-config"
+                    else
+                        mkdir -p ${DIMS}/include/python && \
+                        cp -r ${PYTHONBASE}/Include/* \
+                            $(${DIMS_BIN}/python-config --include | awk '{print $1;}' | sed 's/-I//')
+                        RESULT=$?
+                        if [ ${RESULT} -ne 0 ]; then
+                            error_exit ${RESULT} "Installation of include files for ${PYTHONBASE} failed"
+                        fi
+                    fi
                 fi
             fi
         fi
@@ -199,24 +205,25 @@ function main()
         return 0
     fi
 
-    [[ -f ${DIMS_SRC}/get-pip/get-pip.py ]] ||
-        error_exit $? "File not found: ${DIMS_SRC}/get-pip/get-pip.py"
-    verbose "Executing ${DIMS_BIN}/python ${DIMS_SRC}/get-pip/get-pip.py"
-    ${DIMS_BIN}/python ${DIMS_SRC}/get-pip/get-pip.py ||
-        error_exit $? "Execution of ${DIMS_SRC}/get-pip/get-pip.py failed"
+# NOTE(dittrich): Disabling because Python 3.4+ has pip already
+#    [[ -f ${DIMS_SRC}/get-pip/get-pip.py ]] ||
+#        error_exit $? "File not found: ${DIMS_SRC}/get-pip/get-pip.py"
+#    verbose "Executing ${DIMS_BIN}/python ${DIMS_SRC}/get-pip/get-pip.py"
+#    ${DIMS_BIN}/python ${DIMS_SRC}/get-pip/get-pip.py ||
+#        error_exit $? "Execution of ${DIMS_SRC}/get-pip/get-pip.py failed"
 
-    verbose "Attempting to upgrade pip"
-    ${DIMS_BIN}/pip install ${USE_PROXY} --upgrade pip ||
-        error_exit $? "Upgrade of pip failed"
+#   verbose "Attempting to upgrade pip"
+#   ${DIMS_BIN}/pip install ${USE_PROXY} --upgrade pip ||
+#       error_exit $? "Upgrade of pip failed"
 
-    verbose "Running: ${DIMS_BIN}/pip install --no-cache-dir -r ${DIMS_ETC}/base-requirements.txt"
-    ${DIMS_BIN}/pip install --no-cache-dir -r ${DIMS_ETC}/base-requirements.txt ||
+    verbose "Running: ${DIMS_BIN}/python -m pip install --no-cache-dir -r ${DIMS_ETC}/base-requirements.txt"
+    ${DIMS_BIN}/python -m pip install --no-cache-dir -r ${DIMS_ETC}/base-requirements.txt ||
         error_exit $? "pip install from ${DIMS_ETC}/base-requirements.txt failed"
 
 {% if ansible_distribution == "CentOS" %}
     # Hack to get around pip install bug on CentOS (for whatever reason?)
     # It is taken out of dimsenv-requirements.txt file.
-    ${DIMS_BIN}/pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
+    ${DIMS_BIN}/python -m pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
 {% endif %}
 
     if [[ -d ${WORKON_HOME}/${VENV} ]]; then
