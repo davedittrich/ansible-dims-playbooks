@@ -1,0 +1,87 @@
+---
+
+# File: roles/gosecure/tasks/main.yml
+
+- name: Assert gosecure_mode is defined
+  assert:
+    that:
+      - gosecure_mode is defined
+      - gosecure_mode in ['client', 'server']
+  tags: [ always ]
+
+- name: Define setup script URL
+  set_fact:
+    gosecure_setup_script_url: 'https://davedittrich.github.io/goSecure/files/install_scripts/gosecure_server_install.py'
+  when: gosecure_setup_script_url is not defined
+  tags: [ always ]
+
+- name: Debug gosecure_setup_script_url
+  debug:
+    var: gosecure_setup_script_url
+    verbosity: 2
+  tags: [ always ]
+
+- name: Define setup script
+  set_fact:
+    _gosecure_setup_script: '{{ dims_deploy }}/{{ role_name }}/{{ gosecure_setup_script_url | basename }}'
+  when: _gosecure_setup_script is not defined
+  tags: [ always ]
+
+- name: Debug _gosecure_setup_script
+  debug:
+    var: gosecure_setup_script
+    verbosity: 2
+  tags: [ always ]
+
+- import_tasks: '{{ tasks_path }}/pre_tasks.yml'
+  tags: [ gosecure, packages, config ]
+
+#- name: Make sure required APT packages are present (Debian)
+#  apt:
+#    state: present
+#    name: '{{ item }}'
+#    update_cache: yes
+#    force: yes
+#  with_items:
+#   - "{{ packages_install }}"
+#  ignore_errors: yes
+#  when: ansible_pkg_mgr == "apt"
+#  tags: [ gosecure, packages, config ]
+
+#- name: Make sure required RPM packages are present (RedHat)
+#  yum:
+#    state: present
+#    name: '{{ item }}'
+#    update_cache: yes
+#  with_items:
+#   - "{{ packages_install }}"
+#  ignore_errors: yes
+#  when: ansible_pkg_mgr == "yum"
+#  tags: [ gosecure, packages, config ]
+
+- name: Ensure gosecure_server_install.py script is present
+  get_url:
+    url: "{{ gosecure_setup_script_url }}"
+    dest: "{{ _gosecure_setup_script }}"
+    validate_certs: true
+  become: yes
+  tags: [ gosecure ]
+
+# TODO(dittrich): Eventually, do what script does as Ansible role
+# Until then, just perform the steps using Ansible rather than manually.
+
+- name: Run goSecure setup script
+  shell: >
+    python3 {{ _gosecure_setup_script }} "{{ gosecure_vpn_client_id }}" "{{ gosecure_vpn_client_psk }}"
+  no_log: '{{ _no_log }}'
+  become: yes
+  register: _gosecure_setup
+  failed_when: "_gosecure_setup.stdout is not search('Completed')"
+  changed_when: "_gosecure_setup.stdout is search('Completed')"
+  tags: [ gosecure ]
+
+
+- import_tasks: "{{ tasks_path }}/post_tasks.yml"
+  tags: [ gosecure, packages, config ]
+
+# vim: ft=ansible :
