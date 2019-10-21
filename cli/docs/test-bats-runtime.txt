@@ -1,6 +1,4 @@
 $ make test-bats-runtime
-make[1]: Entering directory '/home/dittrich/git-wsl/ansible-dims-playbooks/cli'
 bats --tap tests/runtime.bats
 1..1
 ok 1 'd2 about' contains 'version'
-make[1]: Leaving directory '/home/dittrich/git-wsl/ansible-dims-playbooks/cli'
