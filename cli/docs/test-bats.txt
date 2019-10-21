@@ -1,0 +1,6 @@
+make[1]: Entering directory '/home/dittrich/git-wsl/ansible-dims-playbooks/cli'
+[+] Running bats tests: 00_help.bats
+1..2
+ok 1 'd2 help' can load all entry points
+ok 2 'd2 --version' works
+make[1]: Leaving directory '/home/dittrich/git-wsl/ansible-dims-playbooks/cli'

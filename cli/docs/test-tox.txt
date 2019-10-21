@@ -1,0 +1,152 @@
+$ make test-tox
+make[1]: Entering directory '/home/dittrich/git-wsl/ansible-dims-playbooks/cli'
+tox
+GLOB sdist-make: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/setup.py
+py36 recreate: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/py36
+py36 installdeps: -r/home/dittrich/git-wsl/ansible-dims-playbooks/cli/test-requi
+py36 inst: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/.tmp/package/1
+py36 installed: alabaster==0.7.12,Babel==2.7.0,bandit==1.6.2,beautifulsoup4==4.8
+py36 run-test-pre: PYTHONHASHSEED='1397183441'
+py36 run-test: commands[0] | python setup.py test
+running test
+running egg_info
+writing d2.egg-info/PKG-INFO
+writing dependency_links to d2.egg-info/dependency_links.txt
+writing entry points to d2.egg-info/entry_points.txt
+writing namespace_packages to d2.egg-info/namespace_packages.txt
+writing requirements to d2.egg-info/requires.txt
+writing top-level names to d2.egg-info/top_level.txt
+writing pbr to d2.egg-info/pbr.json
+[pbr] Reusing existing SOURCES.txt
+running build_ext
+
+----------------------------------------------------------------------
+Ran 0 tests in 0.000s
+
+OK
+py37 recreate: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/py37
+py37 installdeps: -r/home/dittrich/git-wsl/ansible-dims-playbooks/cli/test-requi
+py37 inst: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/.tmp/package/1
+py37 installed: alabaster==0.7.12,Babel==2.7.0,bandit==1.6.2,beautifulsoup4==4.8
+py37 run-test-pre: PYTHONHASHSEED='1397183441'
+py37 run-test: commands[0] | python setup.py test
+running test
+running egg_info
+writing d2.egg-info/PKG-INFO
+writing dependency_links to d2.egg-info/dependency_links.txt
+writing entry points to d2.egg-info/entry_points.txt
+writing namespace_packages to d2.egg-info/namespace_packages.txt
+writing requirements to d2.egg-info/requires.txt
+writing top-level names to d2.egg-info/top_level.txt
+writing pbr to d2.egg-info/pbr.json
+[pbr] Reusing existing SOURCES.txt
+running build_ext
+
+----------------------------------------------------------------------
+Ran 0 tests in 0.000s
+
+OK
+pep8 recreate: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/pep8
+pep8 installdeps: -r/home/dittrich/git-wsl/ansible-dims-playbooks/cli/test-requi
+pep8 inst: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/.tmp/package/1
+pep8 installed: alabaster==0.7.12,Babel==2.7.0,bandit==1.6.2,beautifulsoup4==4.8
+pep8 run-test-pre: PYTHONHASHSEED='1397183441'
+pep8 run-test: commands[0] | flake8 d2 docs/source/conf.py setup.py
+bandit recreate: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/bandit
+bandit installdeps: -r/home/dittrich/git-wsl/ansible-dims-playbooks/cli/test-req
+bandit inst: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/.tmp/package
+bandit installed: alabaster==0.7.12,Babel==2.7.0,bandit==1.6.2,beautifulsoup4==4
+bandit run-test-pre: PYTHONHASHSEED='1397183441'
+bandit run-test: commands[0] | bandit -c bandit.yaml -r d2 -x tests -n5
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: B101,B110
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	using config: bandit.yaml
+[main]	INFO	running on Python 3.6.6
+Run started:2019-10-21 06:02:36.677665
+
+Test results:
+	No issues identified.
+
+Code scanned:
+	Total lines of code: 400
+	Total lines skipped (#nosec): 3
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0.0
+		Low: 0.0
+		Medium: 0.0
+		High: 0.0
+	Total issues (by confidence):
+		Undefined: 0.0
+		Low: 0.0
+		Medium: 0.0
+		High: 0.0
+Files skipped (0):
+bats recreate: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/bats
+bats installdeps: -r/home/dittrich/git-wsl/ansible-dims-playbooks/cli/test-requi
+bats inst: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/.tmp/package/1
+bats installed: alabaster==0.7.12,Babel==2.7.0,bandit==1.6.2,beautifulsoup4==4.8
+bats run-test-pre: PYTHONHASHSEED='1397183441'
+bats run-test: commands[0] | make test-bats
+[+] Running bats tests: 00_help.bats
+1..2
+ok 1 'd2 help' can load all entry points
+ok 2 'd2 --version' works
+docs recreate: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/docs
+docs installdeps: -r/home/dittrich/git-wsl/ansible-dims-playbooks/cli/requiremen
+docs inst: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/.tmp/package/1
+docs installed: alabaster==0.7.12,Babel==2.7.0,beautifulsoup4==4.8.1,boto3==1.9.
+docs run-test-pre: PYTHONHASHSEED='1397183441'
+docs run-test: commands[0] | sphinx-build -b html docs docs/_build
+Running Sphinx v2.2.0
+loading pickled environment... done
+building [mo]: targets for 0 po files that are out of date
+building [html]: targets for 8 source files that are out of date
+updating environment: 0 added, 3 changed, 0 removed
+reading sources... [ 33%] history
+reading sources... [ 66%] testing
+reading sources... [100%] usage
+
+/home/dittrich/git-wsl/ansible-dims-playbooks/cli/docs/history.rst:6: WARNING: P
+InputError: [Errno 2] No such file or directory: 'Changelog'.
+looking for now-outdated files... none found
+pickling environment... done
+checking consistency... done
+preparing documents... done
+writing output... [ 12%] authors
+writing output... [ 25%] contributing
+writing output... [ 37%] history
+writing output... [ 50%] index
+writing output... [ 62%] installation
+writing output... [ 75%] readme
+writing output... [ 87%] testing
+writing output... [100%] usage
+
+generating indices...  genindexdone
+writing additional pages...  searchdone
+copying static files... ... done
+copying extra files... done
+dumping search index in English (code: en)... done
+dumping object inventory... done
+build succeeded, 1 warning.
+
+The HTML pages are in docs/_build.
+pypi recreate: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/pypi
+pypi inst: /home/dittrich/git-wsl/ansible-dims-playbooks/cli/.tox/.tmp/package/1
+pypi installed: alabaster==0.7.12,Babel==2.7.0,beautifulsoup4==4.8.1,boto3==1.9.
+pypi run-test-pre: PYTHONHASHSEED='1397183441'
+pypi run-test: commands[0] | python setup.py check --restructuredtext
+running check
+___________________________________ summary ____________________________________
+  py36: commands succeeded
+  py37: commands succeeded
+  pep8: commands succeeded
+  bandit: commands succeeded
+  bats: commands succeeded
+  docs: commands succeeded
+  pypi: commands succeeded
+  congratulations :)
+make[1]: Leaving directory '/home/dittrich/git-wsl/ansible-dims-playbooks/cli'
