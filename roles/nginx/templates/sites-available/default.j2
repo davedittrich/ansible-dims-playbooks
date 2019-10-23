@@ -33,8 +33,6 @@ server {
   root /var/www;
   index index.html index.htm;
 
-  ssl on;
-
 {% if use_letsencrypt is not defined or not use_letsencrypt %}
   ssl_certificate   {{ ssl_certfile }};
   ssl_certificate_key {{ ssl_keyfile }};
