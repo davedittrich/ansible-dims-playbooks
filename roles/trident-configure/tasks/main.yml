@@ -2,13 +2,6 @@
 
 # File: roles/trident-configure/tasks/main.yml
 
-- name: Validate Debian Jessie is being used.
-  fail:
-    msg: "Debian Jessie is required for running Trident."
-  when: (ansible_lsb.codename is undefined or ansible_lsb.codename != "jessie") and
-        (trident_experimental is undefined or not trident_experimental|bool )
-  tags: [ always ]
-
 - name: Define trident_site_adminemail
   set_fact:
     trident_site_adminemail: '{{ dims_adminemail }}'

@@ -2,10 +2,6 @@
 
 # File: roles/trident/tasks/main.yml
 
-# This playbook requires Debian Jessie as Trident is only
-# supported for running on Debian Jessie.
-# See https://github.com/bapril/trident/tree/DEV-1.3
-
 # This role ensures that the defined version of Trident and
 # all of its pre-requisite packages are installed. It also
 # ensures that the initial "trident" system administration
@@ -80,13 +76,6 @@
     trident_initial_user_email: '{{ _gituseremail.stdout }}'
   when: trident_initial_user_email is not defined
   tags: [ always ]
-
-- name: Validate Debian Jessie is being used.
-  fail:
-    msg: "Debian Jessie is required for running Trident."
-  when: (ansible_lsb.codename is undefined or ansible_lsb.codename != "jessie") and
-        (trident_experimental is undefined or not trident_experimental|bool )
-  tags: [ trident-core, config, packages, tests ]
 
 - name: Assert trident_sysadmin_pass is defined, not null, no spaces
   assert:
