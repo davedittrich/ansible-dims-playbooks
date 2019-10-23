@@ -22,26 +22,27 @@ ca_certs:
     ca_organizationalunit: '{{ lookup("psec", "secrets get ca_organizationalunit") }}'
     ca_commonname: '{{ lookup("psec", "secrets get ca_commonname") }}'
     ca_email: '{{ lookup("psec", "secrets get ca_email") }}'
-  hosts:
-    'red':
-    'blue':
-    'purple':
-    'green':
-  children:
-    infra:
-      hosts:
-        'red':
-          # Control of sub-tasks
-          ca_init: false
-          ca_certify_nodes: false
-          ca_wildcard: false
-          ca_fetch_keys: false
-          ca_distribute_keys: false
-    instances:
-      hosts:
-        'red':
-        'blue':
-        'green':
-        'purple':
+# Set hosts in a local inventory.
+#  hosts:
+#    'red':
+#    'blue':
+#    'purple':
+#    'green':
+#  children:
+#    infra:
+#      hosts:
+#        'red':
+#          # Control of sub-tasks
+#          ca_init: false
+#          ca_certify_nodes: false
+#          ca_wildcard: false
+#          ca_fetch_keys: false
+#          ca_distribute_keys: false
+#    instances:
+#      hosts:
+#        'red':
+#        'blue':
+#        'green':
+#        'purple':
 
 # vim: ft=ansible :

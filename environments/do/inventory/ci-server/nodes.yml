@@ -214,15 +214,16 @@ ci_server:
     jenkins_bootstrap_jobs:
       - 'build dockerbuild -p IMAGE=jenkins-slave -p BRANCH=develop'
       - 'build build-parameterized -p REPO={{ jenkins_job_params["build-rpc-develop"].repo_url }} -p BRANCH={{ jenkins_job_params["build-rpc-develop"].repo_branch }}'
-  hosts:
-    'green':
-      nginx_source_dir: '/var/www/source'
-      cronjobs:
-        - name: 'source index'
-          weekday: '*'
-          hour: '*'
-          minute: '*'
-          user: 'jenkins'
-          job: 'ls -l {{ nginx_source_dir }} | egrep -v "^total| index.txt" > {{ nginx_source_dir }}/index.txt'
+# Set hosts in a local inventory.
+#  hosts:
+#    'green':
+#      nginx_source_dir: '/var/www/source'
+#      cronjobs:
+#        - name: 'source index'
+#          weekday: '*'
+#          hour: '*'
+#          minute: '*'
+#          user: 'jenkins'
+#          job: 'ls -l {{ nginx_source_dir }} | egrep -v "^total| index.txt" > {{ nginx_source_dir }}/index.txt'
 
 # vim: ft=ansible :

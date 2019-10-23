@@ -5,13 +5,14 @@
 swarm:
   vars:
     consul_server: '{{ inventory_hostname in groups.manager }}'
-  hosts:
-    'red':
-    'blue':
-    'green':
-    'purple':
-  children:
-    manager:
-    worker:
+# Set hosts in a local inventory.
+#  hosts:
+#    'red':
+#    'blue':
+#    'green':
+#    'purple':
+#  children:
+#    manager:
+#    worker:
 
 # vim: ft=ansible :

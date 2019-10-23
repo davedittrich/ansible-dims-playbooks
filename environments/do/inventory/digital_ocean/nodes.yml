@@ -125,34 +125,35 @@ do:
           dns_servers: ''
           vagrant_net: 'private_network'
     use_letsencrypt: yes
-  hosts:
-    'red':
-      custom_rules: [
-        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
-        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
-        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ rabbitmq_ssl_listen_port }} -j ACCEPT',
-        ]
-    'blue':
-      epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
-    'green':
-      trident_fqdn: '{{ dims_fqdn }}'
-      custom_rules: [
-        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
-        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
-        ]
-    'purple':
-      trident_fqdn: '{{ dims_fqdn }}'
-      custom_rules: [
-        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
-        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
-        ]
-    'black':
-      hashi_vault_key_shares: 1
-      hashi_vault_key_threshold: 1
-      hashi_vault_mode: 'simple'
-      custom_rules: [
-        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
-        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
-        ]
+# Set hosts in a local inventory.
+#  hosts:
+#    'red':
+#      custom_rules: [
+#        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
+#        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
+#        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ rabbitmq_ssl_listen_port }} -j ACCEPT',
+#        ]
+#    'blue':
+#      epel_repo_url: 'http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm'
+#    'green':
+#      trident_fqdn: '{{ dims_fqdn }}'
+#      custom_rules: [
+#        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
+#        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
+#        ]
+#    'purple':
+#      trident_fqdn: '{{ dims_fqdn }}'
+#      custom_rules: [
+#        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
+#        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
+#        ]
+#    'black':
+#      hashi_vault_key_shares: 1
+#      hashi_vault_key_threshold: 1
+#      hashi_vault_mode: 'simple'
+#      custom_rules: [
+#        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_default_port }} -j ACCEPT',
+#        '-A TCP -m conntrack --ctstate NEW -m tcp -p tcp --dport {{ nginx_ssl_port }} -j ACCEPT',
+#        ]
 
 # vim: ft=ansible :

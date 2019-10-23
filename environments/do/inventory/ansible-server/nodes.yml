@@ -2,14 +2,15 @@
 
 ansible_server:
   vars:
-    ansible_dims_playbooks_repo: 'https://github.com/uw-dims/ansible-dims-playbooks.git'
+    ansible_dims_playbooks_repo: 'https://github.com/davedittrich/ansible-dims-playbooks.git'
     ansible_dims_playbooks_version: 'master'
     ansible_accounts:
       - ansible
-  hosts:
-    'green':
-      ansible_accounts:
-        - jenkins
-        - ansible
+# Set hosts in a local inventory.
+#  hosts:
+#    'green':
+#      ansible_accounts:
+#        - jenkins
+#        - ansible
 
 # vim: ft=ansible :

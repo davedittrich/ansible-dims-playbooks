@@ -1,7 +1,8 @@
 ---
 
 nameserver:
-  hosts:
-    'red':
+# Set hosts in a local inventory.
+#  hosts:
+#    'red':
 
 # vim: ft=ansible :
