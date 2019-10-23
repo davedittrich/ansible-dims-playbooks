@@ -20,6 +20,18 @@
   when: manage_interfaces is not defined
   tags: [ always ]
 
+- name: Ensure fail2ban_backend is set properly
+  set_fact:
+    fail2ban_backend: '{{ (ansible_service_mgr == "systemd") | ternary("systemd", "polling") }}'
+  when: fail2ban_backend is not defined
+  tags: [ always ]
+
+- name: Debug fail2ban_backend
+  debug:
+    var: fail2ban_backend
+    verbosity: 2
+  tags: [ always ]
+
 - fail: msg="Variable 'packages_install' is not defined.
     Make sure inventory/all.yml includes '{{ inventory_hostname }}' in group '{{ ansible_distribution|lower }}'"
   when: packages_install is not defined

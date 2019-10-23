@@ -7,7 +7,7 @@ root_user: root
 root_group: root
 
 fail2ban_action: '%(action_mwl)s'
-fail2ban_backend: 'polling'
+# fail2ban_backend gets set dynamically in tasks/main.yml
 fail2ban_banaction: 'iptables-allports'
 fail2ban_bantime: 3600 # one hour
 fail2ban_chain: 'INPUT'
