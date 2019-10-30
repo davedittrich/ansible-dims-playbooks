@@ -387,59 +387,18 @@
 #
 # Force restarting to apply firewall rules now.
 
-- name: 'Restart iptables-restore.service'
-  systemd:
-    name: iptables-restore.service
-    state: restarted
-  ignore_errors: yes
-  tags: [ base, config, iptables ]
-
-- name: 'Restart ip6tables-restore.service'
-  systemd:
-    name: ip6tables-restore.service
-    state: restarted
-  ignore_errors: yes
-  tags: [ base, config, iptables ]
-
-- name: 'Restart netfilter-persistent'
+- name: 'Restart iptables as required'
   service:
-    name: netfilter-persistent
+    name: '{{ item }}'
     state: restarted
-  ignore_errors: yes
-  tags: [ base, config, iptables ]
-
-- name: 'Restart iptables-persistent'
-  service:
-    name: iptables-persistent
-    state: restarted
-  ignore_errors: yes
-  tags: [ base, config, iptables ]
-
-- name: 'Restart ip6tables-persistent'
-  service:
-    name: ip6tables-persistent
-    state: restarted
-  ignore_errors: yes
-  tags: [ base, config, iptables ]
-
-- name: 'Restart iptables'
-  service:
-    name: iptables
-    state: restarted
-  ignore_errors: yes
-  tags: [ base, config, iptables ]
-
-- name: 'Restart iptables6'
-  service:
-    name: iptables6
-    state: restarted
-  ignore_errors: yes
-  tags: [ base, config, iptables ]
-
-- name: 'Restart ip6tables-persistent'
-  service:
-    name: ip6tables-persistent
-    state: reloaded
+  with_items:
+    - iptables
+    - iptables6
+    - iptables-persistent
+    - ip6tables-persistent
+    - iptables-restore.service
+    - ip6tables-restore.service
+    - netfilter-persistent
   ignore_errors: yes
   tags: [ base, config, iptables ]
 
