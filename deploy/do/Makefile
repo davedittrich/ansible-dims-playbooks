@@ -14,6 +14,9 @@ INVENTORY=$(PBR)/environments/$(CLOUD)/inventory
 INVENTORY_GENERATED=inventory/nodes-generated.yml
 COMMON_SCRIPTS=$(PBR)/files/common-scripts
 TFSTATE:=$(shell psec utils tfstate backend --path)
+PRIVATE_KEY_FILE=$(shell psec secrets get do_private_key_file 2>/dev/null || echo "")
+KEYNAME=$(shell psec secrets get do_keyname 2>/dev/null || echo "")
+SSH_KEY_ID=$(shell psec secrets get do_ssh_key_id 2>/dev/null || echo "")
 
 # Ensure Digital Ocean env vars set
 DO_API_VERSION=2
@@ -47,11 +50,6 @@ debug:
 			-i inventory/ \
 			-m debug \
 			-a "$(DEBUG_STRING)" \
-			$(GROUP_NAME)
-	@#psec -E run -- ansible -i $(INVENTORY) \
-			-i inventory/ \
-			-m debug \
-			-a "var=groups['$(GROUP_NAME)']" \
 			$(GROUP_NAME)
 
 .PHONY: help
@@ -171,7 +169,7 @@ dumpjson:
 images:
 	@curl -X GET --silent "https://api.digitalocean.com/v2/images?per_page=999" -H "Authorization: Bearer $(DO_API_TOKEN)" |\
 		jq -rc '.images[] | select(.slug | length >= 1) | { slug: .slug, distribution: .distribution, name: .name }' | sort
-	@doctl compute image list-user
+	@doctl --access-token "$(DO_API_TOKEN)" compute image list-user
 
 .PHONY: regions
 regions:
@@ -187,7 +185,7 @@ provider:
 
 .PHONY: plan
 plan: $(PLAN)
-	terraform show $(PLAN)
+	psec -E run -- terraform show $(PLAN)
 
 # Generate plan in the secrets environment directory (see definintion of PLAN variable
 # above for location). This keeps the plan (which contains secrets) outside of the
@@ -215,22 +213,24 @@ $(INVENTORY_GENERATED):
 
 .PHONY: newkeypair
 newkeypair:
+	@if [ -z "$(PRIVATE_KEY_FILE)" -o "$(PRIVATE_KEY_FILE)" == "None" ]; then echo '[-] No private key file name set'; exit 1; fi
 	@if [ "$(shell [ ! -f \"$(TFSTATE)\" ] && echo 'null' || jq -r '.resources' $(TFSTATE))" != "null" ]; then \
 	        echo '[!] Refusing to replace SSH keys while droplets are running'; \
 	        echo '[!] Use "make destroy" first or manually re-key droplets'; \
 	        false; \
 	 fi
-	@echo "[+] Generating new SSH key pair"
-	ssh-keygen -t rsa -f "$(TF_VAR_private_key_file)"
-	psec secrets set do_ssh_key_id="$(shell ssh-keygen -E md5 -lf ${TF_VAR_private_key_file}.pub|awk '{print $$2}'|sed 's/^[Mm][Dd]5://')"
+	@echo "[+] Generating new SSH key pair \"$(PRIVATE_KEY_FILE)\""
+	ssh-keygen -t rsa -f "$(PRIVATE_KEY_FILE)"
+	psec secrets set do_ssh_key_id="$(shell ssh-keygen -E md5 -lf $(PRIVATE_KEY_FILE).pub|awk '{print $$2}'|sed 's/^[Mm][Dd]5://')"
 	@echo MD5 fingerprint: `psec secrets get do_ssh_key_id`
-	ssh-add "$(TF_VAR_private_key_file)" || true
+	ssh-add "$(PRIVATE_KEY_FILE)" || true
 
 .PHONY: insertpubkey
 insertpubkey:
-	psec -E run -- terraform apply -target=digitalocean_ssh_key.default -auto-approve
+	@# psec -E run -- terraform apply -target=digitalocean_ssh_key.default -auto-approve
+	@doctl --access-token "$(DO_API_TOKEN)" compute ssh-key import "$(KEYYNAME)" --public-key-file "$(PRIVATE_KEY_FILE).pub"
 	@echo '[+] Available keys in DigitalOcean:'
-	@doctl -t $(DO_API_TOKEN) compute ssh-key list
+	@doctl --access-token "$(DO_API_TOKEN)" compute ssh-key list
 
 .PHONY: removepubkey
 removepubkey:
@@ -299,13 +299,12 @@ update:
 
 .PHONY: reboot
 reboot:
-	psec -E run -- ansible -i $(INVENTORY) \
+	psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		--become \
-		-e"psec_environment=$(shell psec environments default)" \
-		-m shell \
-		-a '/sbin/shutdown -r +1' \
-		$(GROUP_NAME) \
+		-e "target=$(GROUP_NAME)" \
+		-e "psec_environment=$(shell psec environments default)" \
+		$(PBR)/playbooks/host_reboot.yml \
 		$(DIMS_ANSIBLE_ARGS)
 
 .PHONY: cancel
@@ -364,7 +363,7 @@ ping:
 
 .PHONY: pre.test
 pre.test:
-	bats do.bats
+	psec -E run -- bats do.bats
 
 .PHONY: post.test
 post.test:
