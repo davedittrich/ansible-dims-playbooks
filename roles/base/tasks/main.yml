@@ -83,16 +83,19 @@
   tags: [ base, packages, updates ]
 
 - name: Make sure blacklisted packages are absent (Debian)
-  apt: state=absent name={{ item }} force=yes
-  with_items:
-    - '{{ packages_remove }}'
+  apt:
+    state: absent
+    name: '[ {{ packages_remove }} ]'
+    force: yes
   become: yes
   when: ansible_pkg_mgr == "apt"
   ignore_errors: yes
   tags: [ base, packages, updates ]
 
 - name: Only "update_cache=yes" if >3600s since last update (Debian)
-  apt: update_cache=yes cache_valid_time=3600
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
   when: ansible_pkg_mgr == "apt"
   become: yes
   tags: [ base, packages, updates ]
@@ -120,31 +123,23 @@
 
 - name: Ensure pip installed for system Python (RedHat)
   yum:
-    name: '{{ item }}'
+    name: [ 'python-pip', 'python3-pip' ]
     state: latest
-  with_items:
-    - python-pip
-    - python3-pip
   become: yes
   when: ansible_pkg_mgr == "yum"
   tags: [ base, config, updates ]
 
 - name: Ensure pip installed for system Python (Debian)
   apt:
-    name: '{{ item }}'
+    name: [ 'python-pip', 'python3-pip' ]
     state: latest
-  with_items:
-    - python-pip
   become: yes
   when: ansible_pkg_mgr == "apt"
   tags: [ base, config, updates ]
 
 - name: Upgrade required pip components
-  shell: 'pip install -U {{ item }}'
+  shell: 'pip install -U pip setuptools'
   become: yes
-  with_items:
-    - pip
-    - setuptools
   tags: [ base, config, updates ]
 
 - name: Create base-requirements.txt file
@@ -213,8 +208,8 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/hosts/'
         - hosts/
+      errors: ignore
   become: yes
-  ignore_errors: yes
   when: ansible_os_family in [ "Debian", "RedHat", "CentOS", "Container Linux by CoreOS" ]
   tags: [ base, hosts, config ]
 
@@ -419,7 +414,10 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/fail2ban.service/'
         - fail2ban.service/
-  when: ansible_service_mgr == "systemd"
+  when:
+    - fail2ban_services is defined
+    - fail2ban_services|length > 0
+    - ansible_service_mgr == "systemd"
   become: yes
   notify:
     - 'restart rsyslog'
@@ -447,7 +445,9 @@
   notify:
     - 'restart rsyslog'
     - 'restart fail2ban'
-  when: ansible_os_family != "Container Linux by CoreOS"
+  when:
+    - fail2ban_services is defined
+    - fail2ban_services|length > 0
   tags: [ base, config, iptables ]
 
 - name: Ensure fail2ban filters are present
@@ -730,7 +730,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog/'
         - rsyslog/
-      skip: true
+      errors: ignore
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
@@ -761,7 +761,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
         - rsyslog.d/
-      skip: true
+      errors: ignore
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
@@ -789,7 +789,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
         - rsyslog.d/
-      skip: true
+      errors: ignore
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
@@ -1021,8 +1021,8 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/network/'
         - network/
+      errors: ignore
   become: yes
-  ignore_errors: true
   when: ansible_os_family == "Debian" and manage_interfaces
   tags: [ base, config, interfaces ]
 
@@ -1089,7 +1089,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/fstab/'
         - fstab/
-      skip: true
+      errors: ignore
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]

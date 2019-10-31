@@ -36,7 +36,7 @@
       paths:
        - '{{ dims_private }}/roles/{{ role_name }}/files/logo.png/'
        - files/logo.png/
-      skip: true
+      errors: ignore
   become: yes
 
 - name: Ensure 'favicon.ico' is present
@@ -56,7 +56,7 @@
       paths:
        - '{{ dims_private }}/roles/{{ role_name }}/files/favicon.ico/'
        - files/favicon.ico/
-      skip: true
+      errors: ignore
   become: yes
 
 - name: Ensure header_image is present
@@ -76,7 +76,7 @@
       paths:
        - '{{ dims_private }}/roles/{{ role_name }}/files/header_image.jpg/'
        - files/header_image.jpg/
-      skip: true
+      errors: ignore
   become: yes
 
 # NOTE: The command to set unknown person image is called "unknown_image"
@@ -99,7 +99,7 @@
       paths:
        - '{{ dims_private }}/roles/{{ role_name }}/files/unknown_person.jpg/'
        - files/unknown_person.jpg/
-      skip: true
+      errors: ignore
   become: yes
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
 
@@ -120,7 +120,7 @@
       paths:
        - '{{ dims_private }}/roles/{{ role_name }}/templates/trident/trident.css/'
        - trident/trident.css/
-      skip: true
+      errors: ignore
   become: yes
   # TODO(dittrich): Move this to trident-configure role; use tag for now.
 
