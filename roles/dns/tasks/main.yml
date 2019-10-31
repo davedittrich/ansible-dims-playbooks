@@ -71,7 +71,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
         - dnsmasq.conf/
-      errors: ignore
+      skip: true
   become: yes
   when: ansible_os_family == "Debian"
   notify:

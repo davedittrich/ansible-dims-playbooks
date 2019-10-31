@@ -208,7 +208,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/hosts/'
         - hosts/
-      errors: ignore
+      skip: true
   become: yes
   when: ansible_os_family in [ "Debian", "RedHat", "CentOS", "Container Linux by CoreOS" ]
   tags: [ base, hosts, config ]
@@ -759,7 +759,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog/'
         - rsyslog/
-      errors: ignore
+      skip: true
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
@@ -790,7 +790,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
         - rsyslog.d/
-      errors: ignore
+      skip: true
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
@@ -818,7 +818,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/rsyslog.d/'
         - rsyslog.d/
-      errors: ignore
+      skip: true
   become: yes
   when: ansible_os_family != "Container Linux by CoreOS"
   tags: [ base, config, rsyslogd ]
@@ -1050,7 +1050,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/network/'
         - network/
-      errors: ignore
+      skip: true
   become: yes
   when: ansible_os_family == "Debian" and manage_interfaces
   tags: [ base, config, interfaces ]
@@ -1118,7 +1118,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/fstab/'
         - fstab/
-      errors: ignore
+      skip: true
   become: yes
   when: ansible_os_family == "Debian" or ansible_os_family == "Container Linux by CoreOS"
   tags: [ base, config ]

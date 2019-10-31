@@ -22,7 +22,7 @@
         - hosts.{{ ansible_domain }}
         - hosts.{{ datacenter }}
         - hosts
-      errors: ignore
+      skip: true
   tags: [ hosts, config ]
 
 # vim: ft=ansible :

@@ -19,7 +19,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/systemd/'
         - systemd/
-      errors: ignore
+      skip: true
   when: hostvars[inventory_hostname].ansible_os_family == "Container Linux by CoreOS"
   become: yes
   tags: [ consul, config ]
@@ -41,7 +41,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/systemd/'
         - systemd/
-      errors: ignore
+      skip: true
   when: hostvars[inventory_hostname].ansible_os_family == "Container Linux by CoreOS"
   become: yes
   tags: [ consul, config ]
