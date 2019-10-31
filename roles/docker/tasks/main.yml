@@ -50,14 +50,10 @@
 
 - name: Ensure all old Docker versions are gone
   apt:
-    name: '{{ item }}'
+    name: [ 'docker.io', 'docker', 'docker-engine' ]
     state: absent
     purge: true
     force: true
-  with_items:
-    - 'docker.io'
-    - 'docker'
-    - 'docker-engine'
   become: yes
   ignore_errors: true
   when: ansible_os_family == "Debian"
@@ -73,13 +69,9 @@
 
 - name: Install pre-requisites for CentOS
   yum:
-    name: '{{ item }}'
+    name: [ 'yum-utils', 'device-mapper-persistent-data', 'lvm2' ]
     state: present
     update_cache: yes
-  with_items:
-    - yum-utils
-    - device-mapper-persistent-data
-    - lvm2
   when: ansible_distribution == "CentOS"
   tags: [ docker, packages ]
 
@@ -112,11 +104,8 @@
 
 - name: Ensure proper kernel is installed on Ubuntu
   apt:
-    name: '{{ item }}'
+    name: "[ 'linux-image-extra-{{ ansible_kernel }}', 'linux-image-virtual' ]"
     state: present
-  with_items:
-    - 'linux-image-extra-{{ ansible_kernel }}'
-    - 'linux-image-virtual'
   become: yes
   when: ansible_distribution == "Ubuntu"
   tags: [ docker, packages ]

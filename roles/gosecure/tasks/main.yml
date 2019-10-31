@@ -39,11 +39,9 @@
 #- name: Make sure required APT packages are present (Debian)
 #  apt:
 #    state: present
-#    name: '{{ item }}'
+#    name: [ '{{ packages_install }}' ]
 #    update_cache: yes
 #    force: yes
-#  with_items:
-#   - "{{ packages_install }}"
 #  ignore_errors: yes
 #  when: ansible_pkg_mgr == "apt"
 #  tags: [ gosecure, packages, config ]
@@ -51,10 +49,8 @@
 #- name: Make sure required RPM packages are present (RedHat)
 #  yum:
 #    state: present
-#    name: '{{ item }}'
+#    name: [ '{{ packages_install }}' ]
 #    update_cache: yes
-#  with_items:
-#   - "{{ packages_install }}"
 #  ignore_errors: yes
 #  when: ansible_pkg_mgr == "yum"
 #  tags: [ gosecure, packages, config ]

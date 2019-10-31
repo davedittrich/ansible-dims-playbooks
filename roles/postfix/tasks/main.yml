@@ -30,17 +30,16 @@
 
 - name: Make related mail utilities present (APT)
   apt:
-    name={{ item }}
-    state=present
-    force=yes
-    dpkg_options='force-confold,force-confdef'
-  with_items:
-    - mailutils
-    - alpine
-    - opendkim
-    - opendkim-tools
-    - postfix-policyd-spf-python
-    - postfix-pcre
+    name:
+      - mailutils
+      - alpine
+      - opendkim
+      - opendkim-tools
+      - postfix-policyd-spf-python
+      - postfix-pcre
+    state: present
+    force: yes
+    dpkg_options: 'force-confold,force-confdef'
   when: ansible_pkg_mgr == "apt"
   become: yes
   tags: [ postfix, packages ]
@@ -51,11 +50,8 @@
 
 - name: Make related mail utilities present (yum)
   yum:
-    name={{ item }}
-    state=present
-  with_items:
-    - mailx
-    - alpine
+    name: [ 'mailx', 'alpine' ]
+    state: present
   when: ansible_pkg_mgr == "yum"
   become: yes
   tags: [ postfix, packages ]

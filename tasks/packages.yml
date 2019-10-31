@@ -5,21 +5,17 @@
 - name: Make sure required APT packages are present (Debian)
   apt:
     state: present
-    name: '{{ item }}'
+    name: [ '{{ packages_install }}' ]
     update_cache: yes
     force: yes
-  with_items:
-   - "{{ packages_install }}"
   ignore_errors: yes
   when: ansible_pkg_mgr == "apt"
 
 - name: Make sure required RPM packages are present (RedHat)
   yum:
     state: present
-    name: '{{ item }}'
+    name: [ '{{ packages_install }}' ]
     update_cache: yes
-  with_items:
-   - "{{ packages_install }}"
   ignore_errors: yes
   when: ansible_pkg_mgr == "yum"
 
@@ -31,11 +27,8 @@
 
 - name: Ensure wandisco Git installed on CentOS 6
   yum:
-    name: '{{ item }}'
+    name: [ 'http://opensource.wandisco.com/centos/6/git/x86_64/wandisco-git-release-6-1.noarch.rpm', 'git' ]
     state: present
-  with_items:
-    - 'http://opensource.wandisco.com/centos/6/git/x86_64/wandisco-git-release-6-1.noarch.rpm'
-    - git
   when: ansible_distribution == "CentOS" and ansible_distribution_major_version|int == 6
 
   # TODO(dittrich): Implement CoreOS preparation from $GIT/dims-packer/
