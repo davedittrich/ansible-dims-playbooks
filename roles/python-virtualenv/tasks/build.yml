@@ -10,87 +10,83 @@
 
 - name: Ensure prerequisites packages present (apt)
   apt:
-    name={{ item }}
-    state=present
-    force=yes
-  with_items:
-    - autoconf
-    - build-essential
-    - gettext
-    - graphviz
-    - libbz2-dev
-    - libcurl4-gnutls-dev
-    - libffi-dev
-    - libgdbm-dev
-    - libgraphviz-dev
-    - libncurses-dev
-    - libreadline-dev
-    - libsqlite3-dev
-    - libssl-dev
-    - libxml2-dev
-    - libxslt1-dev
-    - libyaml-dev
-    - pkg-config
-    - python-tk
-    - python2.7-dev
-    - xsltproc
+    name:
+      - 'autoconf'
+      - 'build-essential'
+      - 'gettext'
+      - 'graphviz'
+      - 'libbz2-dev'
+      - 'libcurl4-gnutls-dev'
+      - 'libffi-dev'
+      - 'libgdbm-dev'
+      - 'libgraphviz-dev'
+      - 'libncurses-dev'
+      - 'libreadline-dev'
+      - 'libsqlite3-dev'
+      - 'libssl-dev'
+      - 'libxml2-dev'
+      - 'libxslt1-dev'
+      - 'libyaml-dev'
+      - 'pkg-config'
+      - 'python-tk'
+      - 'python2.7-dev'
+      - 'xsltproc'
+    state: present
+    force: yes
   when: ansible_pkg_mgr == "apt"
   become: yes
   tags: [ python-virtualenv, packages ]
 
 - name: Ensure prerequisites packages present (yum)
   yum:
-    name: '{{ item }}'
+    name:
+      - 'autoconf'
+      - 'bzip2-devel'
+      - 'bzip2-libs'
+      - 'gcc-c++'
+      - 'gettext'
+      - 'gnutls-devel'
+      - 'graphviz'
+      - 'graphviz-devel'
+      - 'graphviz-python'
+      - 'libxml2'
+      - 'libxml2-devel'
+      - 'libxslt'
+      - 'libxslt-devel'
+      - 'libyaml-devel'
+      - 'ncurses-devel'
+      - 'openssl-devel'
+      - 'perl-devel'
+      - 'php-common'
+      - 'readline-devel'
     state: present
     update_cache: yes
-  with_items:
-    - autoconf
-    - bzip2-devel
-    - bzip2-libs
-    - gcc-c++
-    - gettext
-    - gnutls-devel
-    - graphviz
-    - graphviz-devel
-    - graphviz-python
-    - libxml2
-    - libxml2-devel
-    - libxslt
-    - libxslt-devel
-    - libyaml-devel
-    - ncurses-devel
-    - openssl-devel
-    - perl-devel
-    - php-common
-    - readline-devel
   when: ansible_pkg_mgr == "yum"
   become: yes
   tags: [ python-virtualenv, packages ]
 
 - name: Ensure required Sphinx prerequisites present (apt)
   apt:
-    state=present
-    name={{ item }}
-    force=yes
-  with_items:
-    - texlive-latex-base
-    - texlive-latex-extra
-    - texlive-latex-recommended
-    - texlive-extra-utils
-    - texlive-fonts-recommended
-    - texlive-fonts-extra
+    state: present
+    name:
+      - 'texlive-latex-base'
+      - 'texlive-latex-extra'
+      - 'texlive-latex-recommended'
+      - 'texlive-extra-utils'
+      - 'texlive-fonts-recommended'
+      - 'texlive-fonts-extra'
+    force: yes
   when: ansible_pkg_mgr == "apt" and (use_sphinx is defined and use_sphinx|bool)
   become: yes
   tags: [ python-virtualenv, packages ]
 
 - name: Ensure required Sphinx prerequisites present (yum)
   yum:
-    name: '{{ item }}'
+    name:
+      - 'texlive'
+      - 'texlive-*.noarch'
     state: present
     update_cache: yes
-  with_items:
-    - texlive
-    - 'texlive-*.noarch'
   when: ansible_pkg_mgr == "yum" and (use_sphinx is defined and use_sphinx|bool)
   become: yes
   tags: [ python-virtualenv, packages ]

@@ -61,12 +61,12 @@
   debug:
     msg: "Refusing to rebuild existing Python virtualenv. Set 'dims_virtualenv_build=true' to force rebuilding."
     verbosity: 2
-  when: not dims_virtualenv_build
+  when: not dims_virtualenv_build|bool
   tags: [ python-virtualenv, packages, config ]
 
 - name: Build virtualenv
   import_tasks: build.yml
-  when: dims_virtualenv_build
+  when: dims_virtualenv_build|bool
   tags: [ python-virtualenv, packages, config ]
 
 - import_tasks: "{{ tasks_path }}/post_tasks.yml"
