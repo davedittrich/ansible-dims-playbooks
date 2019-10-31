@@ -25,33 +25,34 @@
 - name: Ensure GPG is set up
   shell: 'gpg --list-keys 2>/dev/null >/dev/null'
   become: yes
-  become_user: '{{ dims_user }}'
-  ignore_errors: yes
 
-- name: Ensure EFF public key is available
-  shell: 'gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys A2CFB51FA275A7286234E7B24D17C995CD9775F2'
+- name: Check to see if EFF public key is available
+  shell:
+    gpg2 --list-key A2CFB51FA275A7286234E7B24D17C995CD9775F2
   become: yes
-  become_user: '{{ dims_user }}'
-  ignore_errors: yes
+  register: gpg
+
+- name: Ensure EFF public key is imported
+  shell:
+    gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys A2CFB51FA275A7286234E7B24D17C995CD9775F2
+  become: yes
+  when: gpg.stdout is search('No public key')
 
 - name: Obtain current 'certbot-auto' binary
   get_url:
     url: 'https://dl.eff.org/certbot-auto'
     dest: '{{ dims_deploy }}/certbot/certbot-auto'
   become: yes
-  become_user: '{{ dims_user }}'
 
 - name: Obtain current 'certbot-auto' signature
   get_url:
     url: 'https://dl.eff.org/certbot-auto.asc'
     dest: '{{ dims_deploy }}/certbot/certbot-auto.asc'
   become: yes
-  become_user: '{{ dims_user }}'
 
 - name: Check signature of certbot-auto binary
   shell: 'gpg2 --verify --trusted-key 4D17C995CD9775F2 {{ dims_deploy }}/certbot/certbot-auto.asc {{ dims_deploy }}/certbot/certbot-auto'
   become: yes
-  become_user: '{{ dims_user }}'
 
 - name: Ensure certbot-auto is in PATH
   copy:
