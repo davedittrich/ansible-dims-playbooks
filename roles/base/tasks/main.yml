@@ -461,7 +461,9 @@
   become: yes
   notify:
     - 'restart fail2ban'
-  when: ansible_os_family != "Container Linux by CoreOS"
+  when:
+    - fail2ban_services is defined
+    - fail2ban_services|length > 0
   tags: [ base, config, iptables ]
 
 - name: Ensure /etc/fail2ban/jail.local is present
@@ -484,7 +486,34 @@
   become: yes
   notify:
     - 'restart fail2ban'
-  when: ansible_os_family != "Container Linux by CoreOS"
+  when:
+    - fail2ban_services is defined
+    - fail2ban_services|length > 0
+  tags: [ base, config, iptables ]
+
+- name: Ensure /etc/fail2ban/action.d/sendmail-whois-journalctl.conf is present
+  template:
+    src: '{{ item }}'
+    dest: '/etc/fail2ban/action.d/sendmail-whois-journalctl.conf'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o600
+  with_first_found:
+    - files:
+        - '{{ fail2ban_sendmail_whois_journalctl_conf }}'
+        - sendmail-whois-journalctl.{{ inventory_hostname }}.conf.j2
+        - sendmail-whois-journalctl.category-{{ category }}.conf.j2
+        - sendmail-whois-journalctl.deployment-{{ deployment }}.conf.j2
+        - sendmail-whois-journalctl.conf.j2
+      paths:
+        - '{{ dims_private }}/roles/{{ role_name }}/templates/fail2ban/action.d/'
+        - fail2ban/action.d/
+  become: yes
+  notify:
+    - 'restart fail2ban'
+  when:
+    - fail2ban_services is defined
+    - fail2ban_services|length > 0
   tags: [ base, config, iptables ]
 
 - name: Set timezone variables (Debian)
@@ -1166,6 +1195,7 @@
   - 'update Ubuntu locales'
   become: yes
   when: ansible_distribution == "Ubuntu"
+  ignore_errors: true
   tags: [ base, packages ]
 
 - name: Ensure Debian locale set (Debian)
@@ -1177,6 +1207,7 @@
   notify:
   - 'update Debian locales'
   become: yes
+  ignore_errors: true
   when: ansible_distribution == "Debian"
   tags: [ base, packages ]
 

@@ -6,7 +6,7 @@ packages_upgrade: false
 root_user: root
 root_group: root
 
-fail2ban_action: '%(action_mwl)s'
+fail2ban_action: '{{ fail2ban_backend == "systemd"|ternary("%(action_mwj)s", "%(action_mwl)s") }}'
 # fail2ban_backend gets set dynamically in tasks/main.yml
 fail2ban_banaction: 'iptables-allports'
 fail2ban_bantime: 3600 # one hour
@@ -21,7 +21,7 @@ fail2ban_ignoreips:
 fail2ban_loglevel: 3
 #fail2ban_logpath: '/var/log/dims/{{ rsyslog_perhost|default(false)|ternary(dims_fqdn,dims_domain) }}.log'
 #fail2ban_logpath: '/var/log/dims/{{ dims_fqdn }}.log'
-fail2ban_logpath: '/var/log/auth.log'
+fail2ban_logpath: '{{ fail2ban_backend == "systemd"| ternary("", "/var/log/auth.log") }}'
 fail2ban_logtarget: 'SYSLOG'
 fail2ban_maxretry: 3
 fail2ban_mta: 'sendmail'
@@ -30,8 +30,9 @@ fail2ban_protocol: 'tcp'
 fail2ban_sendername: 'Fail2ban'
 fail2ban_socket: '/var/run/fail2ban/fail2ban.sock'
 fail2ban_services:
-  - name: 'ssh'
+  - name: 'sshd'
     port: 22
+    service: 'ssh.service'
     filter: 'sshd'
     logpath: '{{ fail2ban_logpath }}'
     bantime: 86400 # one day
