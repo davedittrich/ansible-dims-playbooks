@@ -103,21 +103,28 @@ smtpd_relay_restrictions =
   permit_sasl_authenticated,
   reject_unauth_destination
 
+# TLS parameters
 # See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
 # information on enabling SSL in the smtp client.
-# TLS parameters
-{% if use_letsencrypt is not defined or not use_letsencrypt %}
-smtpd_tls_cert_file={{ ssl_certfile }}
-smtpd_tls_key_file={{ ssl_keyfile }}
-{% else %}
-# Letsencrypt certificate
+
+smtpd_use_tls = yes
+smtpd_tls_security_level = may
+smtpd_tls_auth_only = yes
+smtpd_tls_mandatory_protocols = !SSLv2,!SSLv3,!TLSv1,!TLSv1.1
+smtpd_tls_protocols = !SSLv2,!SSLv3,!TLSv1,!TLSv1.1
+smtpd_tls_mandatory_ciphers = medium
+tls_medium_cipherlist = EECDH+AESGCM:EDH+AESGCM
+tls_preempt_cipherlist = yes
+{% if use_letsencrypt defined and use_letsencrypt|bool %}
 # https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
-smtpd_tls_cert_file=/etc/letsencrypt/live/{{ certbot_sitename }}/fullchain.pem
-smtpd_tls_key_file=/etc/letsencrypt/live/{{ certbot_sitename }}/privkey.pem
+smtpd_tls_cert_file = /etc/letsencrypt/live/{{ certbot_sitename }}/fullchain.pem
+smtpd_tls_key_file = /etc/letsencrypt/live/{{ certbot_sitename }}/privkey.pem
+{% else %}
+smtpd_tls_cert_file = {{ ssl_certfile }}
+smtpd_tls_key_file = {{ ssl_keyfile }}
 {% endif %}
-smtpd_use_tls=yes
 # http://www.postfix.org/FORWARD_SECRECY_README.html
-smtpd_tls_dh1024_param_file={{ ssl_dhparam_file }}
+smtpd_tls_dh1024_param_file = {{ ssl_dhparam_file }}
 smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
 smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 

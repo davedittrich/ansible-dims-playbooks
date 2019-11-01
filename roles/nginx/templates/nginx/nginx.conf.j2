@@ -10,7 +10,6 @@
 # are properly coupled with the configuration of the base 'nginx' role.
 
 user www-data;
-worker_processes {{ nginx_worker_processes|default(4) }};
 pid /run/nginx.pid;
 
 {% if ansible_service_mgr == "systemd" %}
@@ -20,6 +19,7 @@ error_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,sever
 {% endif %}
 
 events {
+  worker_processes {{ nginx_worker_processes|default(4) }};
   worker_connections 1024;
   use epoll;
   # multi_accept on;
@@ -38,6 +38,7 @@ http {
   keepalive_timeout 5;
   types_hash_max_size 2048;
   server_tokens off;
+  add_header X-Frame-Options SAMEORIGIN;
 
 {% if ansible_service_mgr == "systemd" %}
   access_log syslog:server=unix:/dev/log;
@@ -50,15 +51,12 @@ http {
   client_max_body_size 32m;
   client_body_buffer_size 128k;
 
-  ssl_protocols TLSv1.1 TLSv1.2;
-
   # allow long server names
   server_names_hash_bucket_size 64;
   server_name_in_redirect off;
 
   include /etc/nginx/mime.types;
   default_type application/octet-stream;
-
 
   ##
   # Gzip Settings
