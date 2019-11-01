@@ -10,8 +10,14 @@
 # are properly coupled with the configuration of the base 'nginx' role.
 
 user www-data;
-worker_processes {{ nginx_worker_processes | default(4) }};
+worker_processes {{ nginx_worker_processes|default(4) }};
 pid /run/nginx.pid;
+
+{% if ansible_service_mgr == "systemd" %}
+error_log syslog:server=unix:/dev/log;
+{% else %}
+error_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
+{% endif %}
 
 events {
   worker_connections 1024;
@@ -25,6 +31,7 @@ http {
   # Basic Settings
   ##
 
+  charset {{ nginx_charset|default('utf-8') }};
   sendfile on;
   tcp_nopush on;
   tcp_nodelay off;
@@ -32,12 +39,18 @@ http {
   types_hash_max_size 2048;
   server_tokens off;
 
+{% if ansible_service_mgr == "systemd" %}
+  access_log syslog:server=unix:/dev/log;
+{% else %}
+  access_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
+{% endif %}
+
   # spool uploads to disk instead of clobbering downstream servers
   client_body_temp_path /var/spool/nginx-client-body 1 2;
   client_max_body_size 32m;
   client_body_buffer_size 128k;
 
-  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+  ssl_protocols TLSv1.1 TLSv1.2;
 
   # allow long server names
   server_names_hash_bucket_size 64;
@@ -46,12 +59,6 @@ http {
   include /etc/nginx/mime.types;
   default_type application/octet-stream;
 
-  ##
-  # Logging Settings
-  ##
-
-  access_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
-  error_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,severity={{ syslog_severity }};
 
   ##
   # Gzip Settings
