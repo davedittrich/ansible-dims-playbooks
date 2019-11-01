@@ -162,7 +162,7 @@
 - name: Install erlang package
   apt:
     name: 'erlang'
-    state: installed
+    state: present
     force: yes
   when: ansible_os_family == "Debian"
   tags: [ rabbitmq ]
@@ -180,7 +180,7 @@
 - name: Install rabbitmq-server package
   apt:
     name: 'rabbitmq-server'
-    state: installed
+    state: present
     force: yes
   when: ansible_os_family == "Debian"
   tags: [ rabbitmq ]
