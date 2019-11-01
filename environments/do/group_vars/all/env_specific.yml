@@ -174,10 +174,10 @@ hashi_vault_listen_port: 8200
 hashi_vault_ui: 'true'
 hashi_vault_addr: "{{ hashi_vault_scheme }}://{{ ansible_fqdn }}:{{ hashi_vault_listen_port }}"
 hashi_vault_ssl_dir: '{{ dims_data }}/vault'
-hashi_vault_ssl_fullchainfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_ssl_fullchainfile|basename }}'
-hashi_vault_ssl_cacertfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_ssl_cacertfile|basename }}'
-hashi_vault_ssl_certfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_ssl_certfile|basename }}'
-hashi_vault_ssl_keyfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_ssl_keyfile|basename }}'
+hashi_vault_ssl_fullchainfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_tls_fullchainfile|basename }}'
+hashi_vault_ssl_cacertfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_tls_cacertfile|basename }}'
+hashi_vault_ssl_certfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_tls_certfile|basename }}'
+hashi_vault_ssl_keyfile: '{{ hashi_vault_ssl_dir }}/{{ letsencrypt_tls_keyfile|basename }}'
 
 rabbitmq_tcp_listen_port: 5672
 rabbitmq_ssl_listen_port: 5671
@@ -237,10 +237,10 @@ ssl_keyfile: '{{ ssl_key_dir }}/{{ dims_fqdn }}-priv-key.pem'
 ssl_dhparam_file: '/etc/ssl/certs/dhparam.pem'
 ssl_dhparam_keysize: '2048'
 
-letsencrypt_ssl_cacertfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/chain.pem'
-letsencrypt_ssl_fullchainfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/fullchain.pem'
-letsencrypt_ssl_certfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/cert.pem'
-letsencrypt_ssl_keyfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/privkey.pem'
+letsencrypt_tls_cacertfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/chain.pem'
+letsencrypt_tls_fullchainfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/fullchain.pem'
+letsencrypt_tls_certfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/cert.pem'
+letsencrypt_tls_keyfile: '/etc/letsencrypt/live/{{ dims_fqdn }}/privkey.pem'
 
 swarm:
   service_delay_seconds: 30

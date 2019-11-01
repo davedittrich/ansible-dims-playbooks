@@ -17,9 +17,9 @@
   when: use_letsencrypt is defined and use_letsencrypt|bool
   tags: [ nginx, packages ]
 
-- name: Stat letsencrypt_ssl_keyfile
+- name: Stat letsencrypt_tls_keyfile
   stat:
-    path: '{{ letsencrypt_ssl_keyfile }}'
+    path: '{{ letsencrypt_tls_keyfile }}'
   register: _keyfile_stat
   tags: [ nginx, packages ]
 

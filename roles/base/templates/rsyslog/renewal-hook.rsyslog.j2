@@ -20,9 +20,9 @@
 # certificates/keys for use by non-privileged rsyslog processing.
 
 [[ -d {{ rsyslog_ssl_dir }} ]] || (echo "[-] Directory {{ rsyslog_ssl_dir }} does not exist" && exit 1)
-cp {{ letsencrypt_ssl_fullchainfile }} {{ rsyslog_ssl_cacertfile }}
-cp {{ letsencrypt_ssl_certfile }} {{ rsyslog_ssl_certfile }}
-cp {{ letsencrypt_ssl_keyfile }} {{ rsyslog_ssl_keyfile }}
+cp {{ letsencrypt_tls_fullchainfile }} {{ rsyslog_ssl_cacertfile }}
+cp {{ letsencrypt_tls_certfile }} {{ rsyslog_ssl_certfile }}
+cp {{ letsencrypt_tls_keyfile }} {{ rsyslog_ssl_keyfile }}
 for F in {{ rsyslog_ssl_cacertfile }} {{ rsyslog_ssl_certfile }} {{ rsyslog_ssl_keyfile }}; do
   chown root:syslog $F
   chmod 640 $F

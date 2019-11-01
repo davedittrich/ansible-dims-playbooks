@@ -20,9 +20,9 @@
 # certificates/keys for use by unprivileged rabbitmq processing.
 
 [[ -d {{ rabbitmq_ssl_dir }} ]] || (echo "[-] Directory {{ rabbitmq_ssl_dir }} does not exist" && exit 1)
-cp {{ letsencrypt_ssl_fullchainfile }} {{ rabbitmq_ssl_cacertfile }}
-cp {{ letsencrypt_ssl_certfile }} {{ rabbitmq_ssl_certfile }}
-cp {{ letsencrypt_ssl_keyfile }} {{ rabbitmq_ssl_keyfile }}
+cp {{ letsencrypt_tls_fullchainfile }} {{ rabbitmq_ssl_cacertfile }}
+cp {{ letsencrypt_tls_certfile }} {{ rabbitmq_ssl_certfile }}
+cp {{ letsencrypt_tls_keyfile }} {{ rabbitmq_ssl_keyfile }}
 for F in {{ rabbitmq_ssl_cacertfile }} {{ rabbitmq_ssl_certfile }} {{ rabbitmq_ssl_keyfile }}; do
   chown root:rabbitmq $F
   chmod 640 $F
