@@ -11,6 +11,7 @@
 
 user www-data;
 pid /run/nginx.pid;
+worker_processes {{ nginx_worker_processes|default(4) }};
 
 {% if ansible_service_mgr == "systemd" %}
 error_log syslog:server=unix:/dev/log;
@@ -19,7 +20,6 @@ error_log syslog:server=localhost,facility={{ syslog_facility }},tag=nginx,sever
 {% endif %}
 
 events {
-  worker_processes {{ nginx_worker_processes|default(4) }};
   worker_connections 1024;
   use epoll;
   # multi_accept on;

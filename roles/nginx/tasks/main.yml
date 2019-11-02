@@ -149,8 +149,28 @@
     - 'restart nginx'
   tags: [ nginx, config ]
 
+- name: Validate nginx configuration
+  shell: 'nginx -t'
+  register: nginx_t
+  become: yes
+  tags: [ nginx, config ]
+
+- name: Debug nginx_t.stderr_lines
+  debug:
+    var: nginx_t.stderr_lines
+  when: nginx_t.stderr is not search('syntax is ok')
+  tags: [ nginx, config ]
+
+- name: Fail if syntax not ok
+  fail:
+    var: '{{ nginx_t.stderr_lines }}'
+  when: nginx_t.stderr is not search('syntax is ok')
+  tags: [ nginx, config ]
+
 - name: Ensure nginx is enabled
-  service: name=nginx enabled=yes
+  service:
+    name: nginx
+    enabled: yes
   become: yes
   tags: [ nginx, packages ]
 
@@ -158,6 +178,11 @@
   set_fact:
     nginx_sites_available: '{{ _nginx_sites_available }}'
   when: nginx_sites_available is not defined
+  tags: [ nginx, config ]
+
+- name: Debug nginx_sites_available
+  debug:
+    var: nginx_sites_available
   tags: [ nginx, config ]
 
   # Ansible does not support nested loops of with_items
@@ -169,14 +194,16 @@
   # This only works with Ansible >2.1 and its dynamic
   # inclusion behavior.
 - block:
-  - name: Install sites in nginx_sites_available
+  - name: Install sites from nginx_sites_available
     include_tasks: 'install-site-available.yml'
     with_items:
-      - '{{ nginx_sites_available }}'
+      - '{{ nginx_sites_enabled }}'
     loop_control:
       loop_var: _sitename
   become: yes
-  when: nginx_sites_available is defined
+  when:
+    - nginx_sites_available is defined
+    - nginx_sites_enabled is defined
   tags: [ nginx, config ]
 
 - name: Define nginx_sites_enabled variable

@@ -2,7 +2,20 @@
 
 # File: roles/nginx/tasks/install-site-available.yml
 
-- name: Configure sites-available for {{ _sitename }}
+- name: Configure sites-available/{{ _sitename }} from vars
+  copy:
+    dest: '/etc/nginx/sites-available/{{ _sitename }}'
+    content: '{{ nginx_sites[_sitename] }}'
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  become: yes
+  notify:
+    - 'restart nginx'
+  when: _sitename in nginx_sites
+  ignore_errors: yes
+
+- name: Configure sites-available/{{ _sitename }} from template
   template:
     src: '{{ item }}'
     dest: '/etc/nginx/sites-available/{{ item|basename|regex_replace(".j2","") }}'
@@ -18,6 +31,7 @@
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/sites-available/'
         - sites-available/
-  ignore_errors: yes
+      skip: true
+  when: _sitename in nginx_sites
 
 # vim: ft=ansible :
