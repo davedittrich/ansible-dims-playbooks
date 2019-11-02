@@ -85,7 +85,7 @@
 - name: Make sure blacklisted packages are absent (Debian)
   apt:
     state: absent
-    name: '[ {{ packages_remove }} ]'
+    name: '{{ packages_remove }}'
     force: yes
   become: yes
   when: ansible_pkg_mgr == "apt"
@@ -1192,20 +1192,21 @@
 - name: Ensure Ubuntu locale set (Ubuntu)
   shell: "locale-gen {{ dims_locale }}"
   notify:
-  - 'update Ubuntu locales'
+    - 'update Ubuntu locales'
   become: yes
   when: ansible_distribution == "Ubuntu"
   ignore_errors: true
   tags: [ base, packages ]
 
 - name: Ensure Debian locale set (Debian)
-  lineinfile: dest=/etc/locale.gen
-              regexp='^# {{ dims_locale }} UTF-8'
-              line='{{ dims_locale }} UTF-8'
-              backrefs=yes
-              state=present
+  lineinfile:
+    dest: /etc/locale.gen
+    state: present
+    regexp: '^# {{ dims_locale }} UTF-8'
+    line: '{{ dims_locale }} UTF-8'
+    backrefs: yes
   notify:
-  - 'update Debian locales'
+    - 'update Debian locales'
   become: yes
   ignore_errors: true
   when: ansible_distribution == "Debian"

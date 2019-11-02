@@ -5,7 +5,7 @@
 - name: Make sure required APT packages are present (Debian)
   apt:
     state: present
-    name: [ '{{ packages_install }}' ]
+    name: '{{ packages_install }}'
     update_cache: yes
     force: yes
   ignore_errors: yes
@@ -14,7 +14,7 @@
 - name: Make sure required RPM packages are present (RedHat)
   yum:
     state: present
-    name: [ '{{ packages_install }}' ]
+    name: '{{ packages_install }}'
     update_cache: yes
   ignore_errors: yes
   when: ansible_pkg_mgr == "yum"
