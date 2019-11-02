@@ -115,7 +115,7 @@ smtpd_tls_protocols = !SSLv2,!SSLv3,!TLSv1,!TLSv1.1
 smtpd_tls_mandatory_ciphers = medium
 tls_medium_cipherlist = EECDH+AESGCM:EDH+AESGCM
 tls_preempt_cipherlist = yes
-{% if use_letsencrypt defined and use_letsencrypt|bool %}
+{% if use_letsencrypt is defined and use_letsencrypt %}
 # https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-14-04
 smtpd_tls_cert_file = /etc/letsencrypt/live/{{ certbot_sitename }}/fullchain.pem
 smtpd_tls_key_file = /etc/letsencrypt/live/{{ certbot_sitename }}/privkey.pem
