@@ -170,7 +170,6 @@
     - files:
        - '{{ nginx_confd_jenkins }}'
        - jenkins.{{ inventory_hostname }}.j2
-       - jenkins.category-{{ category }}.j2
        - jenkins.deployment-{{ deployment }}.j2
        - jenkins.j2
       paths:

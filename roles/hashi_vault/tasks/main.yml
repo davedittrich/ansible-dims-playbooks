@@ -195,7 +195,6 @@
     - files:
         - '{{ hashi_vault_conf }}'
         - vaultconfig.hcl.{{ inventory_hostname }}.j2
-        - vaultconfig.hcl.category-{{ category }}.j2
         - vaultconfig.hcl.deployment-{{ deployment }}.j2
         - vaultconfig.hcl.j2
       paths:
@@ -216,7 +215,6 @@
     - files:
         - '{{ letsencrypt_hashi_vault_hook }}'
         - renewal-hook.hashi_vault.{{ inventory_hostname }}
-        - renewal-hook.hashi_vault.category-{{ category }}.j2
         - renewal-hook.hashi_vault.deployment-{{ deployment }}.j2
         - renewal-hook.hashi_vault.j2
       paths:
@@ -251,7 +249,6 @@
     - files:
         - '{{ base_hosts }}'
         - 'vault.service.{{ inventory_hostname }}.j2'
-        - 'vault.service.category-{{ category }}.j2'
         - 'vault.service.deployment-{{ deployment }}.j2'
         - 'vault.service.j2'
       paths:

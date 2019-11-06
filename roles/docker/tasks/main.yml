@@ -223,7 +223,6 @@
     - files:
         - '{{ docker_service }}'
         - 'docker.service.{{ inventory_hostname }}.j2'
-        - 'docker.service.category-{{ category }}.j2'
         - 'docker.service.deployment-{{ deployment }}.j2'
         - 'docker.service.j2'
       paths:
@@ -246,7 +245,6 @@
     - files:
         - '{{ docker_default }}'
         - docker.{{ inventory_hostname }}.j2
-        - docker.category-{{ category }}.j2
         - docker.deployment-{{ deployment }}.j2
         - docker.j2
       paths:

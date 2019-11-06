@@ -43,7 +43,6 @@
     - files:
         - '{{ dnsmasq_defaults }}'
         - dnsmasq.{{ dims_fqdn }}.j2
-        - dnsmasq.category-{{ category }}.j2
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
       paths:
@@ -66,7 +65,6 @@
     - files:
         - '{{ dnsmasq_conf }}'
         - dnsmasq.conf.{{ dims_fqdn }}.j2
-        - dnsmasq.conf.category-{{ category }}.j2
         - dnsmasq.conf.deployment-{{ deployment }}.j2
       paths:
         - '{{ dims_private }}/roles/{{ role_name }}/templates/dnsmasq.conf/'
@@ -89,7 +87,6 @@
     - files:
         - '{{ dnsmasq_default }}'
         - dnsmasq.{{ dims_fqdn }}.j2
-        - dnsmasq.category-{{ category }}.j2
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
       paths:
@@ -112,7 +109,6 @@
     - files:
         - '{{ dnsmasq_init }}'
         - dnsmasq.{{ dims_fqdn }}.j2
-        - dnsmasq.category-{{ category }}.j2
         - dnsmasq.deployment-{{ deployment }}.j2
         - dnsmasq.j2
       paths:

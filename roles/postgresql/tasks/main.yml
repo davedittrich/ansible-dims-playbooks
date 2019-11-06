@@ -62,7 +62,6 @@
     - files:
         - '{{ postgresql_conf }}'
         - postgresql.conf.{{ inventory_hostname }}.j2
-        - postgresql.conf.category-{{ category }}.j2
         - postgresql.conf.deployment-{{ deployment }}.j2
         - postgresql.conf.j2
       paths:
@@ -85,7 +84,6 @@
     - files:
         - '{{ pghba_conf }}'
         - pg_hba.conf.{{ inventory_hostname }}.j2
-        - pg_hba.conf.category-{{ category }}.j2
         - pg_hba.conf.deployment-{{ deployment }}.j2
         - pg_hba.conf.j2
       paths:
@@ -108,7 +106,6 @@
     - files:
         - '{{ pgident_conf }}'
         - pg_ident.conf.{{ inventory_hostname }}.j2
-        - pg_ident.conf.category-{{ category }}.j2
         - pg_ident.conf.deployment-{{ deployment }}.j2
         - pg_ident.conf.j2
       paths:

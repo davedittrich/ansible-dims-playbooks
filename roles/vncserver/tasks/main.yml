@@ -102,7 +102,6 @@
     - files:
         - '{{ vncserver_init }}'
         - vncserver.{{ vnserver_fqdn }}.j2
-        - vncserver.category-{{ category }}.j2
         - vncserver.deployment-{{ deployment }}.j2
         - vncserver.j2
       paths:
@@ -162,7 +161,6 @@
     - files:
         - '{{ vnc_script }}'
         - vnc.sh.{{ vncserver_fqdn }}.j2
-        - vnc.sh.category-{{ category }}.j2
         - vnc.sh.deployment-{{ deployment }}.j2
         - vnc.sh.j2
       paths:
@@ -183,7 +181,6 @@
     - files:
         - '{{ vncserver_default }}'
         - vncserver.{{ vncserver_fqdn }}.j2
-        - vncserver.category-{{ category }}.j2
         - vncserver.deployment-{{ deployment }}.j2
         - vncserver.j2
       paths:

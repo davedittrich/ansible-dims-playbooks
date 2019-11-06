@@ -202,7 +202,6 @@
     - files:
         - '{{ base_hosts }}'
         - hosts.{{ inventory_hostname }}.j2
-        - hosts.category-{{ category }}.j2
         - hosts.deployment-{{ deployment }}.j2
         - hosts.j2
       paths:
@@ -237,7 +236,6 @@
     - files:
         - '{{ iptables_rules }}'
         - rules.v4.{{ inventory_hostname }}.j2
-        - rules.v4.category-{{ category }}.j2
         - rules.v4.deployment-{{ deployment }}.j2
         - rules.v4.j2
       paths:
@@ -262,7 +260,6 @@
     - files:
         - '{{ iptables_rules }}'
         - rules.v4.{{ inventory_hostname }}.j2
-        - rules.v4.category-{{ category }}.j2
         - rules.v4.deployment-{{ deployment }}.j2
         - rules.v4.j2
       paths:
@@ -287,7 +284,6 @@
     - files:
         - '{{ iptables_rules }}'
         - rules.v4.{{ inventory_hostname }}.j2
-        - rules.v4.category-{{ category }}.j2
         - rules.v4.deployment-{{ deployment }}.j2
         - rules.v4.j2
       paths:
@@ -312,7 +308,6 @@
     - files:
         - '{{ ip6tables_rules }}'
         - rules.v6.{{ inventory_hostname }}.j2
-        - rules.v6.category-{{ category }}.j2
         - rules.v6.deployment-{{ deployment }}.j2
         - rules.v6.j2
       paths:
@@ -337,7 +332,6 @@
     - files:
         - '{{ ip6tables_rules }}'
         - rules.v6.{{ inventory_hostname }}.j2
-        - rules.v6.category-{{ category }}.j2
         - rules.v6.deployment-{{ deployment }}.j2
         - rules.v6.j2
       paths:
@@ -362,7 +356,6 @@
     - files:
         - '{{ ip6tables_rules }}'
         - rules.v6.{{ inventory_hostname }}.j2
-        - rules.v6.category-{{ category }}.j2
         - rules.v6.deployment-{{ deployment }}.j2
         - rules.v6.j2
       paths:
@@ -408,7 +401,6 @@
     - files:
         - '{{ fail2ban_service }}'
         - 'fail2ban.service.{{ inventory_hostname }}.j2'
-        - 'fail2ban.service.category-{{ category }}.j2'
         - 'fail2ban.service.deployment-{{ deployment }}.j2'
         - 'fail2ban.service.j2'
       paths:
@@ -435,7 +427,6 @@
     - files:
         - '{{ fail2ban_local_conf }}'
         - fail2ban.local.{{ inventory_hostname }}.j2
-        - fail2ban.local.category-{{ category }}.j2
         - fail2ban.local.deployment-{{ deployment }}.j2
         - fail2ban.local.j2
       paths:
@@ -477,7 +468,6 @@
     - files:
         - '{{ fail2ban_jail_local_conf }}'
         - jail.local.{{ inventory_hostname }}.j2
-        - jail.local.category-{{ category }}.j2
         - jail.local.deployment-{{ deployment }}.j2
         - jail.local.j2
       paths:
@@ -502,7 +492,6 @@
     - files:
         - '{{ fail2ban_sendmail_whois_journalctl_conf }}'
         - sendmail-whois-journalctl.{{ inventory_hostname }}.conf.j2
-        - sendmail-whois-journalctl.category-{{ category }}.conf.j2
         - sendmail-whois-journalctl.deployment-{{ deployment }}.conf.j2
         - sendmail-whois-journalctl.conf.j2
       paths:
@@ -547,7 +536,6 @@
     - files:
         - '{{ gai_rules }}'
         - gai.conf.{{ inventory_hostname }}.j2
-        - gai.conf.category-{{ category }}.j2
         - gai.conf.deployment-{{ deployment }}.j2
         - gai.conf.j2
       paths:
@@ -572,7 +560,6 @@
     - files:
         - '{{ dims_environment }}'
         - environment.{{ dims_fqdn }}.j2
-        - environment.category-{{ category }}.j2
         - environment.deployment-{{ deployment }}.j2
         - environment.j2
       paths:
@@ -626,7 +613,6 @@
     - files:
         - '{{ dims_bashrc }}'
         - bash.bashrc.{{ dims_fqdn }}.j2
-        - bash.bashrc.category-{{ category }}.j2
         - bash.bashrc.deployment-{{ deployment }}.j2
         - bash.bashrc.j2
       paths:
@@ -647,7 +633,6 @@
     - files:
         - '{{ dims_profile }}'
         - dims.sh.{{ dims_fqdn }}.j2
-        - dims.sh.category-{{ category }}.j2
         - dims.sh.deployment-{{ deployment }}.j2
         - dims.sh.j2
       paths:
@@ -678,7 +663,6 @@
     - files:
         - '{{ dims_bashrc_dims }}'
         - bashrc.dims.{{ dims_fqdn }}.j2
-        - bashrc.dims.category-{{ category }}.j2
         - bashrc.dims.deployment-{{ deployment }}.j2
         - bashrc.dims.j2
       paths:
@@ -753,7 +737,6 @@
     - files:
         - '{{ rsyslog_config }}'
         - rsyslog.conf.{{ inventory_hostname }}
-        - rsyslog.conf.category-{{ category }}.j2
         - rsyslog.conf.deployment-{{ deployment }}.j2
         - rsyslog.conf.j2
       paths:
@@ -784,7 +767,6 @@
     - files:
         - '{{ rsyslog_ignore_config }}'
         - '00-ignore.conf.{{ inventory_hostname }}'
-        - '00-ignore.conf.category-{{ category }}.j2'
         - '00-ignore.conf.deployment-{{ deployment }}.j2'
         - '00-ignore.conf.j2'
       paths:
@@ -812,7 +794,6 @@
     - files:
         - '{{ rsyslog_consolidation_config }}'
         - '49-consolidation.conf.{{ inventory_hostname }}'
-        - '49-consolidation.conf.category-{{ category }}.j2'
         - '49-consolidation.conf.deployment-{{ deployment }}.j2'
         - '49-consolidation.conf.j2'
       paths:
@@ -836,7 +817,6 @@
     - files:
         - '{{ rsyslog_default_config }}'
         - '50-default.conf.{{ inventory_hostname }}'
-        - '50-default.conf.category-{{ category }}.j2'
         - '50-default.conf.deployment-{{ deployment }}.j2'
         - '50-default.conf.j2'
       paths:
@@ -882,7 +862,6 @@
     - files:
         - '{{ letsencrypt_rsyslog_hook }}'
         - renewal-hook.rsyslog.{{ inventory_hostname }}
-        - renewal-hook.rsyslog.category-{{ category }}.j2
         - renewal-hook.rsyslog.deployment-{{ deployment }}.j2
         - renewal-hook.rsyslog.j2
       paths:
@@ -903,7 +882,6 @@
     - files:
         - '{{ journald_config }}'
         - journald.conf.{{ inventory_hostname }}
-        - journald.conf.category-{{ category }}.j2
         - journald.conf.deployment-{{ deployment }}.j2
         - journald.conf.j2
       paths:
@@ -936,7 +914,6 @@
     - files:
         - '{{ logrotate_default_config }}'
         - dims.{{ inventory_hostname }}
-        - dims.category-{{ category }}.j2
         - dims.deployment-{{ deployment }}.j2
         - dims.j2
       paths:
@@ -977,7 +954,6 @@
     - files:
         - '{{ resolv_conf }}'
         - resolv.conf.{{ inventory_hostname }}.j2
-        - resolv.conf.category-{{ category }}.j2
         - resolv.conf.deployment-{{ deployment }}.j2
         - resolv.conf.j2
       paths:
@@ -1004,7 +980,6 @@
         - '{{ network_manager }}'
         - NetworkManager.conf.{{ inventory_hostname }}.j2
         - NetworkManager.conf.{{ ansible_lsb.codename }}.j2
-        - NetworkManager.conf.category-{{ category }}.j2
         - NetworkManager.conf.deployment-{{ deployment }}.j2
         - NetworkManager.conf.j2
       paths:
@@ -1044,7 +1019,6 @@
     - files:
         - '{{ network_interfaces }}'
         - interfaces.{{ inventory_hostname }}.j2
-        - interfaces.category-{{ category }}.j2
         - interfaces.deployment-{{ deployment }}.j2
         - interfaces.j2
       paths:
@@ -1112,7 +1086,6 @@
     - files:
         - '{{ base_fstab }}'
         - fstab.{{ inventory_hostname }}.j2
-        - fstab.category-{{ category }}.j2
         - fstab.deployment-{{ deployment }}.j2
         - fstab.j2
       paths:
@@ -1225,7 +1198,6 @@
     - files:
         - '{{ sshd_config }}'
         - sshd_config.{{ inventory_hostname }}.j2
-        - sshd_config.category-{{ category }}.j2
         - sshd_config.deployment-{{ deployment }}.j2
         - sshd_config.j2
       paths:
@@ -1248,7 +1220,6 @@
     - files:
         - '{{ base_rclocal }}'
         - rc.local.{{ inventory_hostname }}.j2
-        - rc.local.category-{{ category }}.j2
         - rc.local.deployment-{{ deployment }}.j2
         - rc.local.j2
       paths:

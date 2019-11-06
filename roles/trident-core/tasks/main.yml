@@ -126,7 +126,6 @@
     - files:
        - '{{ pghba_conf }}'
        - pg_hba.conf.{{ inventory_hostname }}.j2
-       - pg_hba.conf.category-{{ category }}.j2
        - pg_hba.conf.deployment-{{ deployment }}.j2
        - pg_hba.conf.j2
       paths:
@@ -361,7 +360,6 @@
     - files:
        - '{{ trident_default }}'
        - trident.{{ inventory_hostname }}.j2
-       - trident.category-{{ category }}.j2
        - trident.deployment-{{ deployment }}.j2
        - trident.j2
       paths:
@@ -384,7 +382,6 @@
     - files:
        - '{{ trident_conf }}'
        - trident.conf.{{ inventory_hostname }}.j2
-       - trident.conf.category-{{ category }}.j2
        - trident.conf.deployment-{{ deployment }}.j2
        - trident.conf.j2
       paths:
@@ -412,7 +409,6 @@
     - files:
        - '{{ siteconfig }}'
        - siteconfig.{{ inventory_hostname }}.j2
-       - siteconfig.category-{{ category }}.j2
        - siteconfig.deployment-{{ deployment }}.j2
        - siteconfig.j2
       paths:
@@ -436,7 +432,6 @@
     - files:
        - '{{ nginx_conf_trident }}'
        - trident.{{ inventory_hostname }}.j2
-       - trident.category-{{ category }}.j2
        - trident.deployment-{{ deployment }}.j2
        - trident.j2
       paths:

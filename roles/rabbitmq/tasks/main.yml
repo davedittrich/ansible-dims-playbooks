@@ -236,7 +236,6 @@
     - files:
        - '{{ nginx_conf_rabbitmq }}'
        - rabbitmq.{{ inventory_hostname }}.j2
-       - rabbitmq.category-{{ category }}.j2
        - rabbitmq.deployment-{{ deployment }}.j2
        - rabbitmq.j2
       paths:
@@ -269,7 +268,6 @@
     - files:
         - '{{ rabbitmq_server_default }}'
         - rabbitmq-server.{{ inventory_hostname }}.j2
-        - rabbitmq-server.category-{{ category }}.j2
         - rabbitmq-server.deployment-{{ deployment }}.j2
         - rabbitmq-server.j2
       paths:
@@ -289,7 +287,6 @@
     - files:
         - '{{ rabbitmq_server_default }}'
         - rabbitmq.config.{{ inventory_hostname }}.j2
-        - rabbitmq.config.category-{{ category }}.j2
         - rabbitmq.config.deployment-{{ deployment }}.j2
         - rabbitmq.config.j2
       paths:
@@ -311,7 +308,6 @@
     - files:
         - '{{ rabbitmq_server_default }}'
         - rabbitmq-env.conf.{{ inventory_hostname }}.j2
-        - rabbitmq-env.conf.category-{{ category }}.j2
         - rabbitmq-env.conf.deployment-{{ deployment }}.j2
         - rabbitmq-env.conf.j2
       paths:
@@ -335,7 +331,6 @@
     - files:
         - '{{ letsencrypt_rabbitmq_hook }}'
         - renewal-hook.rabbitmq.{{ inventory_hostname }}
-        - renewal-hook.rabbitmq.category-{{ category }}.j2
         - renewal-hook.rabbitmq.deployment-{{ deployment }}.j2
         - renewal-hook.rabbitmq.j2
       paths:
@@ -355,7 +350,6 @@
     - files:
         - '{{ rabbitmq_broker_objects }}'
         - broker_objects.json.{{ inventory_hostname }}
-        - broker_objects.json.category-{{ category }}
         - broker_objects.json.deployment-{{ deployment }}
         - broker_objects.json
       paths:
@@ -439,7 +433,6 @@
     - files:
         - '{{ rabbitmqadmin_conf }}'
         - rabbitmqadmin.conf.{{ inventory_hostname }}.j2
-        - rabbitmqadmin.conf.category-{{ category }}.j2
         - rabbitmqadmin.conf.deployment-{{ deployment }}.j2
         - rabbitmqadmin.conf.j2
       paths:

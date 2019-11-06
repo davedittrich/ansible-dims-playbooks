@@ -72,7 +72,6 @@
     - files:
       - "{{ iptables_rules }}"
       - rules.v4.{{ dims_fqdn }}.j2
-      - rules.v4.category-{{ category }}.j2
       - rules.v4.deployment-{{ deployment }}.j2
       - rules.v4.j2
       paths:
@@ -93,7 +92,6 @@
     - files:
       - '{{ ip6tables_rules }}'
       - rules.v6.{{ dims_fqdn }}.j2
-      - rules.v6.category-{{ category }}.j2
       - rules.v6.deployment-{{ deployment }}.j2
       - rules.v6.j2
       paths:
@@ -116,7 +114,6 @@
     - files:
         - "{{ network_interfaces }}"
         - interfaces."{{ dims_fqdn }}.j2"
-        - interfaces.category-{{ category }}.j2
         - interfaces.deployment-{{ deployment }}.j2
         - interfaces.j2
       paths:
@@ -136,7 +133,6 @@
     - files:
         - '{{ sshd_config }}'
         - sshd_config.{{ dims_fqdn }}.j2
-        - sshd_config.category-{{ category }}.j2
         - sshd_config.deployment-{{ deployment }}.j2
         - sshd_config.j2
       paths:

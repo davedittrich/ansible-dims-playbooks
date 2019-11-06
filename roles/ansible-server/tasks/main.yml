@@ -89,7 +89,6 @@
     - files:
         - '{{ ansible_config }}'
         - ansible.cfg.{{ inventory_hostname }}.j2
-        - ansible.cfg.category-{{ category }}.j2
         - ansible.cfg.deployment-{{ deployment }}.j2
         - ansible.cfg.j2
       paths:
@@ -114,7 +113,6 @@
     - files:
         - '{{ ansible_hosts_file }}'
         - hosts.{{ inventory_hostname }}.j2
-        - hosts.category-{{ category }}.j2
         - hosts.deployment-{{ deployment }}.j2
         - hosts.j2
       paths:

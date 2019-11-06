@@ -53,7 +53,6 @@
     - files:
         - '{{ realm_properties }}'
         - realm.properties.{{ inventory_hostname }}.j2
-        - realm.properties.category-{{ category }}.j2
         - realm.properties.deployment-{{ deployment }}.j2
         - realm.properties.j2
       paths:

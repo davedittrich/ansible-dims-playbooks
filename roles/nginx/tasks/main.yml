@@ -138,7 +138,6 @@
     - files:
         - '{{ nginx_conf }}'
         - nginx.conf.{{ inventory_hostname }}.j2
-        - nginx.conf.category-{{ category }}.j2
         - nginx.conf.deployment-{{ deployment }}.j2
         - nginx.conf.j2
       paths:
@@ -246,7 +245,6 @@
     - files:
         - '{{ nginx_index }}'
         - index.html.{{ inventory_hostname }}.j2
-        - index.html.category-{{ category }}.j2
         - index.html.deployment-{{ deployment }}.j2
         - index.html.j2
       paths:
