@@ -92,6 +92,8 @@ setup(
         ],
         'd2': [
             'about = d2.about:About',
+            'project create = d2.project.create:Create',
+            'project list = d2.project.list:List',
         ],
     },
     zip_safe=False,
