@@ -33,6 +33,8 @@ DEFAULT_PROTOCOLS = ['icmp', 'tcp', 'udp']
 KEEPALIVE = 5.0
 MAX_LINES = None
 MAX_ITEMS = 10
+REPO_URL = 'https://github.com/davedittrich/ansible-dims-playbooks'
+
 # Use syslog for logging?
 # TODO(dittrich): Make this configurable, since it can fail on Mac OS X
 SYSLOG = False
@@ -74,13 +76,13 @@ class D2App(App):
 
         # Global options
         parser.add_argument(
-            '-D', '--data-dir',
-            metavar='<data-directory>',
-            dest='data_dir',
-            default=os.getenv('D2_DATA_DIR', None),
-            help="Root directory for holding data files " +
-            "(Env: D2_DATA_DIR; default: {})".format(
-                os.getenv('D2_DATA_DIR', None))
+            '-D', '--projects-dir',
+            metavar='<projects-directory>',
+            dest='projects_dir',
+            default=os.getenv('D2_PROJECTS_DIR', None),
+            help="Root directory for holding projects " +
+            "(Env: D2_PROJECTS_DIR; default: {})".format(
+                os.getenv('D2_PROJECTS_DIR', os.getcwd()))
         )
         parser.add_argument(
             '-e', '--elapsed',
@@ -108,6 +110,15 @@ class D2App(App):
             default=0,
             help="Limit result to no more than this many items " +
                  "(0 means no limit; default: 0)"
+        )
+        parser.add_argument(
+            '-R', '--repo-url',
+            action='store',
+            metavar='<repo_url>',
+            dest='repo_url',
+            default=REPO_URL,
+            help="URL for ansible-dims-playbooks repository " +
+                 "(default: {})".format(REPO_URL)
         )
         return parser
 
