@@ -2,5 +2,6 @@
 *.egg-info/
 .tox/
 .vscode/
+!.vscode/launch.json
 build/
 dist/
