@@ -8,9 +8,11 @@
 from __future__ import print_function
 
 # Standard library modules.
+import argparse
 import logging
 import os
 import sys
+import textwrap
 
 from d2 import __version__
 from d2 import __release__
@@ -33,7 +35,9 @@ DEFAULT_PROTOCOLS = ['icmp', 'tcp', 'udp']
 KEEPALIVE = 5.0
 MAX_LINES = None
 MAX_ITEMS = 10
-REPO_URL = 'https://github.com/davedittrich/ansible-dims-playbooks'
+REPO_URL = os.getenv('D2_REPO_URL',
+                     'https://github.com/davedittrich/ansible-dims-playbooks')
+REPO_BRANCH = os.getenv('D2_REPO_BRANCH', 'master')
 
 # Use syslog for logging?
 # TODO(dittrich): Make this configurable, since it can fail on Mac OS X
@@ -73,6 +77,7 @@ class D2App(App):
             description,
             version
         )
+        parser.formatter_class = argparse.RawDescriptionHelpFormatter
 
         # Global options
         parser.add_argument(
@@ -112,6 +117,15 @@ class D2App(App):
                  "(0 means no limit; default: 0)"
         )
         parser.add_argument(
+            '-B', '--repo-branch',
+            action='store',
+            metavar='<repo_branch>',
+            dest='repo_branch',
+            default=REPO_BRANCH,
+            help="Branch or commit for ansible-dims-playbooks repository " +
+                 "(default: {})".format(REPO_BRANCH)
+        )
+        parser.add_argument(
             '-R', '--repo-url',
             action='store',
             metavar='<repo_url>',
@@ -120,6 +134,14 @@ class D2App(App):
             help="URL for ansible-dims-playbooks repository " +
                  "(default: {})".format(REPO_URL)
         )
+        parser.epilog = textwrap.dedent("""\
+            Environment variables:
+              D2_REPO_URL         URL to dims-ansible-playbooks Git repository
+              D2_REPO_BRANCH      Specific repo branch or commit
+              D2_ENVIRONMENT      Name for project's environment
+              D2_PROJECTS_DIR     Directory root for storing multiple projects.
+            """)
+
         return parser
 
     def initialize_app(self, argv):
