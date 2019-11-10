@@ -2,13 +2,12 @@
 
 import argparse
 import logging
-import os
 import textwrap
 
 from cliff.command import Command
-from d2 import __version__
-from d2.utils import get_output
-from subprocess import CalledProcessError
+from d2.project import Projects
+from d2.project import Project
+
 
 class Create(Command):
     """Create a new project"""
@@ -18,15 +17,15 @@ class Create(Command):
     def get_parser(self, prog_name):
         parser = super(Create, self).get_parser(prog_name)
         parser.formatter_class = argparse.RawDescriptionHelpFormatter
-        parser.add_argument('project',
+        parser.add_argument('name',
                             nargs='?',
                             default=None)
         parser.epilog = textwrap.dedent(
             """
             Create a new project by cloning the repository at
-            {repo_url} into a directory where it will be used by Ansible
+            {repo_url}
+            into a directory where it will be used by Ansible
             to deploy infrastructure.
-
             """.format(repo_url=self.app_args.repo_url)
         )
 
@@ -34,25 +33,19 @@ class Create(Command):
 
     def take_action(self, parsed_args):
         self.log.debug('create project')
-        if parsed_args.project is None:
+        if parsed_args.name is None:
             raise RuntimeError('no project name specified')
-        cmd = [
-            'git',
-            'clone',
-            self.app_args.repo_url
-        ]
-        cwd = self.app_args.projects_dir
-        if cwd is None:
-            cwd = os.getcwd()
-        project_path = os.path.join(cwd, parsed_args.project)
-        if os.path.exists(project_path):
-            raise RuntimeError('project path "{}" exists'.format(project_path))
-        os.mkdir(project_path)
-        try:
-            output = get_output(cmd=cmd,
-                                cwd=project_path)
-        except CalledProcessError as err:
-            raise RuntimeError(err.stdout.decode('utf-8'))
-        pass
+        projects = Projects()
+        if projects.project_exists(parsed_args.name):
+            raise RuntimeError('project "{}" '.format(parsed_args.name) +
+                               'already exists')
+        project = Project(name=parsed_args.name,
+                          projects_dir=self.app_args.projects_dir,
+                          repo_url=self.app_args.repo_url,
+                          repo_branch=self.app_args.repo_branch)
+        project.create_project()
+        projects.add_project(project=project)
+        self.log.debug('cloned {} '.format(self.app_args.repo_url) +
+                       'into {}'.format(str(project.path())))
 
 # EOF

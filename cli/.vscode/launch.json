@@ -85,7 +85,28 @@
             }
         },
         {
-            "name": "d2 project create myproject",
+            "name": "d2 -D /tmp project create myproject",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "module": "d2.main",
+            "args": [
+                "--debug",
+                "-D",
+                "/tmp",
+                "project",
+                "create",
+                "myproject"
+            ],
+            "stopOnEntry": true,
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "d2 project delete myproject",
             "type": "python",
             "request": "launch",
             "console": "integratedTerminal",
@@ -94,8 +115,26 @@
             "args": [
                 "--debug",
                 "project",
-                "create",
+                "delete",
                 "myproject"
+            ],
+            "stopOnEntry": true,
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "d2 project list",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "module": "d2.main",
+            "args": [
+                "--debug",
+                "project",
+                "list"
             ],
             "stopOnEntry": true,
             "env": {

@@ -93,6 +93,7 @@ setup(
         'd2': [
             'about = d2.about:About',
             'project create = d2.project.create:Create',
+            'project delete = d2.project.delete:Delete',
             'project list = d2.project.list:List',
         ],
     },
