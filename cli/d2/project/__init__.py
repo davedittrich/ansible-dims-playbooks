@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 
+from distutils.dir_util import copy_tree
 from subprocess import CalledProcessError  # nosec
 from d2.utils import get_output
 from shlex import quote
@@ -14,6 +15,7 @@ log = logging.getLogger(__name__)
 PROJECTS_CACHE = os.path.join(os.environ['HOME'], '.d2_projects')
 
 __all__ = ['create', 'Projects', 'Project', PROJECTS_CACHE]
+
 
 class Projects(object):
     """Class for tracking projects metadata"""
@@ -119,6 +121,14 @@ class Project(object):
         except CalledProcessError as err:
             shutil.rmtree(self.project_path)
             raise RuntimeError(err.stdout.decode('utf-8'))
+        # Copy deploy directory up to top level
+        deploy_src = os.path.join(self.project_path,
+                                  'ansible-dims-playbooks',
+                                  'deploy',
+                                  'do')
+        copy_tree(deploy_src, self.project_path)
+        # Other configuration?...
+        pass
 
     def delete_project(self):
         """Delete a project directory"""
