@@ -9,9 +9,71 @@ import time
 
 from bz2 import BZ2Decompressor
 from collections import OrderedDict
+from shlex import quote
+# >> Issue: [B404:blacklist] Consider possible security implications
+#           associated with CalledProcessError module.
+#    Severity: Low   Confidence: High
+#    Location: d2/utils.py:13
+#    More Info: https://bandit.readthedocs.io/en/latest/blacklists/
+#               blacklist_imports.html#b404-import-subprocess
+from subprocess import CalledProcessError  # nosec
 
 
 log = logging.getLogger(__name__)
+
+
+def psec_available():
+    """Return boolean indicating availability of 'psec' program"""
+    cmd = ['psec', '--version']
+    try:
+        output = get_output(cmd=cmd)
+    except CalledProcessError as err:
+        raise RuntimeError(err.stdout.decode('utf-8'))
+    return output[0].startswith('psec')
+
+
+def psec_environment_delete(name=None):
+    """Delete project environment 'name'"""
+    if name is None:
+        raise RuntimeError('environment must be defined')
+    cmd = ['psec', 'environments', 'delete', quote(name), '--force']
+    try:
+        output = get_output(cmd=cmd, stdin=subprocess.PIPE)
+    except CalledProcessError as err:
+        raise RuntimeError(err.stdout.decode('utf-8'))
+    return 'deleted' in output[0]
+
+
+def psec_environment_exists(name=None):
+    """Return boolean indicating existence of environment 'name'"""
+    cmd = ['psec', 'environments', 'list', '-f', 'value', '-c', 'Environment']
+    try:
+        output = get_output(cmd=cmd)
+    except CalledProcessError as err:
+        raise RuntimeError(err.stdout.decode('utf-8'))
+    return name in output
+
+
+def psec_default_environment(name=None, cwd=None):
+    """Return default environment name"""
+    if cwd is None:
+        cwd = os.getcwd()
+    cmd = ['psec', '-q', 'environments', 'default']
+    try:
+        output = get_output(cmd=cmd, cwd=cwd)
+    except CalledProcessError as err:
+        raise RuntimeError(err.stdout.decode('utf-8'))
+    return output[0]
+
+
+def psec_secrets_generate(name=None):
+    """Generate secrets for new environment"""
+    cmd = ['psec', '-e', quote(name), 'secrets', 'generate']
+    try:
+        output = get_output(cmd=cmd)
+    except CalledProcessError as err:
+        raise RuntimeError(err.stdout.decode('utf-8'))
+    return output
 
 
 def find(lst, key, value):
@@ -66,12 +128,14 @@ def elapsed(start, end):
 
 def get_output(cmd=['echo', 'NO COMMAND SPECIFIED'],
                cwd=os.getcwd(),
+               stdin=None,
                stderr=subprocess.STDOUT,
                shell=False):
     """Use subprocess.check_ouput to run subcommand"""
     output = subprocess.check_output(  # nosec
             cmd,
             cwd=cwd,
+            stdin=stdin,
             stderr=stderr,
             shell=shell
         ).decode('UTF-8').splitlines()

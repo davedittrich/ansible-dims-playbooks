@@ -8,6 +8,10 @@ import shutil
 from distutils.dir_util import copy_tree
 from subprocess import CalledProcessError  # nosec
 from d2.utils import get_output
+from d2.utils import psec_available
+from d2.utils import psec_environment_delete
+from d2.utils import psec_environment_exists
+from d2.utils import psec_secrets_generate
 from shlex import quote
 
 log = logging.getLogger(__name__)
@@ -58,7 +62,10 @@ class Projects(object):
         if save:
             self.save_projects()
 
-    def delete_project(self, name=None, ignore_missing=False):
+    def delete_project(self,
+                       name=None,
+                       delete_environment=False,
+                       ignore_missing=False):
         if name is None:
             raise RuntimeError('no project specified')
         project_meta = self.projects.pop(name, None)
@@ -69,6 +76,10 @@ class Projects(object):
             if not ignore_missing:
                 raise RuntimeError('project "{}" '.format(name) +
                                    'does not exist')
+        if delete_environment:
+            psec_environment_delete(name=name)
+        else:
+            log.info('[+] not deleting environment "{}"'.format(name))
 
 
 class Project(object):
@@ -101,6 +112,14 @@ class Project(object):
                 raise RuntimeError('project path ' +
                                    '"{}" '.format(self.project_path) +
                                    'exists')
+        if not psec_available():
+            raise RuntimeError('python_secrets module is required: ' +
+                               '"python3 -m pip install python_secrets"')
+        if psec_environment_exists(name=self.name):
+            raise RuntimeError('python_secrets environment ' +
+                               '"{}" '.format(self.name) +
+                               'already exists')
+        log.info('[+] creating directory "{}"'.format(self.project_path))
         os.mkdir(self.project_path)
         # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # noqa
         cmd = [
@@ -114,11 +133,14 @@ class Project(object):
         # Mark directory as a D2 project
         with open(os.path.join(self.project_path, '.d2-project'), 'w') as f:
             f.write(self.name)
-        log.debug(" ".join([arg for arg in cmd]))
+        log.info('[+] cloning "{}" '.format(self.repo_url) +
+                 'from branch "{}"'.format(self.repo_branch))
+        log.debug('[!] ' + ' '.join([arg for arg in cmd]))
         try:
             # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # noqa
             output = get_output(cmd=cmd, cwd=self.project_path)  # noqa
         except CalledProcessError as err:
+            log.info('[-] removing directory "{}"'.format(self.project_path))
             shutil.rmtree(self.project_path)
             raise RuntimeError(err.stdout.decode('utf-8'))
         # Copy deploy directory up to top level
@@ -126,7 +148,28 @@ class Project(object):
                                   'ansible-dims-playbooks',
                                   'deploy',
                                   'do')
+        log.info('[+] copying deployment directory "{}"'.format(deploy_src))
         copy_tree(deploy_src, self.project_path)
+        cmd = [
+            'psec',
+            'environments',
+            'create',
+            '--clone-from',
+            'secrets'
+        ]
+        log.info('[+] creating python_secrets environment')
+        log.debug('[!] ' + ' '.join([arg for arg in cmd]))
+        try:
+            # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # noqa
+            output = get_output(cmd=cmd, cwd=self.project_path)  # noqa
+        except CalledProcessError as err:
+            # TODO(dittrich): Not very elegant to just delete
+            log.info('[-] removing directory "{}"'.format(self.project_path))
+            shutil.rmtree(self.project_path)
+            raise RuntimeError(err.stdout.decode('utf-8'))
+        # Generate initial secrets
+        log.info('[+] generating secrets')
+        psec_secrets_generate(name=self.name)
         # Other configuration?...
         pass
 

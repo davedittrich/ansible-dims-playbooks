@@ -106,7 +106,7 @@
             }
         },
         {
-            "name": "d2 project delete myproject",
+            "name": "d2 project delete myproject --delete-environment",
             "type": "python",
             "request": "launch",
             "console": "integratedTerminal",
@@ -116,7 +116,8 @@
                 "--debug",
                 "project",
                 "delete",
-                "myproject"
+                "myproject",
+                "--delete-environment"
             ],
             "stopOnEntry": true,
             "env": {

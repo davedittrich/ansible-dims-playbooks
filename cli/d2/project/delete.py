@@ -16,6 +16,13 @@ class Delete(Command):
     def get_parser(self, prog_name):
         parser = super(Delete, self).get_parser(prog_name)
         parser.formatter_class = argparse.RawDescriptionHelpFormatter
+        parser.add_argument(
+            '--delete-environment',
+            action='store_true',
+            dest='delete_environment',
+            default=False,
+            help="Delete project's python_secrets environment (default: False)"
+        )
         parser.add_argument('name',
                             nargs='?',
                             default=None)
@@ -35,8 +42,10 @@ class Delete(Command):
         if parsed_args.name not in projects.projects:
             raise RuntimeError('project "{}" '.format(parsed_args.name) +
                                'does not exist')
-        projects.delete_project(name=parsed_args.name)
-        self.log.debug('deleted project ' +
-                       '"{}" '.format(parsed_args.name))
+        projects.delete_project(
+            name=parsed_args.name,
+            delete_environment=parsed_args.delete_environment)
+        self.log.info('[+] deleted project ' +
+                      '"{}" '.format(parsed_args.name))
 
 # EOF

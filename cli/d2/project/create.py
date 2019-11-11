@@ -45,7 +45,8 @@ class Create(Command):
                           repo_branch=self.app_args.repo_branch)
         project.create_project()
         projects.add_project(project=project)
-        self.log.debug('cloned {} '.format(self.app_args.repo_url) +
+        self.log.debug('[!] cloned {} '.format(self.app_args.repo_url) +
                        'into {}'.format(str(project.path())))
+        self.log.info('[+] created project "{}"'.format(parsed_args.name))
 
 # EOF
