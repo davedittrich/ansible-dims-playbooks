@@ -1,0 +1,145 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File (Integrated Terminal)",
+            "cwd": "${workspaceFolder}",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "d2 help",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "module": "d2.main",
+            "args": [
+                "--debug",
+                "help"
+            ],
+            "stopOnEntry": true,
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "d2 --version",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "module": "d2.main",
+            "args": [
+                "--version"
+            ],
+            "stopOnEntry": false,
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "d2 about",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "module": "d2.main",
+            "args": [
+                "--debug",
+                "about"
+            ],
+            "stopOnEntry": false,
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "d2 complete",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "module": "d2.main",
+            "args": [
+                "complete"
+            ],
+            "stopOnEntry": true,
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "d2 -D /tmp project create myproject",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "module": "d2.main",
+            "args": [
+                "--debug",
+                "-D",
+                "/tmp",
+                "project",
+                "create",
+                "myproject"
+            ],
+            "stopOnEntry": true,
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "d2 project delete myproject --delete-environment",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "module": "d2.main",
+            "args": [
+                "--debug",
+                "project",
+                "delete",
+                "myproject",
+                "--delete-environment"
+            ],
+            "stopOnEntry": true,
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "d2 project list",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "module": "d2.main",
+            "args": [
+                "--debug",
+                "project",
+                "list"
+            ],
+            "stopOnEntry": true,
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ]
+}

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import pbr.version
+from pbr.version import VersionInfo
 
-version_info = pbr.version.VersionInfo('d2')
+version_info = VersionInfo('d2')
 try:
     __version__ = version_info.version_string()
 except AttributeError:
