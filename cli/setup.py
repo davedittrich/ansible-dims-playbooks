@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Setup script for the LiminalAI CLI utility
-#
-# Author: Dave Dittrich <dave.dittrich@gmail.com>
-# URL: ...
+"""
+Setup script for the LiminalAI CLI utility.
+
+Author: Dave Dittrich <dave.dittrich@gmail.com>
+URL: ...
+"""
 
 import codecs
 import os
@@ -29,48 +31,47 @@ except IOError:
 
 
 def get_contents(*args):
-    """Get the contents of a file relative to the source distribution directory."""  # noqa
-    with codecs.open(get_absolute_path(*args), 'r', 'UTF-8') as handle:
-        return handle.read()
+    """Get contents of a file relative to the source distribution directory."""
+    with codecs.open(get_absolute_path(*args), 'r', 'UTF-8') as fh:
+        return fh.read()
 
 
 def get_version(*args):
     """Extract the version number from a Python module."""
-    contents = get_contents(*args)
-    metadata = dict(re.findall('__([a-z]+)__ = [\'"]([^\'"]+)', contents))
+    moddata = get_contents(*args)
+    metadata = dict(re.findall('__([a-z]+)__ = [\'"]([^\'"]+)', moddata))
     return metadata['version']
 
 
 def get_absolute_path(*args):
     """Transform relative pathnames into absolute pathnames."""
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), *args)
+    dirpath = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(dirpath, *args)
 
 
 setup(
-    name='d2',
+    name=PROJECT,
     pbr=True,
-    # version=get_version('d2', '__init__.py'),
-    #
-    description="Python CLI for LiminalAI",
-    long_description=long_description + "\n\n" + history,
+    # version=get_version(PROJECT, '__init__.py'),
+    description='Python CLI for LiminalAI',
+    long_description='{0}\n\n{1}'.format(long_description, history),
 
-    author="Dave Dittrich",
+    author='Dave Dittrich',
     author_email='dave.dittrich@gmail.com',
 
     url='https://github.com/davedittrich/ansible-dims-playbooks',
-    download_url='https://github.com/davedittrich/ansible-dims-playbooks/tarball/master',  # noqa
+    download_url='https://github.com/davedittrich/ansible-dims-playbooks/tarball/master',  # NOQA
 
     namespace_packages=[],
     packages=find_packages(),
-    package_dir={'d2':
-                 'd2'},
+    package_dir={PROJECT: PROJECT},
     include_package_data=True,
 
     python_requires='>=3.6,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
     install_requires=get_contents('requirements.txt'),
 
-    license="Apache Software License",
-    keywords='d2',
+    license='Apache Software License',
+    keywords=PROJECT,
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Information Technology',
@@ -90,7 +91,7 @@ setup(
         'console_scripts': [
             'd2 = d2.main:main',
         ],
-        'd2': [
+        PROJECT: [
             'about = d2.about:About',
             'project create = d2.project.create:Create',
             'project delete = d2.project.delete:Delete',

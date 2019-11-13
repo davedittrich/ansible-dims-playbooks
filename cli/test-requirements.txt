@@ -5,6 +5,7 @@
 sphinx
 tox
 flake8
+yapf
 wemake-python-styleguide
 # Bandit security code scanner
 bandit>=1.1.0 # Apache-2.0
