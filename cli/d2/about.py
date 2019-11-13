@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""D2 CLI about.
+
+Author: Dave Dittrich <dave.dittrich@gmail.com>
+URL: https://davedittrich.github.io
+"""
+
 import argparse
 import logging
 import textwrap
@@ -14,7 +20,7 @@ class About(Command):
     log = logging.getLogger(__name__)
 
     def get_parser(self, prog_name):
-        parser = super(About, self).get_parser(prog_name)
+        parser = super().get_parser(prog_name)
         parser.formatter_class = argparse.RawDescriptionHelpFormatter
         parser.epilog = textwrap.dedent("""
             .. code-block:: console
@@ -23,7 +29,7 @@ class About(Command):
                 d2 version {VERSION}
 
             ..
-            """.format(VERSION=__version__)
+            """.format(VERSION=__version__),
         )
 
         return parser

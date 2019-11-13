@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 
+"""
+D2 project module.
+
+Author: Dave Dittrich <dave.dittrich@gmail.com>
+URL: https://davedittrich.github.io
+"""
+
 import logging
 import json
 import os
 import shutil
+import textwrap
 
 from distutils.dir_util import copy_tree
 from subprocess import CalledProcessError  # nosec
@@ -14,185 +22,218 @@ from d2.utils import psec_environment_exists
 from d2.utils import psec_secrets_generate
 from shlex import quote
 
-log = logging.getLogger(__name__)
 
 PROJECTS_CACHE = os.path.join(os.environ['HOME'], '.d2_projects')
 
-__all__ = ['create', 'Projects', 'Project', PROJECTS_CACHE]
+__all__ = ['Projects', 'Project']
 
 
 class Projects(object):
-    """Class for tracking projects metadata"""
+    """Class for tracking projects metadata."""
+
+    log = logging.getLogger(__name__)
+
     def __init__(self, projects_cache=PROJECTS_CACHE):
+        """Object initializer."""
         self.projects_cache = projects_cache
         self.projects = self.load_projects()
 
     def load_projects(self):
+        """Load projects cache from disk."""
         if self.projects_cache is None:
             raise RuntimeError('projects_cache is not defined')
         if not os.path.exists(self.projects_cache):
-            return dict()
+            return {}
         with open(self.projects_cache, 'r') as f_in:
-            contents = f_in.read()
-        if contents != '':
-            projects = json.loads(contents)
-            if type(projects) is not dict:
-                raise RuntimeError('{} '.format(self.projects_cache) +
-                                   'is not a dict()')
+            cache_contents = f_in.read()
+        if cache_contents != '':
+            projects = json.loads(cache_contents)
+            if not isinstance(projects, dict):
+                msg = '{0} is not a dict'.format(self.projects_cache)
+                raise RuntimeError(msg)
         return projects
 
     def save_projects(self):
-        if type(self.projects) is not dict:
+        """Save projects cache to disk."""
+        if not isinstance(self.projects, dict):
             raise RuntimeError('self.projects is not a dict()')
         with open(self.projects_cache, 'w') as f_out:
             f_out.write(json.dumps(self.projects))
 
     def project_exists(self, name=None):
+        """Boolean project existence test."""
         if name is None:
             raise RuntimeError('no project specified')
         return name in self.projects
 
     def add_project(self, project=None, save=True):
+        """Add a new project."""
         if project is None:
             raise RuntimeError('no project specified')
         if project.name in self.projects:
-            raise RuntimeError('project "{}" '.format(project.name) +
-                               'already exists')
+            msg = 'project "{0}" already exists'.format(project.name)
+            raise RuntimeError(msg)
         self.projects[project.name] = dict(project)
         if save:
             self.save_projects()
 
-    def delete_project(self,
-                       name=None,
-                       delete_environment=False,
-                       ignore_missing=False):
+    def delete_project(
+        self,
+        name=None,
+        delete_environment=False,
+        ignore_missing=False,
+    ):
+        """Delete project."""
         if name is None:
             raise RuntimeError('no project specified')
         project_meta = self.projects.pop(name, None)
         if project_meta is not None:
             shutil.rmtree(project_meta['project_path'])
             self.save_projects()
-        else:
-            if not ignore_missing:
-                raise RuntimeError('project "{}" '.format(name) +
-                                   'does not exist')
+        elif not ignore_missing:
+            msg = 'project "{0}" does not exist'.format(name)
+            raise RuntimeError(msg)
         if delete_environment:
             psec_environment_delete(name=name)
         else:
-            log.info('[+] not deleting environment "{}"'.format(name))
+            self.log.info('[+] not deleting environment "{0}"'.format(name))
 
 
 class Project(object):
-    """Class for D2 project"""
-    def __init__(self,
-                 name=None,
-                 projects_dir=None,
-                 repo_url=None,
-                 repo_branch=None):
+    """Class for D2 project."""
+
+    log = logging.getLogger(__name__)
+
+    def __init__(
+        self,
+        name=None,
+        projects_dir=None,
+        repo_url=None,
+        repo_branch=None,
+    ):
+        """Object initializer."""
         self.name = name
         if projects_dir is None:
             self.projects_dir = os.getcwd()
         else:
             self.projects_dir = projects_dir
         self.project_path = os.path.join(self.projects_dir, self.name)
-        # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # noqa
+        # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # NOQA
         self.repo_url = repo_url
         self.repo_branch = repo_branch
 
     def __iter__(self):
+        """Iterator for object."""
         yield 'name', self.name
         yield 'project_path', self.project_path
         yield 'repo_url', self.repo_url
         yield 'repo_branch', self.repo_branch
 
-    def create_project(self):
-        """Create and configure the project directory"""
+    def create_project(self, create_environment=False):
+        """Create and configure the project directory."""
         if os.path.exists(self.project_path):
             if not self._is_project():
-                raise RuntimeError('project path ' +
-                                   '"{}" '.format(self.project_path) +
-                                   'exists')
+                msg = 'project path "{0}" exists'.format(self.project_path)
+                raise RuntimeError(msg)
         if not psec_available():
-            raise RuntimeError('python_secrets module is required: ' +
-                               '"python3 -m pip install python_secrets"')
+            msg = textwrap.dedent("""
+                python_secrets module is required: install with
+                "python3 -m pip install python_secrets"
+                """)
+            raise RuntimeError(msg)
         if psec_environment_exists(name=self.name):
-            raise RuntimeError('python_secrets environment ' +
-                               '"{}" '.format(self.name) +
-                               'already exists')
-        log.info('[+] creating directory "{}"'.format(self.project_path))
+            msg = 'python_secrets environment "{0}" already exists'.format( self.name)  # NOQA
+            raise RuntimeError(msg)
+        self.log.info('[+] creating directory "{0}"'.format(self.project_path))
         os.mkdir(self.project_path)
-        # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # noqa
+        # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # NOQA
         cmd = [
             'git',
             'clone',
             '--single-branch',
             '-b',
             quote(self.repo_branch),
-            quote(self.repo_url)
+            quote(self.repo_url),
         ]
         # Mark directory as a D2 project
-        with open(os.path.join(self.project_path, '.d2-project'), 'w') as f:
-            f.write(self.name)
-        log.info('[+] cloning "{}" '.format(self.repo_url) +
-                 'from branch "{}"'.format(self.repo_branch))
-        log.debug('[!] ' + ' '.join([arg for arg in cmd]))
+        with open(os.path.join(self.project_path, '.d2-project'), 'w') as fh:
+            fh.write(self.name)
+        msg = '[+] cloning "{0}" from branch "{1}"'.format(
+            self.repo_url,
+            self.repo_branch,
+        )
+        self.log.info(msg)
+        msg = ' '.join([arg for arg in cmd])
+        self.log.debug('[!] {0}'.format(msg))
         try:
-            # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # noqa
-            output = get_output(cmd=cmd, cwd=self.project_path)  # noqa
+            # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # NOQA
+            output = get_output(cmd=cmd, cwd=self.project_path)  # NOQA
         except CalledProcessError as err:
-            log.info('[-] removing directory "{}"'.format(self.project_path))
+            msg = err.stdout.decode('utf-8')
+            self.log.info(
+                '[-] removing directory "{0}"'.format(self.project_path),
+            )
             shutil.rmtree(self.project_path)
-            raise RuntimeError(err.stdout.decode('utf-8'))
+            raise RuntimeError(msg)
         # Copy deploy directory up to top level
-        deploy_src = os.path.join(self.project_path,
-                                  'ansible-dims-playbooks',
-                                  'deploy',
-                                  'do')
-        log.info('[+] copying deployment directory "{}"'.format(deploy_src))
+        deploy_src = os.path.join(
+            self.project_path,
+            'ansible-dims-playbooks',
+            'deploy',
+            'do',
+        )
+        self.log.info(
+            '[+] copying deployment directory "{0}"'.format(deploy_src),
+        )
         copy_tree(deploy_src, self.project_path)
-        cmd = [
-            'psec',
-            'environments',
-            'create',
-            '--clone-from',
-            'secrets'
-        ]
-        log.info('[+] creating python_secrets environment')
-        log.debug('[!] ' + ' '.join([arg for arg in cmd]))
-        try:
-            # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # noqa
-            output = get_output(cmd=cmd, cwd=self.project_path)  # noqa
-        except CalledProcessError as err:
+        if create_environment:
+            cmd = [
+                'psec',
+                'environments',
+                'create',
+                '--clone-from',
+                'secrets',
+            ]
+            self.log.info('[+] creating python_secrets environment')
+            msg = ' '.join([arg for arg in cmd])
+            self.log.debug('[!] {0}'.format(msg))
+            try:
+                # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # NOQA
+                output = get_output(cmd=cmd, cwd=self.project_path)  # NOQA
             # TODO(dittrich): Not very elegant to just delete
-            log.info('[-] removing directory "{}"'.format(self.project_path))
-            shutil.rmtree(self.project_path)
-            raise RuntimeError(err.stdout.decode('utf-8'))
-        # Generate initial secrets
-        log.info('[+] generating secrets')
-        psec_secrets_generate(name=self.name)
+            except CalledProcessError as err:
+                msg = err.stdout.decode('utf-8')
+                self.log.info(
+                    '[-] removing directory "{0}"'.format(self.project_path),
+                )
+                shutil.rmtree(self.project_path)
+                raise RuntimeError(msg)
+            self.log.info('[+] generating initial secrets')
+            psec_secrets_generate(name=self.name)
         # Other configuration?...
-        pass
 
     def delete_project(self):
-        """Delete a project directory"""
+        """Delete a project directory."""
         if self.project_path is None:
             raise RuntimeError('no project_path found')
         if os.path.exists(self.project_path):
             shutil.rmtree(self.project_path)
         else:
-            raise RuntimeError('project_path ' +
-                               '"{}" '.format(self.project_path) +
-                               'does not exist')
+            msg = 'project_path "{0}" does not exist'.format(self.project_path)
+            raise RuntimeError(msg)
 
     def path(self):
+        """Return path."""
         return self.project_path
 
     def __str__(self):
-        return "" if self.name is None else str(self.name)
+        """Return string representation."""
+        return '' if self.name is None else str(self.name)
 
     def _is_project(self):
-        return os.path.exists(os.path.join(self.project_path,
-                                           '.d2_project'))
+        """Return boolean if project marker exists."""
+        marker = os.path.join(self.project_path, '.d2_project')
+        return os.path.exists(marker)
 
 
 # vim: set fileencoding=utf-8 ts=4 sw=4 tw=0 et :
