@@ -44,6 +44,7 @@ else:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+	'cliff.sphinxext',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
@@ -284,7 +285,7 @@ epub_exclude_files = ['search.html']
 git_branch = os.environ.get('GITBRANCH', "develop")
 git_tag = os.environ.get('GITTAG', "latest")
 
-#os.environ['DOCSURL'] = "file://{}".format(os.environ.get('GIT'))
+os.environ['DOCSURL'] = "file://{}".format(os.environ.get('GIT'))
 
 if os.environ.get('DOCSURL') is None:
     if not on_rtd:
