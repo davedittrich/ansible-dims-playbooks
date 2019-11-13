@@ -24,6 +24,13 @@ class Create(Command):
         parser = super().get_parser(prog_name)
         parser.formatter_class = argparse.RawDescriptionHelpFormatter
         parser.add_argument(
+            '--create-environment',
+            action='store_true',
+            dest='create_environment',
+            default=False,
+            help='Create secrets environment and initialize (default: False)'  # NOQA
+        )
+        parser.add_argument(
             'name',
             nargs='?',
             default=None,
@@ -53,7 +60,9 @@ class Create(Command):
             repo_url=self.app_args.repo_url,
             repo_branch=self.app_args.repo_branch,
         )
-        project.create_project()
+        project.create_project(
+            create_environment=parsed_args.create_environment,
+        )
         projects.add_project(project=project)
         self.log.debug(
             '[!] cloned {0} into {1}'.format(

@@ -129,7 +129,7 @@ class Project(object):
         yield 'repo_url', self.repo_url
         yield 'repo_branch', self.repo_branch
 
-    def create_project(self):
+    def create_project(self, create_environment=False):
         """Create and configure the project directory."""
         if os.path.exists(self.project_path):
             if not self._is_project():
@@ -186,29 +186,30 @@ class Project(object):
             '[+] copying deployment directory "{0}"'.format(deploy_src),
         )
         copy_tree(deploy_src, self.project_path)
-        cmd = [
-            'psec',
-            'environments',
-            'create',
-            '--clone-from',
-            'secrets',
-        ]
-        self.log.info('[+] creating python_secrets environment')
-        msg = ' '.join([arg for arg in cmd])
-        self.log.debug('[!] {0}'.format(msg))
-        try:
-            # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # NOQA
-            output = get_output(cmd=cmd, cwd=self.project_path)  # NOQA
-        # TODO(dittrich): Not very elegant to just delete
-        except CalledProcessError as err:
-            msg = err.stdout.decode('utf-8')
-            self.log.info(
-                '[-] removing directory "{0}"'.format(self.project_path),
-            )
-            shutil.rmtree(self.project_path)
-            raise RuntimeError(msg)
-        self.log.info('[+] generating initial secrets')
-        psec_secrets_generate(name=self.name)
+        if create_environment:
+            cmd = [
+                'psec',
+                'environments',
+                'create',
+                '--clone-from',
+                'secrets',
+            ]
+            self.log.info('[+] creating python_secrets environment')
+            msg = ' '.join([arg for arg in cmd])
+            self.log.debug('[!] {0}'.format(msg))
+            try:
+                # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # NOQA
+                output = get_output(cmd=cmd, cwd=self.project_path)  # NOQA
+            # TODO(dittrich): Not very elegant to just delete
+            except CalledProcessError as err:
+                msg = err.stdout.decode('utf-8')
+                self.log.info(
+                    '[-] removing directory "{0}"'.format(self.project_path),
+                )
+                shutil.rmtree(self.project_path)
+                raise RuntimeError(msg)
+            self.log.info('[+] generating initial secrets')
+            psec_secrets_generate(name=self.name)
         # Other configuration?...
 
     def delete_project(self):
