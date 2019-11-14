@@ -260,6 +260,10 @@
     PATH: '{{ dims_bin }}:{{ ansible_env.PATH }}'
   tags: [ trident-configure, config ]
 
+- name: Ensure mailing lists set up via cronrun-day
+  command: '/var/lib/trident/library/cronrun-day'
+  tags: [ trident-configure, config ]
+
 - import_tasks: '{{ tasks_path }}/post_tasks.yml'
   tags: [ trident-configure, config ]
 
