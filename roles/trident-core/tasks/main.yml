@@ -349,6 +349,28 @@
     verbosity: 2
   tags: [ trident-core, packages ]
 
+- name: Ensure trident-perl debugging test-email.txt is present
+  template:
+    src: '{{ item }}'
+    dest: /var/lib/trident/library/test-email.txt
+    owner: '{{ root_user }}'
+    group: '{{ root_group }}'
+    mode: 0o644
+  with_first_found:
+    - files:
+       - '{{ trident_test_email }}'
+       - test-email.txt.{{ inventory_hostname }}.j2
+       - test-email.txt.deployment-{{ deployment }}.j2
+       - test-email.txt.j2
+      paths:
+       - '{{ dims_private }}/roles/{{ role_name }}/templates/'
+       - ./
+  become: yes
+  notify:
+    - 'restart trident'
+    - 'restart nginx'
+  tags: [ trident-core, config ]
+
 - name: Ensure Trident init.d defaults present
   template:
     src: '{{ item }}'
