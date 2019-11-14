@@ -1,3 +1,4 @@
+bcrypt
 cliff
 future
 python_secrets
