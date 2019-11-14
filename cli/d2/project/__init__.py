@@ -135,15 +135,16 @@ class Project(object):
             if not self._is_project():
                 msg = 'project path "{0}" exists'.format(self.project_path)
                 raise RuntimeError(msg)
-        if not psec_available():
-            msg = textwrap.dedent("""
-                python_secrets module is required: install with
-                "python3 -m pip install python_secrets"
-                """)
-            raise RuntimeError(msg)
-        if psec_environment_exists(name=self.name):
-            msg = 'python_secrets environment "{0}" already exists'.format( self.name)  # NOQA
-            raise RuntimeError(msg)
+        if create_environment:
+            if not psec_available():
+                msg = textwrap.dedent("""
+                    python_secrets module is required: install with
+                    "python3 -m pip install python_secrets"
+                    """)
+                raise RuntimeError(msg)
+            if psec_environment_exists(name=self.name):
+                msg = 'python_secrets environment "{0}" already exists'.format( self.name)  # NOQA
+                raise RuntimeError(msg)
         self.log.info('[+] creating directory "{0}"'.format(self.project_path))
         os.mkdir(self.project_path)
         # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # NOQA
