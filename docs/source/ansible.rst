@@ -54,11 +54,11 @@ risk of total disruption of the project in the event of an outage.
 
 .. attention::
 
-   As of 2018-09-23, these playbooks have been successfully used with
-   Ansible v2.5.5. Occassionally, changes in Ansible result in regression
+   As of 2019-11-13, these playbooks have been successfully used with
+   Ansible v2.8.4. Occassionally, changes in Ansible result in regression
    errors. Using a Python virtual environment, and explicitly installing
    a specific version of the Ansible package with ``python -m pip`` can
-   work around such breaking changes.
+   be helpful in working around such breaking changes.
 
 ..
 
