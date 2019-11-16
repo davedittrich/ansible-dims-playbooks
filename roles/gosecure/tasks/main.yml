@@ -9,6 +9,13 @@
       - gosecure_mode in ['client', 'server']
   tags: [ always ]
 
+- name: Assert gosecure_vpn_client_id is defined
+  assert:
+    that:
+      - gosecure_vpn_client_id is defined
+      - gosecure_vpn_client_id != ''
+  tags: [ always ]
+
 - name: Define setup script URL
   set_fact:
     gosecure_setup_script_url: 'https://davedittrich.github.io/goSecure/files/install_scripts/gosecure_server_install.py'
