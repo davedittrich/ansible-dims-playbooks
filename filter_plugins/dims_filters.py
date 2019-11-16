@@ -10,22 +10,6 @@ from ansible import errors
 # Python3 has no basestring (use str instead)
 basestring = str
 
-def _list_to_args(_list):
-    '''
-    Return a space separated list suitable for an argument list.
-
-    a = ['172.17.8.101', '172.17.8.102', '172.17.8.103']
-    _list_to_args(a)
-    '172.17.8.101 172.17.8.102 172.17.8.103'
-
-    '''
-
-    if type(_list) == type([]):
-        return " ".join([i for i in _list])
-    else:
-        return "{}".format(_list)
-
-
 def _list_to_string_args(_list):
     '''
     Return a comma separated list of strings.
@@ -198,7 +182,6 @@ class FilterModule(object):
     def filters(self):
         return {
             # List filters
-            'list_to_args': _list_to_args,
             'list_to_string_args': _list_to_string_args,
 
             # Docker/Consul/Swarm filters
