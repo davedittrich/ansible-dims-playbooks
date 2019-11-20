@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+# __DIMS_COMMAND__
+#
 # Copyright (C) 2014-2017, University of Washington. All rights reserved.
 #
 # David Dittrich <dittrich@u.washington.edu>

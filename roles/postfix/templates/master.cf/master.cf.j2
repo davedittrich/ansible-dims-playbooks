@@ -10,7 +10,7 @@
 # service type  private unpriv  chroot  wakeup  maxproc command + args
 #               (yes)   (yes)   (yes)   (never) (100)
 # ==========================================================================
-smtp       inet  n       -       -       -       -       smtpd
+smtp       inet  n       -       -       -       -       smtpd {{ postfix_debug|default('') }}
 {% if opendkim_use_spf is defined and opendkim_use_spf|bool %}
 #policy-spf unix  -       n       n       -       0       spawn user=policyd-spf argv=/usr/bin/policyd-spf
 policy-spf unix  -       n       n       -       -       spawn user=nobody argv=/usr/bin/policyd-spf
@@ -47,7 +47,7 @@ cleanup   unix  n       -       -       -       0       cleanup
 qmgr      unix  n       -       n       300     1       qmgr
 #qmgr     unix  n       -       n       300     1       oqmgr
 tlsmgr    unix  -       -       -       1000?   1       tlsmgr
-rewrite   unix  -       -       -       -       -       trivial-rewrite
+rewrite   unix  -       -       -       -       -       trivial-rewrite {{ postfix_debug|default('') }}
 bounce    unix  -       -       -       -       0       bounce
 defer     unix  -       -       -       -       0       bounce
 trace     unix  -       -       -       -       0       bounce
@@ -55,15 +55,15 @@ verify    unix  -       -       -       -       1       verify
 flush     unix  n       -       -       1000?   0       flush
 proxymap  unix  -       -       n       -       -       proxymap
 proxywrite unix -       -       n       -       1       proxymap
-smtp      unix  -       -       -       -       -       smtp
-relay     unix  -       -       -       -       -       smtp
+smtp      unix  -       -       -       -       -       smtp {{ postfix_debug|default('') }}
+relay     unix  -       -       -       -       -       smtp {{ postfix_debug|default('') }}
 #       -o smtp_helo_timeout=5 -o smtp_connect_timeout=5
 showq     unix  n       -       -       -       -       showq
 error     unix  -       -       -       -       -       error
 retry     unix  -       -       -       -       -       error
 discard   unix  -       -       -       -       -       discard
-local     unix  -       n       n       -       -       local
-virtual   unix  -       n       n       -       -       virtual
+local     unix  -       n       n       -       -       local {{ postfix_debug|default('') }}
+virtual   unix  -       n       n       -       -       virtual {{ postfix_debug|default('') }}
 lmtp      unix  -       -       -       -       -       lmtp
 anvil     unix  -       -       -       -       1       anvil
 scache    unix  -       -       -       -       1       scache

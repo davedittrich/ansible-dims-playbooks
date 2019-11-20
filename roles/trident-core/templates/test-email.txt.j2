@@ -1,0 +1,25 @@
+From general@{{ trident_site_email_domain }}
+From: {{ trident_site_adminemail }}
+To: general@{{ trident_site_email_domain }}
+Subject: Fwd: Debugging trident-perl email handler
+Date: Wed, 13 Nov 2019 18:09:15 -0800
+
+This is a test.
+
+
+---------- Forwarded message ---------
+From: main hostmaster <hostmaster@{{ trident_site_email_domain }}>
+Date: Wed, Nov 13, 2019 at 5:09 PM
+Subject: Debugging trident-perl email handler
+To: <{{ trident_site_adminemail }}>
+
+
+See: https://github.com/ops-trust/portal/blob/master/library/mail-handler.pl
+
+Make sure to export ORIGINAL_RECIPIENT=general@{{ trident_site_email_domain }} before
+piping this file into the .debug script.
+
+-- 
+Dave Dittrich
+@davedittrich
+dave.dittrich@gmail.com

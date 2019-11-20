@@ -17,6 +17,7 @@ load helpers
 {% endif %}
 
 @test "[S][EV] {{ ansible_python_virtualenv }}/bin/ansible version is {{ dims_ansible_version }}" {
+    [ -f "{{ ansible_python_virtualenv }}/bin/ansible" ] || skip "Ansible not installed in virtualenv"
     assert "ansible {{ dims_ansible_version }}" bash -c "{{ ansible_python_virtualenv }}/bin/ansible --version 2>&1 | head -n1"
 }
 

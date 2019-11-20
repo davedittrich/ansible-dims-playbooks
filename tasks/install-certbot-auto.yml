@@ -4,7 +4,7 @@
 
 - name: Define _certbot_auto
   set_fact:
-    _certbot_auto: '{{ dims_bin }}/certbot-auto'
+    _certbot_auto: '/usr/local/bin/certbot-auto'
 
 - name: Define certbot_auto_renew_options
   set_fact:

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Setup script for the LiminalAI CLI utility.
+Setup script for the D2 Ansible Playbooks CLI utility.
 
 Author: Dave Dittrich <dave.dittrich@gmail.com>
 URL: ...
@@ -96,6 +96,7 @@ setup(
             'project create = d2.project.create:Create',
             'project delete = d2.project.delete:Delete',
             'project list = d2.project.list:List',
+            'project ping = d2.project.ping:Ping',
         ],
     },
     zip_safe=False,

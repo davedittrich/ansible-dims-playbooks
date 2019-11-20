@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-15 -*-
+# __DIMS_COMMAND__
 #
 # Copyright (C) 2014, 2017, University of Washington. All rights reserved.
 #

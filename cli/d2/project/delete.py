@@ -15,7 +15,7 @@ from d2.project import Projects
 
 
 class Delete(Command):
-    """Delete a new project."""
+    """Delete a project."""
 
     log = logging.getLogger(__name__)
 

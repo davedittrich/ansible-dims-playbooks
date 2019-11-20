@@ -1,4 +1,5 @@
 #!/bin/bash
+# __DIMS_COMMAND__
 #
 # vim: set ts=4 sw=4 tw=0 et :
 #

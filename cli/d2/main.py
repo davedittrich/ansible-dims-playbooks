@@ -165,9 +165,7 @@ class D2App(App):
               D2_REPO_BRANCH      Specific repo branch or commit
               D2_ENVIRONMENT      Name for project's environment
               D2_PROJECTS_DIR     Directory root for storing multiple projects.
-            """
-        )
-
+            """)
         return parser
 
     def initialize_app(self, argv):
@@ -176,13 +174,13 @@ class D2App(App):
 
     def prepare_to_run_command(self, cmd):
         if cmd.app_args.verbose_level > 1:
-            msg = " ".join([arg for arg in sys.argv])
+            msg = " ".join(list(sys.argv))
             self.LOG.info('[+] command line: {0}'.format(msg))
         self.LOG.debug('prepare_to_run_command %s', cmd.__class__.__name__)
         if self.options.elapsed:
             self.timer.start()
 
-    def clean_up(self, cmd, result, err):  # NOQA: WPS110
+    def clean_up(self, cmd, result, err):
         self.LOG.debug('[!] clean_up %s', cmd.__class__.__name__)
         if self.options.elapsed:
             self.timer.stop()
