@@ -142,6 +142,25 @@
                 "PYTHONUNBUFFERED": 1,
                 "PYTHONPATH": "${workspaceFolder}"
             }
+        },
+        {
+            "name": "d2 project ping gosecure",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "module": "d2.main",
+            "args": [
+                "--debug",
+                "project",
+                "ping",
+                "gosecure"
+            ],
+            "stopOnEntry": true,
+            "env": {
+                "PYTHONUNBUFFERED": 1,
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

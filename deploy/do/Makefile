@@ -236,8 +236,9 @@ insertpubkey:
 removepubkey:
 	psec -E run -- terraform destroy $(TF_VARS) -target=digitalocean_ssh_key.default
 
+.PHONY: apply
 .PHONY: create
-create:
+apply create:
 	psec --elapsed -E run -- terraform apply $(PLAN) | tee $(LOGFILE)
 	! grep "^Error: Error" $(LOGFILE)
 	@# $(MAKE) --always-make $(INVENTORY_GENERATED)
@@ -281,7 +282,7 @@ deploy:
 	        -i inventory \
 		--ask-become-pass \
 		-e@"$(shell psec secrets path)" \
-		-e"psec_environment=$(shell psec environments default)" \
+		-e "psec_environment=$(shell psec environments default)" \
 		-e trident_backup_restorefrom='' \
 		master.yml \
 		$(DIMS_ANSIBLE_ARGS)
@@ -291,7 +292,7 @@ update:
 	psec -E run -- ansible-playbook -i $(INVENTORY) \
 	        -i inventory \
 		-e@"$(shell psec secrets path)" \
-		-e"psec_environment=$(shell psec environments default)" \
+		-e "psec_environment=$(shell psec environments default)" \
 		--tags updates \
 		-e packages_upgrade=yes \
 		master.yml \
@@ -355,6 +356,14 @@ updatefacts:
 		-m setup $(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS)
 
+.PHONY: status
+status:
+	psec -E run -- ansible -i $(INVENTORY) \
+	        -i inventory \
+		-m command \
+		-a uptime \
+		$(GROUP_NAME)
+
 .PHONY: ping
 ping:
 	psec -E run -- ansible -i $(INVENTORY) \
@@ -367,9 +376,11 @@ pre.test:
 
 .PHONY: post.test
 post.test:
-	psec -E run -- ansible -i $(INVENTORY) \
+	ansible -i $(INVENTORY) \
 	        -i inventory \
 		-m shell \
+		--become \
+		--become-user ansible \
 		-a 'test.runner --terse --tap' \
 		$(GROUP_NAME) \
 		$(DIMS_ANSIBLE_ARGS) || (echo '[!] Some test(s) failed' && exit 1)

@@ -94,7 +94,7 @@ def convert_type(tt, vv):
     """Convert value 'vv' to type 'tt'."""
     valid_type = ['int', 'float', 'long', 'complex', 'str']
     if tt not in valid_type:
-        valid_types = ','.join([vt for vt in valid_type])
+        valid_types = ','.join(list(valid_type))
         raise RuntimeError(
             'Unsupported type: must be one of: {0}'.format(valid_types)
         )
@@ -193,8 +193,9 @@ class Timer(object):  # NOQA: WPS214
             sys.stdout.flush()
             if self.elapsed_raw() < 1.0:
                 sys.stdout.write(
-                    '{0}:{1:.2f}ms\n'
-                    .format(backspace, self.elapsed_raw() * 1000)
+                    '{0}:{1:.2f}ms\n'.format(
+                        backspace, self.elapsed_raw() * 1000,
+                    )
                 )
             else:
                 sys.stdout.write(
@@ -252,8 +253,9 @@ def safe_to_open(filename, overwrite=False):
         statinfo = os.stat(filename)
         if (statinfo.st_size > 0 and not overwrite):
             raise RuntimeError(
-                'File "{0}" exists. Use --force to overwrite.'
-                .format(filename),
+                'File "{0}" exists. Use --force to overwrite.'.format(
+                    filename
+                ),
             )
     return True
 
