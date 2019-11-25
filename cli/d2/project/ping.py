@@ -52,7 +52,7 @@ class Ping(Lister):
             output = get_output(cmd=cmd, cwd=project['project_path'])  # NOQA
         except CalledProcessError as err:
             output = err.stdout.decode('utf-8').split('\n')
-        output_text = " ".join(list(output))
+        output_text = " ".join(output)
         # Parse output that looks like:
         # yellow | SUCCESS => {
         #    "changed": false,

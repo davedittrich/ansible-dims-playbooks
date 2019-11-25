@@ -164,7 +164,7 @@ class Project(object):
             self.repo_branch,
         )
         self.log.info(msg)
-        msg = ' '.join(list(cmd))
+        msg = ' '.join(cmd)
         self.log.debug('[!] {0}'.format(msg))
         try:
             # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # NOQA
@@ -196,7 +196,7 @@ class Project(object):
                 'secrets',
             ]
             self.log.info('[+] creating python_secrets environment')
-            msg = ' '.join(list(cmd))
+            msg = ' '.join(cmd)
             self.log.debug('[!] {0}'.format(msg))
             try:
                 # See: https://security.openstack.org/guidelines/dg_use-subprocess-securely.html  # NOQA

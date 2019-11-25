@@ -174,7 +174,7 @@ class D2App(App):
 
     def prepare_to_run_command(self, cmd):
         if cmd.app_args.verbose_level > 1:
-            msg = " ".join(list(sys.argv))
+            msg = " ".join(sys.argv)
             self.LOG.info('[+] command line: {0}'.format(msg))
         self.LOG.debug('prepare_to_run_command %s', cmd.__class__.__name__)
         if self.options.elapsed:
