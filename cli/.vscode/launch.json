@@ -83,7 +83,7 @@
             }
         },
         {
-            "name": "d2 -D /tmp project create myproject",
+            "name": "d2 -D /tmp --repo-branch develop project create myproject --create-environment",
             "type": "python",
             "request": "launch",
             "console": "integratedTerminal",
@@ -93,9 +93,12 @@
                 "--debug",
                 "-D",
                 "/tmp",
+		"--repo-branch",
+		"develop",
                 "project",
                 "create",
-                "myproject"
+                "myproject",
+		"--create-environment"
             ],
             "stopOnEntry": true,
             "env": {
