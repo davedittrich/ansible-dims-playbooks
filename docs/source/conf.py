@@ -69,9 +69,9 @@ source_encoding = 'utf-8-sig'
 master_doc = 'index'
 
 # General information about the project.
-project = u'D2 Ansible playbooks'
-author = u'Dave Dittrich'
-copyright = u'2018, David Dittrich. All rights reserved'
+project = 'D2 Ansible playbooks'
+author = 'Dave Dittrich'
+copyright = '2018, David Dittrich. All rights reserved'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -173,7 +173,7 @@ latex_elements = {
     # and http://www.utf8-chartable.de/unicode-utf8-table.pl?start=9472&names=-
     #
     'preamble': "".join((
-        '\usepackage{pifont}',                # To get Dingbats
+        '\\usepackage{pifont}',                # To get Dingbats
         '\DeclareUnicodeCharacter{00A0}{ }',  # NO-BREAK SPACE
         '\DeclareUnicodeCharacter{2014}{\dash}', # LONG DASH
         '\DeclareUnicodeCharacter{251C}{+}',  # BOX DRAWINGS LIGHT VERTICAL AND RIGHT
@@ -190,8 +190,8 @@ latex_elements = {
 latex_documents = [
   (master_doc,
    'ansible-dims-playbooks.tex',
-   u'D2 Ansible playbooks Documentation',
-   u'Dave Dittrich',
+   'D2 Ansible playbooks Documentation',
+   'Dave Dittrich',
    'manual'),
 ]
 
@@ -223,8 +223,8 @@ latex_logo = 'd2-logo.png'
 man_pages = [
     (master_doc,
      'ansible-dims-playbooks',
-     u'D2 Ansible playbooks',
-     [u'Dave Dittrich'],
+     'D2 Ansible playbooks',
+     ['Dave Dittrich'],
      1)
 ]
 
@@ -240,8 +240,8 @@ man_pages = [
 texinfo_documents = [
     (master_doc,
      'ansible-dims-playbooks',
-     u'D2 Ansible playbooks',
-     u'Dave Dittrich',
+     'D2 Ansible playbooks',
+     'Dave Dittrich',
      'ansible-dims-playbooks',
      'Ansible playbooks for DIMS system build/configuration',
      'Miscellaneous'),
@@ -268,7 +268,7 @@ epub_publisher = author
 epub_copyright = copyright
 
 # The basename for the epub file. It defaults to the project name.
-epub_basename = u'ansible-dims-playbooks'
+epub_basename = 'ansible-dims-playbooks'
 
 # The unique identifier of the text. This can be a ISBN number
 # or the project homepage.
