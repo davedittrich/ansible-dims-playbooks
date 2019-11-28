@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Setup script for the LiminalAI CLI utility.
+Setup script for the D2 Ansible Playbooks CLI utility.
 
 Author: Dave Dittrich <dave.dittrich@gmail.com>
 URL: ...

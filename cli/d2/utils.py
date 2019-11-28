@@ -94,7 +94,7 @@ def convert_type(tt, vv):
     """Convert value 'vv' to type 'tt'."""
     valid_type = ['int', 'float', 'long', 'complex', 'str']
     if tt not in valid_type:
-        valid_types = ','.join(list(valid_type))
+        valid_types = ','.join(valid_type)
         raise RuntimeError(
             'Unsupported type: must be one of: {0}'.format(valid_types)
         )

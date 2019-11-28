@@ -4,8 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
-        
         {
             "name": "Python: Current File (Integrated Terminal)",
             "cwd": "${workspaceFolder}",
@@ -85,7 +83,7 @@
             }
         },
         {
-            "name": "d2 -D /tmp project create myproject",
+            "name": "d2 -D /tmp --repo-branch develop project create myproject --create-environment",
             "type": "python",
             "request": "launch",
             "console": "integratedTerminal",
@@ -95,9 +93,12 @@
                 "--debug",
                 "-D",
                 "/tmp",
+		"--repo-branch",
+		"develop",
                 "project",
                 "create",
-                "myproject"
+                "myproject",
+		"--create-environment"
             ],
             "stopOnEntry": true,
             "env": {

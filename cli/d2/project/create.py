@@ -41,6 +41,9 @@ class Create(Command):
             {repo_url}
             into a directory where it will be used by Ansible
             to deploy infrastructure.
+
+            NOTE:  See also ``d2 help`` for global options pertaining
+            to repostory URL and branch to use for cloning project source.
             """.format(repo_url=self.app_args.repo_url),
         )
         return parser
