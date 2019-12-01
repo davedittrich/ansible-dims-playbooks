@@ -115,8 +115,8 @@ function setup() {
     sudo bash -c "[ -f /etc/letsencrypt/live/{{ certbot_sitename }}/privkey.pem ]"
 }
 
-@test "[S][EV] certbot-auto is installed in {{ dims_bin }}" {
-	assert "{{ dims_bin }}/certbot-auto" bash -c "which certbot-auto" {
+@test "[S][EV] certbot-auto is installed in /usr/local/bin" {
+	assert "/usr/local/bin/certbot-auto" bash -c "which certbot-auto" {
 }
 {% endif %}
 

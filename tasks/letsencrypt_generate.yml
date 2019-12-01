@@ -39,8 +39,9 @@
       - "'dpt:80' in _iptables.stdout"
       - "'dpt:443' in _iptables.stdout"
 
-- name: stat {{ dims_bin }}/certbot-auto
-  stat: path='{{ dims_bin }}/certbot-auto'
+- name: stat /usr/local/bin/certbot-auto
+  stat:
+    path: '/usr/local/bin/certbot-auto'
   register: _certbot
 
 - name: Assert certbot-auto is installed

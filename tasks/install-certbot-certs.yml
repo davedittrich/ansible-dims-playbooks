@@ -203,7 +203,7 @@
   - name: Update cert
     shell: >
       touch /etc/letsencrypt/.certbot-auto-renew &&
-      {{ dims_bin }}/certbot-auto
+      /usr/local/bin/certbot-auto
       renew
       --quiet
       --no-self-upgrade
