@@ -133,18 +133,19 @@ class D2App(App):
                 no limit; default: 0)
                 """),
         )
+        # NOTE(dittrich): The default to 'master' branch needs to happen
+        # elsewhere.
         parser.add_argument(
             '-B',
             '--repo-branch',
             action='store',
             metavar='<repo_branch>',
             dest='repo_branch',
-            default=REPO_BRANCH,
+            default=None,
             help=textwrap.dedent("""
                 Branch or commit for ansible-dims-playbooks repository
-                (default: {0})
-                """.format(REPO_BRANCH)
-            ),
+                (default: None)
+                """),
         )
         parser.add_argument(
             '-R',
