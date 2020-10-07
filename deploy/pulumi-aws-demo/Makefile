@@ -71,9 +71,7 @@ up: ami.py
 	@echo "[+] Bringing EC2 instance up with pulumi"
 	pulumi up --yes
 	$(MAKE) hosts
-	@echo "[+] Sleeping $(SLEEP) seconds to allow console-output to present"
-	sleep $(SLEEP)
-	$(MAKE) add-keys
+	while true; do $(MAKE) add-keys && break || sleep $(SLEEP); done
 	@echo "[+] Saving EC2 instance console-output"
 	@ID=$(INSTANCE_ID) && if [ ! -z "$$ID" ]; then $(MAKE) console-output > "$$ID-console-output.txt"; fi
 
